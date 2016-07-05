@@ -339,7 +339,7 @@ class AbstractAPI(utils.LogMixin):
 
 class RemoteAPI(AbstractAPI):
     """Provides API access via HTTP to the CCU."""
-    def __init__(self, address, credentials, connect_timeout=10):
+    def __init__(self, address, credentials, connect_timeout=100):
         self._session_id      = None
         self._address         = None
         self._credentials     = None

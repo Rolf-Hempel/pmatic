@@ -20,14 +20,15 @@
 
 import pmatic
 
-# Open up a remote connection via HTTP to the CCU and login as admin. When the connection
-# can not be established within 5 seconds it raises an exception.
-ccu = pmatic.CCU(
-    # TODO: Replace this with the URL to your CCU2.
-    address="http://192.168.0.51",
-    # TODO: Insert your credentials here.
-    credentials=("rolf", "Px9820rH"),
-    connect_timeout=5
-)
+ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"))
 
-ccu.api.print_methods()
+for device in ccu.devices.query(device_type=[u"HM-LC-Bl1PBU-FM"]):
+    print device
+    print device.channels
+    print device.channels[1].values.keys()
+    print device.summary_state
+
+    print "Rolladen-Level: ", device.blind.level
+    print "Set level: ", device.blind.set_level(0.5)
+
+    print ""

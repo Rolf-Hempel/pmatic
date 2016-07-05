@@ -20,7 +20,10 @@
 
 import pmatic
 
-ccu = pmatic.CCU(address="http://192.168.1.26", credentials=("Admin", "EPIC-SECRET-PW"))
+ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"))
 
 for room in ccu.rooms:
     print("%-30s %d devices" % (room.name, len(room.devices)))
+    for device in room.devices:
+        state = device.summary_state
+        print state

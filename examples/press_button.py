@@ -20,12 +20,20 @@
 
 import pmatic
 
-ccu = pmatic.CCU(address="http://192.168.1.26", credentials=("Admin", "EPIC-SECRET-PW"))
+ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"))
 
 # Trigger a short button press for the first button of a HM-PBI-4-FM device
-for device in ccu.devices.query(device_name=u"Büro-Schalter"):
-    if device.switch1.press_short():
-        print("done.")
-    else:
-        print("failed!")
+# for device in ccu.devices.query(device_name=u"Büro-Schalter"):
+#     if device.switch1.press_short():
+#         print("done.")
+#     else:
+#         print("failed!")
 
+for device in ccu.devices.query(device_type=u"HM-LC-Sw1-Pl-DN-R1"):
+    # print device
+    # print device.channels
+    # print device.channels[1]
+    # print device.summary_state
+    device.switch.switch_on()
+    device.switch.switch_off()
+    print device.switch.summary_state

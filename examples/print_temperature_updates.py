@@ -20,7 +20,7 @@
 
 """
 Simply prints out all temperatures reported by the devices of type
-HM-CC-TC, HM-WDS10-TH-O and HM-CC-RT-DN.
+"HM-WDS40-TH-I-2" and "HM-WDS10-TH-O".
 
 This script is executed until terminated by the user (e.g. via CTRL+C).
 It listens for incoming events and prints a message to the user once
@@ -32,8 +32,11 @@ updates are printed nearly instantly.
 
 import pmatic
 
-ccu = pmatic.CCU(address="http://192.168.1.26", credentials=("Admin", "EPIC-SECRET-PW"))
-devices = ccu.devices.query(device_type=["HM-CC-TC", "HM-WDS10-TH-O", "HM-CC-RT-DN"])
+# ccu = pmatic.CCU(address="http://192.168.1.26", credentials=("Admin", "EPIC-SECRET-PW"))
+# devices = ccu.devices.query(device_type=["HM-CC-TC", "HM-WDS10-TH-O", "HM-CC-RT-DN"])
+
+ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"))
+devices = ccu.devices.query(device_type=["HM-WDS40-TH-I-2", "HM-WDS10-TH-O"])
 
 # This function is executed on each state change
 def print_summary_state(param):
