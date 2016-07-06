@@ -30,4 +30,9 @@ ccu = pmatic.CCU(
     connect_timeout=5
 )
 
-ccu.api.print_methods()
+struct = ccu.api.device_list_all_detail()
+for item in struct:
+    print item[u'name']
+    for channel in item[u'channels']:
+        print channel
+    print ""
