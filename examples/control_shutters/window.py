@@ -20,7 +20,7 @@
 
 from math import radians, degrees
 import pmatic
-import sun_position
+from sun_position import sun_position
 
 class window(object):
     def __init__(self, name, room_name, shutter_name, ccu, sun):
@@ -49,7 +49,7 @@ class window(object):
                                  radians(elevation_lower), radians(elevation_upper)])
 
     def test_sunlit(self):
-        sun_azimuth, sun_elevation = self.sun.get_position()
+        sun_azimuth, sun_elevation = self.sun.update_position()
         sunlit = False
         for ([azimuth_lower, azimuth_upper, elevation_lower, elevation_upper]) in self.open_spaces:
             if azimuth_lower <= sun_azimuth <= azimuth_upper and elevation_lower <= sun_elevation <= elevation_upper:

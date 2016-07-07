@@ -18,14 +18,22 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from pmatic import utils
+from math import degrees, radians
+
 class sun_position(object):
+
     def __init__(self, longitude, latitude):
         self.longitude = longitude
         self.latitude = latitude
+        self.update_position
 
-    def get_position(self):
-        pass
+    def update_position(self):
+        self.azimuth, self.elevation = utils.sun_position(self.longitude, self.latitude)
+        return self.azimuth, self.elevation
 
+if __name__=="__main__":
+    sun = sun_position(radians(7.), radians(51.))
+    (azimuth, elevation) = sun.update_position()
 
-def unix_timestamp_to_julian(unix_secs):
-    return ( unix_secs / 86400.0 ) + 2440587.5
+    print "Azimut: ", degrees(azimuth), ", Elevation: ", degrees(elevation)
