@@ -18,26 +18,37 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import time
+import time, sys
 
 import pmatic
 
 
-class temperature_external(object):
-    def __init__(self, temperature_devices):
-        self.temperature_devices = temperature_devices
+class temperature_humidity(object):
+    def __init__(self, temperature_devices_external, temperature_devices_internal):
+        self.temperature_devices_external = temperature_devices_external
+        self.temperature_devices_internal = temperature_devices_internal
 
         self.temperatures = []
         self.minmax_time_updated = 0.
-        self.update_temperature()
+        self.update_temperature_humidity()
 
-    def update_temperature(self):
-        current_temperature = 0.
-        for device in self.temperature_devices:
-            current_temperature += device.temperature
-        current_temperature = current_temperature / self.number_devices
+    def update_temperature_humidity(self):
+        current_temperature_external = 0.
+        current_humidity_external = 0.
+        for device in self.temperature_devices_external:
+            current_temperature_external += device.temperature
+            current_humidity_external += device.humidity
+        current_temperature_external = current_temperature_external / len(self.temperature_devices_external)
+        current_humidity_external = current_humidity_external / len(self.temperature_devices_external)
+        current_temperature_internal = 0.
+        current_humidity_internal = 0.
+        for device in self.temperature_devices_internal:
+            current_temperature_internal += device.temperature
+            current_humidity_internal += device.humidity
+        current_temperature_internal = current_temperature_internal / len(self.temperature_devices_internal)
+        current_humidity_internal = current_humidity_internal / len(self.temperature_devices_internal)
         current_time = time.time()
-        temp_object = [current_time, current_temperature]
+        temp_object = [current_time, current_temperature_external]
         self.temperatures.append(temp_object)
 
         for i in range(len(self.temperatures)):
@@ -58,12 +69,13 @@ class temperature_external(object):
                 if to[1] < self.min_temperature:
                     self.min_temperature = to[1]
                     self.min_temperature_time = to[0]
-        return (self.max_temperature, self.min_temperature_time)
+        return (current_temperature_internal, current_humidity_internal, current_temperature_external,
+                current_humidity_external, self.max_temperature, self.min_temperature_time)
 
 
 class switch(object):
-    def __init__(self, switch_devices):
-        self.switch_devices = switch_devices
+    def __init__(self, switch_device):
+        self.switch_device = switch_device
         self.low_temp_pattern = [[10000., 11000.], [20000., 21000.], [29000., 30000.], [35000., 36000.], \
                                  [40000., 41000.], [45000., 46000.], [50000., 51000.], [55000., 56000.], \
                                  [61000., 62000.], [70000., 71000.], [80000., 81000.]]
@@ -73,7 +85,8 @@ class switch(object):
         self.transition_temperature = 10.
         self.ventilator_on = False
 
-    def ventilator_state_update(self, max_temperature, min_temperature_time):
+    def ventilator_state_update(self, current_temperature_internal, current_temperature_external,
+                                current_humidity_external, max_temperature, min_temperature_time):
         if max_temperature > self.transition_temperature:
             temp_pattern = self.high_temp_pattern
         else:
@@ -83,26 +96,36 @@ class switch(object):
             if interval[0] < time.time() - min_temperature_time < interval[1]:
                 switch_on = True
                 break
-        for device in self.switch_devices:
-            if device.is_on() != switch_on:
-                device.toggle()
+        if self.switch_device.is_on():
+            self.switch_device.switch_off()
+        else:
+            # Hier weiter mit Einschalten, falls Taupunktkriterium erfüllt ist.
 
 
 if __name__ == "__main__":
     ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("Admin", "xxx"), connect_timeout=5)
-    temperature_devices = ccu.devices.query(device_type=["xxx"])
-    number_devices = len(temperature_devices)
+    temperature_devices_external = ccu.devices.query(device_type=["xxx"])
+    number_devices = len(temperature_devices_external)
     if number_devices == 0:
         print "Error: No external thermometer found."
-    switch_devices = ccu.devices.query(device_name=u"HM-LC-Sw1-Pl-DN-R1 xxxx")
-    number_devices = len(switch_devices)
+        sys.exit(1)
+    temperature_devices_internal = ccu.devices.query(device_type=["xxx"])
+    number_devices = len(temperature_devices_internal)
     if number_devices == 0:
+        print "Error: No external thermometer found."
+        sys.exit(1)
+    switch_devices = ccu.devices.query(device_name=u"HM-LC-Sw1-Pl-DN-R1 xxxx")
+    if len(switch_devices) != 1:
         print "Error: No switch device found."
+        sys.exit(1)
 
-    temperature_external_object = temperature_external(temperature_devices)
-    switch_object = switch(switch_devices)
+    temperature_external_object = temperature_humidity(temperature_devices_external, temperature_devices_internal)
+    switch_object = switch(switch_devices[0])
 
     while True:
-        max_temperature, min_temperature_time = temperature_external_object.update_temperature()
-        switch_object.ventilator_state_update(max_temperature, min_temperature_time)
+        current_temperature_internal, current_humidity_internal, current_temperature_external,\
+        current_humidity_external, max_temperature, min_temperature_time = \
+            temperature_external_object.update_temperature_humidity()
+        switch_object.ventilator_state_update(current_temperature_internal, current_temperature_external,
+                                              current_humidity_external, max_temperature, min_temperature_time)
         time.sleep(120)
