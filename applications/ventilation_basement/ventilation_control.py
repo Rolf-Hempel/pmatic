@@ -18,7 +18,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import time, sys
+import sys
+import time
 
 import pmatic
 
@@ -36,15 +37,15 @@ class temperature_humidity(object):
         current_temperature_external = 0.
         current_humidity_external = 0.
         for device in self.temperature_devices_external:
-            current_temperature_external += device.temperature
-            current_humidity_external += device.humidity
+            current_temperature_external += device.temperature.value
+            current_humidity_external += device.humidity.value
         current_temperature_external = current_temperature_external / len(self.temperature_devices_external)
         current_humidity_external = current_humidity_external / len(self.temperature_devices_external)
         current_temperature_internal = 0.
         current_humidity_internal = 0.
         for device in self.temperature_devices_internal:
-            current_temperature_internal += device.temperature
-            current_humidity_internal += device.humidity
+            current_temperature_internal += device.temperature.value
+            current_humidity_internal += device.humidity.value
         current_temperature_internal = current_temperature_internal / len(self.temperature_devices_internal)
         current_humidity_internal = current_humidity_internal / len(self.temperature_devices_internal)
         current_time = time.time()
@@ -74,8 +75,8 @@ class temperature_humidity(object):
 
 
 class switch(object):
-    def __init__(self, switch_device):
-        self.switch_device = switch_device
+    def __init__(self, switch_devices):
+        self.switch_devices = switch_devices
         self.low_temp_pattern = [[10000., 11000.], [20000., 21000.], [29000., 30000.], [35000., 36000.], \
                                  [40000., 41000.], [45000., 46000.], [50000., 51000.], [55000., 56000.], \
                                  [61000., 62000.], [70000., 71000.], [80000., 81000.]]
@@ -83,7 +84,6 @@ class switch(object):
                                   [26000., 27000.], [36000., 37000.], [46000., 47000.], [56000., 57000.], \
                                   [61000., 62000.], [69000., 70000.], [77000., 78000.], [83000., 84000.]]
         self.transition_temperature = 10.
-        self.ventilator_on = False
 
     def ventilator_state_update(self, current_temperature_internal, current_temperature_external,
                                 current_humidity_external, max_temperature, min_temperature_time):
@@ -91,36 +91,44 @@ class switch(object):
             temp_pattern = self.high_temp_pattern
         else:
             temp_pattern = self.low_temp_pattern
-        switch_on = False
+        switch_on_time = False
         for interval in temp_pattern:
             if interval[0] < time.time() - min_temperature_time < interval[1]:
-                switch_on = True
+                switch_on_time = True
                 break
-        if self.switch_device.is_on():
-            self.switch_device.switch_off()
-        else:
-            # Hier weiter mit Einschalten, falls Taupunktkriterium erfüllt ist.
+        for switch_device in self.switch_devices:
+            if switch_device.is_on() and not switch_on_time:
+                switch_device.switch_off()
+            elif switch_device.is_off() and pmatic.utils.dew_point(current_temperature_external,
+                                            current_humidity_external) < current_temperature_internal:
+                switch_device.switch_on()
 
 
 if __name__ == "__main__":
-    ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("Admin", "xxx"), connect_timeout=5)
-    temperature_devices_external = ccu.devices.query(device_type=["xxx"])
-    number_devices = len(temperature_devices_external)
-    if number_devices == 0:
+    # ccu = pmatic.CCU()
+    # sys.stdout = open('/media/sd-mmcblk0/protocols/ventilation', 'a')
+    ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
+    temperature_devices_external = ccu.devices.query(device_type=[u'HM-WDS10-TH-O'])
+    for device in temperature_devices_external:
+        print "External temperature device: ", device.name
+    if len(temperature_devices_external) == 0:
         print "Error: No external thermometer found."
         sys.exit(1)
-    temperature_devices_internal = ccu.devices.query(device_type=["xxx"])
-    number_devices = len(temperature_devices_internal)
-    if number_devices == 0:
+    temperature_devices_internal = ccu.devices.query(device_type=[u'HM-WDS40-TH-I-2'])
+    for device in temperature_devices_internal:
+        print "Internal temperature device: ", device.name
+    if len(temperature_devices_internal) == 0:
         print "Error: No external thermometer found."
         sys.exit(1)
-    switch_devices = ccu.devices.query(device_name=u"HM-LC-Sw1-Pl-DN-R1 xxxx")
-    if len(switch_devices) != 1:
+    switch_devices = ccu.devices.query(device_name=u"Steckdosenschalter Gartenkeller")
+    for device in switch_devices:
+        print "Switch device: ", device.name
+    if len(switch_devices) == 0:
         print "Error: No switch device found."
         sys.exit(1)
 
     temperature_external_object = temperature_humidity(temperature_devices_external, temperature_devices_internal)
-    switch_object = switch(switch_devices[0])
+    switch_object = switch(switch_devices)
 
     while True:
         current_temperature_internal, current_humidity_internal, current_temperature_external,\

@@ -26,4 +26,8 @@ for room in ccu.rooms:
     print("%-30s %d devices" % (room.name, len(room.devices)))
     for device in room.devices:
         state = device.summary_state
-        print state
+        print device.name, ", ", device.type, ", ", device.summary_state
+
+devices = ccu.devices.query(device_name=u'Temperatur- und Feuchtesensor außen')
+for device in devices:
+    print len(devices), device.name, device.summary_state
