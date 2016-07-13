@@ -56,7 +56,8 @@ class temperature_humidity(object):
             current_temperature_external += device.temperature.value
             current_humidity_external += device.humidity.value
         current_temperature_external = current_temperature_external / len(self.temperature_devices_external)
-        current_humidity_external = current_humidity_external / len(self.temperature_devices_external)
+        # Convert humidity from percent to a float between 0. and 1.
+        current_humidity_external = current_humidity_external / (100.*len(self.temperature_devices_external))
         current_temperature_internal = 0.
         current_humidity_internal = 0.
         for device in self.temperature_devices_internal:
@@ -142,12 +143,14 @@ class switch(object):
             if interval[0] < time.time() - min_temperature_time < interval[1]:
                 switch_on_time = True
                 break
+
         dew_point_external = pmatic.utils.dew_point(current_temperature_external, current_humidity_external)
+
         for switch_device in self.switch_devices:
-            if switch_device.is_on() and not switch_on_time:
+            if switch_device.is_on and not switch_on_time:
                 print date_and_time(), " Switching ", switch_device.name, " off"
                 switch_device.switch_off()
-            elif switch_on_time and switch_device.is_off() and dew_point_external < current_temperature_internal:
+            elif switch_on_time and switch_device.is_off and dew_point_external < current_temperature_internal:
                 print date_and_time(), " Switching ", switch_device.name, " on, T int: ", \
                     current_temperature_internal, ", T ext: ", current_temperature_external, \
                     ", Dew point: ", dew_point_external
@@ -163,20 +166,19 @@ def date_and_time():
 
 
 if __name__ == "__main__":
-    # ccu = pmatic.CCU()
-    # sys.stdout = open('/media/sd-mmcblk0/protocols/ventilation.txt', 'a')
-    ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
+    ccu = pmatic.CCU()
+    sys.stdout = open('/media/sd-mmcblk0/protocols/ventilation.txt', 'a')
+    # ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
 
     # Look up outside and internal temperature/humidity measuring devices
-    print "\n", date_and_time(), " Starting ventilation control program", , "\nDevices used:"
+    print "\n", date_and_time(), " Starting ventilation control program\nDevices used:"
     temperature_devices_external = ccu.devices.query(device_type=[u'HM-WDS10-TH-O'])
     for device in temperature_devices_external:
         print "External temperature device: ", device.name
     if len(temperature_devices_external) == 0:
         print "Error: No external thermometer found."
         sys.exit(1)
-    # Add selection of room!
-    temperature_devices_internal = ccu.devices.query(device_type=[u'HM-WDS40-TH-I-2'])
+    temperature_devices_internal = ccu.devices.query(device_name=u'Temperatur- und Feuchtesensor Gartenkeller')
     for device in temperature_devices_internal:
         print "Internal temperature device: ", device.name
     if len(temperature_devices_internal) == 0:
