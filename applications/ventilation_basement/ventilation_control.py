@@ -21,6 +21,7 @@
 import datetime
 import sys
 import time
+import codecs
 
 import pmatic
 
@@ -166,9 +167,9 @@ def date_and_time():
 
 
 if __name__ == "__main__":
-    ccu = pmatic.CCU()
-    sys.stdout = open('/media/sd-mmcblk0/protocols/ventilation.txt', 'a')
-    # ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
+    # ccu = pmatic.CCU()
+    # sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
+    ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
 
     # Look up outside and internal temperature/humidity measuring devices
     print "\n", date_and_time(), " Starting ventilation control program\nDevices used:"
