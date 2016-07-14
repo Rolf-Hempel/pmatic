@@ -42,6 +42,8 @@ class temperature_humidity(object):
 
         self.temperatures = []
         self.minmax_time_updated = 0.
+        self.min_temperature_time = 0.
+        self.max_temperature_time = 0.
         self.update_temperature_humidity()
 
     def update_temperature_humidity(self):
@@ -58,7 +60,7 @@ class temperature_humidity(object):
             current_humidity_external += device.humidity.value
         current_temperature_external = current_temperature_external / len(self.temperature_devices_external)
         # Convert humidity from percent to a float between 0. and 1.
-        current_humidity_external = current_humidity_external / (100.*len(self.temperature_devices_external))
+        current_humidity_external = current_humidity_external / (100. * len(self.temperature_devices_external))
         current_temperature_internal = 0.
         current_humidity_internal = 0.
         for device in self.temperature_devices_internal:
@@ -79,23 +81,27 @@ class temperature_humidity(object):
                     if current_time - self.temperatures[i][0] < 86400.:
                         break
                 self.temperatures = self.temperatures[i:]
+                # print "temperature list shortened: ", self.temperatures
 
             self.minmax_time_updated = current_time
-            self.index_max = -1
-            self.index_min = -1
             self.min_temperature = 100.
             self.max_temperature = -100.
             for to in self.temperatures:
                 if to[1] > self.max_temperature:
                     self.max_temperature = to[1]
-                    self.max_temperature_time = to[0]
+                    self.max_temperature_time_new = to[0]
                 if to[1] < self.min_temperature:
                     self.min_temperature = to[1]
-                    self.min_temperature_time = to[0]
-            print "\n", date_and_time(), \
-                " Updating minimum and maximum external temperatures:\nCurrent temperature: ", \
-                current_temperature_external, ", New minimum temperature: ", \
-                self.min_temperature, ", new maximum temperature: ", self.max_temperature, "\n"
+                    self.min_temperature_time_new = to[0]
+            if self.max_temperature_time_new != self.max_temperature_time:
+                print "\n", date_and_time(), \
+                    " Updating maximum external temperature: New maximum temperature: ", self.max_temperature
+                self.max_temperature_time = self.max_temperature_time_new
+            if self.min_temperature_time_new != self.min_temperature_time:
+                print "\n", date_and_time(), \
+                    " Updating minimum external temperature: New minimum temperature: ", self.min_temperature, \
+                    ", Time of minimum: ", datetime.datetime.fromtimestamp(self.min_temperature_time_new)
+                self.min_temperature_time = self.min_temperature_time_new
         return (current_temperature_internal, current_humidity_internal, current_temperature_external,
                 current_humidity_external, self.max_temperature, self.min_temperature_time)
 
@@ -116,6 +122,8 @@ class switch(object):
         self.low_temp_pattern = [[10000., 11000.], [20000., 21000.], [29000., 30000.], [35000., 36000.], \
                                  [40000., 41000.], [45000., 46000.], [50000., 51000.], [55000., 56000.], \
                                  [61000., 62000.], [70000., 71000.], [80000., 81000.]]
+        # self.high_temp_pattern = [[100, 110], [200, 210], [300, 310], [400, 410], [500, 510], [600, 610],
+        #                          [3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
         self.high_temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
                                   [26000., 27000.], [36000., 37000.], [46000., 47000.], [56000., 57000.], \
                                   [61000., 62000.], [69000., 70000.], [77000., 78000.], [83000., 84000.]]
@@ -151,7 +159,7 @@ class switch(object):
             if switch_device.is_on and not switch_on_time:
                 print date_and_time(), " Switching ", switch_device.name, " off"
                 switch_device.switch_off()
-            elif switch_on_time and switch_device.is_off and dew_point_external < current_temperature_internal:
+            elif switch_on_time and not switch_device.is_on and dew_point_external < current_temperature_internal:
                 print date_and_time(), " Switching ", switch_device.name, " on, T int: ", \
                     current_temperature_internal, ", T ext: ", current_temperature_external, \
                     ", Dew point: ", dew_point_external
@@ -167,9 +175,9 @@ def date_and_time():
 
 
 if __name__ == "__main__":
-    # ccu = pmatic.CCU()
-    # sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
-    ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
+    ccu = pmatic.CCU()
+    sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
+    # ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
 
     # Look up outside and internal temperature/humidity measuring devices
     print "\n", date_and_time(), " Starting ventilation control program\nDevices used:"

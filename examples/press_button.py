@@ -34,6 +34,9 @@ for device in ccu.devices.query(device_type=u"HM-LC-Sw1-Pl-DN-R1"):
     # print device.channels
     # print device.channels[1]
     # print device.summary_state
-    device.switch.switch_on()
-    device.switch.switch_off()
+    print "Name of switch device: ", device.name
+    device.switch_on()
+    print "Switch device is on: ", device.is_on
+    device.switch_off()
+    print "Switch device is on: ", device.is_on
     print device.switch.summary_state
