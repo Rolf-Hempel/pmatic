@@ -29,14 +29,19 @@ ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH")
 #     else:
 #         print("failed!")
 
-for device in ccu.devices.query(device_type=u"HM-LC-Sw1-Pl-DN-R1"):
-    # print device
-    # print device.channels
-    # print device.channels[1]
-    # print device.summary_state
-    print "Name of switch device: ", device.name
+# for device in ccu.devices.query(device_type=u"HM-LC-Sw1-Pl-DN-R1"):
+#     # print device
+#     # print device.channels
+#     # print device.channels[1]
+#     # print device.summary_state
+
+device = ccu.devices.query(device_name=u"Steckdosenschalter Gartenkeller")._devices.values()[0]
+print "Name of switch device: ", device.name
+try:
     device.switch_on()
-    print "Switch device is on: ", device.is_on
-    device.switch_off()
-    print "Switch device is on: ", device.is_on
-    print device.switch.summary_state
+except Exception as e:
+    print e
+print "Switch device is on: ", device.is_on
+device.switch_off()
+print "Switch device is on: ", device.is_on
+print device.switch.summary_state

@@ -27,8 +27,7 @@ import pmatic
 
 
 class temperature_humidity(object):
-    """This class manages the readouts from internal and external temperature/humidity meters. For both internal and
-    external measurements, the readouts from several devices can be averaged.
+    """This class manages the readouts from internal and external temperature/humidity meters.
 
     The temperature_humidity object keeps a list of external temperature readings, each stored together with the
     corresponding Unix timestamp. Readings which are more than one day old are dropped from the list. This list is the
@@ -36,14 +35,20 @@ class temperature_humidity(object):
 
     """
 
-    def __init__(self, temperature_devices_external, temperature_devices_internal):
-        self.temperature_devices_external = temperature_devices_external
-        self.temperature_devices_internal = temperature_devices_internal
+    def __init__(self, temperature_device_external, temperature_device_internal):
+        self.temperature_device_external = temperature_device_external
+        self.temperature_device_internal = temperature_device_internal
 
         self.temperatures = []
         self.minmax_time_updated = 0.
         self.min_temperature_time = 0.
         self.max_temperature_time = 0.
+
+        # Time in seconds between two consecutive computations of minimum and maximum temperatures
+        self.min_time_between_minmax_updates = 300.
+        # Time period in seconds for which temperature measurements are kept for min/max computations
+        self.retention_time_for_temperature_measurements = 3600.
+
         self.update_temperature_humidity()
 
     def update_temperature_humidity(self):
@@ -53,35 +58,29 @@ class temperature_humidity(object):
         :return: current values for internal and external temperature and humidity, maximum external temperature
         and the Unix timestamp of the minimum external temperature, both computed for the last 24 hours.
         """
-        current_temperature_external = 0.
-        current_humidity_external = 0.
-        for device in self.temperature_devices_external:
-            current_temperature_external += device.temperature.value
-            current_humidity_external += device.humidity.value
-        current_temperature_external = current_temperature_external / len(self.temperature_devices_external)
+
+        current_temperature_external = self.temperature_device_external.temperature.value
         # Convert humidity from percent to a float between 0. and 1.
-        current_humidity_external = current_humidity_external / (100. * len(self.temperature_devices_external))
-        current_temperature_internal = 0.
-        current_humidity_internal = 0.
-        for device in self.temperature_devices_internal:
-            current_temperature_internal += device.temperature.value
-            current_humidity_internal += device.humidity.value
-        current_temperature_internal = current_temperature_internal / len(self.temperature_devices_internal)
-        current_humidity_internal = current_humidity_internal / len(self.temperature_devices_internal)
+        current_humidity_external = self.temperature_device_external.humidity.value / 100.
+
+        current_temperature_internal = self.temperature_device_internal.temperature.value
+        # Convert humidity from percent to a float between 0. and 1.
+        current_humidity_internal = self.temperature_device_internal.humidity.value / 100.
+
         # Unix timestamp (counted in seconds since 1970.0)
         current_time = time.time()
         temp_object = [current_time, current_temperature_external]
         self.temperatures.append(temp_object)
 
         # Update minimum and maximum temperature only once per day
-        if current_time - self.minmax_time_updated >= 86400.:
+        if current_time - self.minmax_time_updated >= self.min_time_between_minmax_updates:
             if len(self.temperatures) > 0:
-                # Drop entries older than one day
+                # Drop entries older than retention time:
                 for i in range(len(self.temperatures)):
-                    if current_time - self.temperatures[i][0] < 86400.:
+                    if current_time - self.temperatures[i][0] < self.retention_time_for_temperature_measurements:
                         break
                 self.temperatures = self.temperatures[i:]
-                # print "temperature list shortened: ", self.temperatures
+                print "temperature list shortened: ", self.temperatures
 
             self.minmax_time_updated = current_time
             self.min_temperature = 100.
@@ -117,18 +116,18 @@ class switch(object):
 
     """
 
-    def __init__(self, switch_devices):
-        self.switch_devices = switch_devices
+    def __init__(self, switch_device):
+        self.switch_device = switch_device
         self.low_temp_pattern = [[10000., 11000.], [20000., 21000.], [29000., 30000.], [35000., 36000.], \
                                  [40000., 41000.], [45000., 46000.], [50000., 51000.], [55000., 56000.], \
                                  [61000., 62000.], [70000., 71000.], [80000., 81000.]]
-        # self.high_temp_pattern = [[100, 110], [200, 210], [300, 310], [400, 410], [500, 510], [600, 610],
-        #                          [3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
-        self.high_temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
+        self.high_temp_pattern = [[100, 110], [200, 210], [300, 310], [400, 410], [500, 510], [600, 610],
+                                 [3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
+        # self.high_temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
                                   [26000., 27000.], [36000., 37000.], [46000., 47000.], [56000., 57000.], \
                                   [61000., 62000.], [69000., 70000.], [77000., 78000.], [83000., 84000.]]
         # Definition of the threshold temperature
-        self.transition_temperature = 10.
+        self.transition_temperature = 5.
 
     def ventilator_state_update(self, current_temperature_internal, current_temperature_external,
                                 current_humidity_external, max_temperature, min_temperature_time):
@@ -155,15 +154,17 @@ class switch(object):
 
         dew_point_external = pmatic.utils.dew_point(current_temperature_external, current_humidity_external)
 
-        for switch_device in self.switch_devices:
-            if switch_device.is_on and not switch_on_time:
-                print date_and_time(), " Switching ", switch_device.name, " off"
-                switch_device.switch_off()
-            elif switch_on_time and not switch_device.is_on and dew_point_external < current_temperature_internal:
-                print date_and_time(), " Switching ", switch_device.name, " on, T int: ", \
+        try:
+            if self.switch_device.is_on and not switch_on_time:
+                print date_and_time(), " Switching ", self.switch_device.name, " off"
+                self.switch_device.switch_off()
+            elif switch_on_time and not self.switch_device.is_on and dew_point_external < current_temperature_internal:
+                print date_and_time(), " Switching ", self.switch_device.name, " on, T int: ", \
                     current_temperature_internal, ", T ext: ", current_temperature_external, \
                     ", Dew point: ", dew_point_external
-                switch_device.switch_on()
+                self.switch_device.switch_on()
+        except Exception as e:
+            print e
 
 
 def date_and_time():
@@ -173,36 +174,43 @@ def date_and_time():
     """
     return datetime.datetime.fromtimestamp(time.time())
 
+def look_up_device(dev_name):
+    """Look up the device by its name
+
+    Args:
+        dev_name: device name (utf-8 string)
+
+    Returns: the device object
+
+    """
+    try:
+        devices = ccu.devices.query(device_name=dev_name)._devices.values()
+    except Exception as e:
+        print e
+    if len(devices) == 1:
+        print dev_name
+        return devices[0]
+    elif len(devices) > 1:
+        print date_and_time(), " More than one device with name ", dev_name, " found, first one taken"
+    else:
+        print date_and_time(), " Error: No device with name ", dev_name, " found, execution halted."
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    ccu = pmatic.CCU()
-    sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
-    # ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
 
-    # Look up outside and internal temperature/humidity measuring devices
+    # ccu = pmatic.CCU()
+    # sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
+    ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
+
+    # Look up devices for outside and internal temperature/humidity measurement and ventilator switching
     print "\n", date_and_time(), " Starting ventilation control program\nDevices used:"
-    temperature_devices_external = ccu.devices.query(device_type=[u'HM-WDS10-TH-O'])
-    for device in temperature_devices_external:
-        print "External temperature device: ", device.name
-    if len(temperature_devices_external) == 0:
-        print "Error: No external thermometer found."
-        sys.exit(1)
-    temperature_devices_internal = ccu.devices.query(device_name=u'Temperatur- und Feuchtesensor Gartenkeller')
-    for device in temperature_devices_internal:
-        print "Internal temperature device: ", device.name
-    if len(temperature_devices_internal) == 0:
-        print "Error: No external thermometer found."
-        sys.exit(1)
-    # Look up name of switch devices
-    switch_devices = ccu.devices.query(device_name=u"Steckdosenschalter Gartenkeller")
-    for device in switch_devices:
-        print "Switch device: ", device.name
-    if len(switch_devices) == 0:
-        print "Error: No switch device found."
-        sys.exit(1)
+    temperature_device_external = look_up_device(u'Temperatur- und Feuchtesensor außen')
+    temperature_device_internal = look_up_device(u'Temperatur- und Feuchtesensor Gartenkeller')
+    switch_device = look_up_device(u"Steckdosenschalter Gartenkeller")
 
-    th = temperature_humidity(temperature_devices_external, temperature_devices_internal)
-    sw = switch(switch_devices)
+    th = temperature_humidity(temperature_device_external, temperature_device_internal)
+    sw = switch(switch_device)
 
     while True:
         current_temperature_internal, current_humidity_internal, current_temperature_external, \
@@ -210,4 +218,4 @@ if __name__ == "__main__":
             th.update_temperature_humidity()
         sw.ventilator_state_update(current_temperature_internal, current_temperature_external,
                                    current_humidity_external, max_temperature, min_temperature_time)
-        time.sleep(120)
+        time.sleep(5.)
