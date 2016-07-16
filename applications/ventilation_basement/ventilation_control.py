@@ -45,9 +45,9 @@ class temperature_humidity(object):
         self.max_temperature_time = 0.
 
         # Time in seconds between two consecutive computations of minimum and maximum temperatures
-        self.min_time_between_minmax_updates = 300.
+        self.min_time_between_minmax_updates = 86400.
         # Time period in seconds for which temperature measurements are kept for min/max computations
-        self.retention_time_for_temperature_measurements = 3600.
+        self.retention_time_for_temperature_measurements = 86400.
 
         self.update_temperature_humidity()
 
@@ -80,7 +80,7 @@ class temperature_humidity(object):
                     if current_time - self.temperatures[i][0] < self.retention_time_for_temperature_measurements:
                         break
                 self.temperatures = self.temperatures[i:]
-                print "temperature list shortened: ", self.temperatures
+                # print "temperature list shortened: ", self.temperatures
 
             self.minmax_time_updated = current_time
             self.min_temperature = 100.
@@ -121,9 +121,9 @@ class switch(object):
         self.low_temp_pattern = [[10000., 11000.], [20000., 21000.], [29000., 30000.], [35000., 36000.], \
                                  [40000., 41000.], [45000., 46000.], [50000., 51000.], [55000., 56000.], \
                                  [61000., 62000.], [70000., 71000.], [80000., 81000.]]
-        self.high_temp_pattern = [[100, 110], [200, 210], [300, 310], [400, 410], [500, 510], [600, 610],
-                                 [3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
-        # self.high_temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
+        # self.high_temp_pattern = [[100, 110], [200, 210], [300, 310], [400, 410], [500, 510], [600, 610],
+        #                          [3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
+        self.high_temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
                                   [26000., 27000.], [36000., 37000.], [46000., 47000.], [56000., 57000.], \
                                   [61000., 62000.], [69000., 70000.], [77000., 78000.], [83000., 84000.]]
         # Definition of the threshold temperature
@@ -218,4 +218,4 @@ if __name__ == "__main__":
             th.update_temperature_humidity()
         sw.ventilator_state_update(current_temperature_internal, current_temperature_external,
                                    current_humidity_external, max_temperature, min_temperature_time)
-        time.sleep(5.)
+        time.sleep(120.)
