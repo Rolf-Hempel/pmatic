@@ -32,8 +32,11 @@ class sun_position(object):
         self.azimuth, self.elevation = utils.sun_position(self.longitude, self.latitude)
         return self.azimuth, self.elevation
 
+    def look_up_position(self):
+        return self.azimuth, self.elevation
+
 if __name__=="__main__":
     sun = sun_position(radians(7.), radians(51.))
     (azimuth, elevation) = sun.update_position()
 
-    print "Azimut: ", degrees(azimuth), ", Elevation: ", degrees(elevation)
+    print "Azimuth: ", degrees(azimuth), ", Elevation: ", degrees(elevation)
