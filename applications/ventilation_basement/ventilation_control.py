@@ -55,8 +55,9 @@ class temperature_humidity(object):
         """
         Read the current values for external / internal temperature and humidity and update minimum and maximum
         temperatures.
-        :return: current values for internal and external temperature and humidity, maximum external temperature
-        and the Unix timestamp of the minimum external temperature, both computed for the last 24 hours.
+        :return: current values for internal and external temperature and humidity, the maximum external temperature
+        and the Unix timestamps of the minimum and maximum external temperature, computed for the period given
+        by the parameter "self.retention_time_for_temperature_measurements" (in seconds).
         """
 
         current_temperature_external = self.temperature_device_external.temperature.value
@@ -72,7 +73,7 @@ class temperature_humidity(object):
         temp_object = [current_time, current_temperature_external]
         self.temperatures.append(temp_object)
 
-        # Update minimum and maximum temperature only once per day
+        # Update minimum and maximum temperature only once per "self.min_time_between_minmax_updates" seconds
         if current_time - self.minmax_time_updated >= self.min_time_between_minmax_updates:
             if len(self.temperatures) > 0:
                 # Drop entries older than retention time:
@@ -80,7 +81,6 @@ class temperature_humidity(object):
                     if current_time - self.temperatures[i][0] < self.retention_time_for_temperature_measurements:
                         break
                 self.temperatures = self.temperatures[i:]
-                # print "temperature list shortened: ", self.temperatures
 
             self.minmax_time_updated = current_time
             self.min_temperature = 100.
@@ -94,7 +94,8 @@ class temperature_humidity(object):
                     self.min_temperature_time_new = to[0]
             if self.max_temperature_time_new != self.max_temperature_time:
                 print "\n", date_and_time(), \
-                    " Updating maximum external temperature: New maximum temperature: ", self.max_temperature
+                    " Updating maximum external temperature: New maximum temperature: ", self.max_temperature, \
+                    ", Time of maximum: ", datetime.datetime.fromtimestamp(self.max_temperature_time_new)
                 self.max_temperature_time = self.max_temperature_time_new
             if self.min_temperature_time_new != self.min_temperature_time:
                 print "\n", date_and_time(), \
@@ -102,7 +103,7 @@ class temperature_humidity(object):
                     ", Time of minimum: ", datetime.datetime.fromtimestamp(self.min_temperature_time_new)
                 self.min_temperature_time = self.min_temperature_time_new
         return (current_temperature_internal, current_humidity_internal, current_temperature_external,
-                current_humidity_external, self.max_temperature, self.min_temperature_time)
+                current_humidity_external, self.max_temperature, self.min_temperature_time, self.max_temperature_time)
 
 
 class switch(object):
@@ -118,37 +119,42 @@ class switch(object):
 
     def __init__(self, switch_device):
         self.switch_device = switch_device
-        self.low_temp_pattern = [[10000., 11000.], [20000., 21000.], [29000., 30000.], [35000., 36000.], \
-                                 [40000., 41000.], [45000., 46000.], [50000., 51000.], [55000., 56000.], \
-                                 [61000., 62000.], [70000., 71000.], [80000., 81000.]]
-        # self.high_temp_pattern = [[100, 110], [200, 210], [300, 310], [400, 410], [500, 510], [600, 610],
+        # self.temp_pattern = [[100, 110], [200, 210], [300, 310], [400, 410], [500, 510], [600, 610],
         #                          [3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
-        self.high_temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
+        self.temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
                                   [26000., 27000.], [36000., 37000.], [46000., 47000.], [56000., 57000.], \
                                   [61000., 62000.], [69000., 70000.], [77000., 78000.], [83000., 84000.]]
         # Definition of the threshold temperature
         self.transition_temperature = 5.
 
     def ventilator_state_update(self, current_temperature_internal, current_temperature_external,
-                                current_humidity_external, max_temperature, min_temperature_time):
+                                current_humidity_external, max_temperature, min_temperature_time, max_temperature_time):
         """
         Switch the ventilator(s) on/off depending on current temperature and humidity measurements and information about
         the maximum temperature and the time when the minimum temperature was attained.
+
+        If the outside temperature is high, the switch pattern starts with the time of minimum temperature. Since
+        the active intervals are concentrated towards the beginning and the end of the pattern, ventilation takes
+        place mostly around minimum temperature. If the outside temperature is low, the pattern starts with the time
+        of maximum temperature. This way most ventilation intervals occur around maximum outside temperature.
 
         :param current_temperature_internal: Current internal air temperature (Celsius)
         :param current_temperature_external: Current outside air temperature (Celsius)
         :param current_humidity_external: Current outside relative humidity (0. for 0%, 1. for 100%)
         :param max_temperature: Maximal outside air temperature during the last 24 hours (Celsius)
-        :param min_temperature_time: Unix timestamp of minimal outside air temperature during the last 24 hours
+        :param min_temperature_time: Unix timestamp of the recent outside air temperature minimum (seconds)
+        :param max_temperature_time: Unix timestamp of the recent outside air temperature maximum (seconds)
         :return: -
         """
+
+        # Set the origin of the switch pattern according to the maximum outside temperature
         if max_temperature > self.transition_temperature:
-            temp_pattern = self.high_temp_pattern
+            temp_pattern_origin = min_temperature_time
         else:
-            temp_pattern = self.low_temp_pattern
+            temp_pattern_origin = max_temperature_time
         switch_on_time = False
-        for interval in temp_pattern:
-            if interval[0] < time.time() - min_temperature_time < interval[1]:
+        for interval in self.temp_pattern:
+            if interval[0] < (time.time() - temp_pattern_origin) & 86400. < interval[1]:
                 switch_on_time = True
                 break
 
@@ -173,6 +179,7 @@ def date_and_time():
     :return: Character string with current date and time information
     """
     return datetime.datetime.fromtimestamp(time.time())
+
 
 def look_up_device(dev_name):
     """Look up the device by its name
@@ -199,9 +206,9 @@ def look_up_device(dev_name):
 
 if __name__ == "__main__":
 
-    # ccu = pmatic.CCU()
-    # sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
-    ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
+    ccu = pmatic.CCU()
+    sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
+    # ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
 
     # Look up devices for outside and internal temperature/humidity measurement and ventilator switching
     print "\n", date_and_time(), " Starting ventilation control program\nDevices used:"
@@ -214,8 +221,9 @@ if __name__ == "__main__":
 
     while True:
         current_temperature_internal, current_humidity_internal, current_temperature_external, \
-        current_humidity_external, max_temperature, min_temperature_time = \
+        current_humidity_external, max_temperature, min_temperature_time, max_temperature_time = \
             th.update_temperature_humidity()
         sw.ventilator_state_update(current_temperature_internal, current_temperature_external,
-                                   current_humidity_external, max_temperature, min_temperature_time)
+                                   current_humidity_external, max_temperature, min_temperature_time,
+                                   max_temperature_time)
         time.sleep(120.)
