@@ -18,10 +18,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import codecs
 import datetime
 import sys
 import time
-import codecs
+from os.path import expanduser, isfile
 
 import pmatic
 
@@ -206,9 +207,19 @@ def look_up_device(dev_name):
 
 if __name__ == "__main__":
 
-    ccu = pmatic.CCU()
-    sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
-    # ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"), connect_timeout=5)
+    # Look for config file. If found: read credentials for remote CCU access
+    config_file_name = expanduser("~") + "/.pmatic.config"
+    if isfile(config_file_name):
+        print "Remote execution on PC:"
+        file = open(config_file_name, 'r')
+        addr, user, passwd = file.read().splitlines()
+        print "CCU address: ", addr, ", user: ", user, ", password: ", passwd
+        ccu = pmatic.CCU(address=addr, credentials=(user, passwd), connect_timeout=5)
+    else:
+        print "Local execution on CCU:"
+        ccu = pmatic.CCU()
+        # For execution on CCU redirect stdout to a protocol file
+        sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
 
     # Look up devices for outside and internal temperature/humidity measurement and ventilator switching
     print "\n", date_and_time(), " Starting ventilation control program\nDevices used:"
