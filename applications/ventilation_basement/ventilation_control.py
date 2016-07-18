@@ -155,7 +155,7 @@ class switch(object):
             temp_pattern_origin = max_temperature_time
         switch_on_time = False
         for interval in self.temp_pattern:
-            if interval[0] < (time.time() - temp_pattern_origin) & 86400. < interval[1]:
+            if interval[0] < (time.time() - temp_pattern_origin) % 86400. < interval[1]:
                 switch_on_time = True
                 break
 
