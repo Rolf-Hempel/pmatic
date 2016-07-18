@@ -18,9 +18,21 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from os.path import expanduser, isfile
+
 import pmatic
 
-ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"))
+# Look for config file. If found: read credentials for remote CCU access
+config_file_name = expanduser("~") + "/.pmatic.config"
+if isfile(config_file_name):
+    print "Remote execution on PC:"
+    file = open(config_file_name, 'r')
+    addr, user, passwd = file.read().splitlines()
+    print "CCU address: ", addr, ", user: ", user, ", password: ", passwd
+    ccu = pmatic.CCU(address=addr, credentials=(user, passwd))
+else:
+    print "Local execution on CCU:"
+    ccu = pmatic.CCU()
 
 # Trigger a short button press for the first button of a HM-PBI-4-FM device
 # for device in ccu.devices.query(device_name=u"Büro-Schalter"):
