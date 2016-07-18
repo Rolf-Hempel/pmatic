@@ -4,10 +4,35 @@ The pmatic Changelog
 Unreleased (Use snapshot builds to get these changes)
 -----------------------------------------------------
 
+Manager
+```````
+
+* FIX: Schedules executed on startup were not shown as triggered and running in GUI
+* FIX: Fixed visualization of "keep alive" scripts current state when aborted via GUI
+* FIX: Fixed file descriptor inheritance to "external executed" scripts
+  (could block manager port during restar)
+
+Version 0.4 (2016-07-14)
+------------------------
+
 General
 ```````
 
 * FIX: Fixed possible endless recursion when listening for device updates
+* New helper function for calculating the sun position (``utils.sun_position()``)
+  Thanks to Rolf Hempel for implementation!
+* New helper function for calculating the dew point (``utils.dew_point()``)
+  Thanks to Rolf Hempel for implementation!
+
+Devices
+```````
+
+* Added specific device object HM-WDS40-TH-I-2
+* Added specific device object HM-Sen-LI-O
+* Added specific device object HM-LC-Sw1-Pl-DN-R1
+* Added specific device object HM-LC-Bl1PBU-FM
+
+Thanks to Rolf Hempel for adding all of them!
 
 Manager
 ```````

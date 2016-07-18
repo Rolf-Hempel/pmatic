@@ -838,7 +838,7 @@ class AbstractScriptProgressPage(Html):
 
 
     def _is_running(self):
-        return self._runner and self._runner.is_alive()
+        return self._runner and self._runner.is_running
 
 
     def _exit_code(self):
@@ -1048,7 +1048,7 @@ class PageAjaxUpdateOutput(HtmlPageHandler, utils.LogMixin):
             return output
 
         # Tell js code to continue reloading or not
-        if not g_runner.is_alive():
+        if not g_runner.is_running:
             self.write_text("0")
         else:
             self.write_text("1")
@@ -2294,6 +2294,7 @@ class ScriptRunner(threading.Thread, utils.LogMixin):
         self.exit_code  = None
         self.started    = time.time()
         self.finished   = None
+        self._is_running = False
 
         self._p = None
 
@@ -2305,18 +2306,22 @@ class ScriptRunner(threading.Thread, utils.LogMixin):
                         "inline" if self.run_inline else "external", self.script)
                 script_path = os.path.join(Config.script_path, self.script)
 
+                self._is_running = True
+
                 if self.run_inline:
                     exit_code = self._run_inline(script_path)
                 else:
                     exit_code = self._run_external(script_path)
 
                 self.exit_code = exit_code
-                self.finished  = time.time()
 
                 self.logger.info("Finished (Exit-Code: %d).", self.exit_code)
             except Exception:
                 self.logger.error("Failed to execute %s", self.script, exc_info=True)
                 self.logger.debug(traceback.format_exc())
+            finally:
+                self._is_running = False
+                self.finished    = time.time()
 
             # Either execute the script once or handle the keep_running option.
             # when the script is restarting too fast, delay it for some time.
@@ -2341,7 +2346,7 @@ class ScriptRunner(threading.Thread, utils.LogMixin):
 
         self._p = subprocess.Popen(["/usr/bin/env", "python", "-u", script_path], shell=False,
                                    cwd="/", env=env, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
+                                   stderr=subprocess.STDOUT, close_fds=True)
 
         while True:
             nextline = self._p.stdout.readline().decode("utf-8")
@@ -2378,6 +2383,11 @@ class ScriptRunner(threading.Thread, utils.LogMixin):
             exit_code = 1
 
         return exit_code
+
+
+    @property
+    def is_running(self):
+        return self.is_alive() and self._is_running
 
 
     @property
@@ -2483,8 +2493,8 @@ class Manager(wsgiref.simple_server.WSGIServer, utils.LogMixin):
         self._patch_manager_residents()
         self._register_for_ccu_events()
 
-        # Reload the schedules to update the CCU dependent conditions
-        self.scheduler.load()
+        # Update the CCU dependent conditions
+        self.scheduler.update_conditions()
 
 
     @property
@@ -2782,7 +2792,7 @@ class Scheduler(threading.Thread, utils.LogMixin, utils.PersistentConfigMixin,
 
 
     def run(self):
-        self.logger.debug("Starting Scheduler")
+        self.logger.info("Starting Scheduler..")
         while True:
             try:
                 if not self._on_startup_executed:
@@ -2809,7 +2819,7 @@ class Scheduler(threading.Thread, utils.LogMixin, utils.PersistentConfigMixin,
             # FIXME: Optimization: Don't wake up every second. Sleep till next scheduled event.
             time.sleep(1)
 
-        self.logger.debug("Stopped Scheduler")
+        self.logger.info("Stopped Scheduler")
 
 
     def _execute_presence_update(self):
@@ -3061,6 +3071,11 @@ class Scheduler(threading.Thread, utils.LogMixin, utils.PersistentConfigMixin,
         }
 
 
+    def update_conditions(self):
+        for schedule in self._schedules.values():
+            schedule.update_conditions()
+
+
 
 class Schedule(object):
     def __init__(self, manager):
@@ -3080,7 +3095,7 @@ class Schedule(object):
 
     @property
     def is_running(self):
-        return self._runner and self._runner.is_alive()
+        return self._runner and self._runner.is_running
 
 
     @property
@@ -3131,6 +3146,11 @@ class Schedule(object):
 
     def _next_condition_id(self):
         return max([-1] + list(self.conditions.keys())) + 1
+
+
+    def update_conditions(self):
+        for condition in self.conditions.values():
+            condition.from_config(condition.to_config())
 
 
     def from_config(self, cfg):
