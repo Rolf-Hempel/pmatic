@@ -22,6 +22,7 @@ import codecs
 import datetime
 import sys
 import time
+from math import radians
 from os.path import expanduser, isfile
 
 import pmatic
@@ -36,14 +37,19 @@ class temperature_humidity(object):
 
     """
 
-    def __init__(self, temperature_device_external, temperature_device_internal):
+    def __init__(self, longitude, temperature_device_external, temperature_device_internal):
+        self.utc_shift = longitude / 15.
         self.temperature_device_external = temperature_device_external
         self.temperature_device_internal = temperature_device_internal
 
         self.temperatures = []
         self.minmax_time_updated = 0.
-        self.min_temperature_time = 0.
-        self.max_temperature_time = 0.
+        self.min_temperature = 5.
+        # Set default time stamp of temperature minimum to 4:00 a.m. UTC
+        self.min_temperature_time = 14400.
+        self.max_temperature = 10.
+        # Set default time stamp of temperature maximum to 12:00 a.m. UTC
+        self.max_temperature_time = 43200.0
 
         # Time in seconds between two consecutive computations of minimum and maximum temperatures
         self.min_time_between_minmax_updates = 86400.
@@ -83,28 +89,42 @@ class temperature_humidity(object):
                         break
                 self.temperatures = self.temperatures[i:]
 
-            self.minmax_time_updated = current_time
-            self.min_temperature = 100.
-            self.max_temperature = -100.
+            self.min_temperature_new = 100.
+            self.max_temperature_new = -100.
             for to in self.temperatures:
-                if to[1] > self.max_temperature:
-                    self.max_temperature = to[1]
+                lh = self.get_local_hour(to[1])
+                # Look for maximum temperature only between 1:00 and 6:00 p.m. local time
+                if to[1] > self.max_temperature_new and 13. < lh < 18.:
+                    self.max_temperature_new = to[1]
                     self.max_temperature_time_new = to[0]
-                if to[1] < self.min_temperature:
-                    self.min_temperature = to[1]
+                # Look for minimum temperature only between 3:00 and 9:00 a.m. local time
+                if to[1] < self.min_temperature_new and 3. < lh < 9.:
+                    self.min_temperature_new = to[1]
                     self.min_temperature_time_new = to[0]
             if self.max_temperature_time_new != self.max_temperature_time:
                 print "\n", date_and_time(), \
-                    " Updating maximum external temperature: New maximum temperature: ", self.max_temperature, \
+                    " Updating maximum external temperature: New maximum temperature: ", self.max_temperature_new, \
                     ", Time of maximum: ", datetime.datetime.fromtimestamp(self.max_temperature_time_new)
+                self.max_temperature = self.max_temperature_new
                 self.max_temperature_time = self.max_temperature_time_new
             if self.min_temperature_time_new != self.min_temperature_time:
                 print "\n", date_and_time(), \
-                    " Updating minimum external temperature: New minimum temperature: ", self.min_temperature, \
+                    " Updating minimum external temperature: New minimum temperature: ", self.min_temperature_new, \
                     ", Time of minimum: ", datetime.datetime.fromtimestamp(self.min_temperature_time_new)
+                self.min_temperature = self.min_temperature_new
                 self.min_temperature_time = self.min_temperature_time_new
+            self.minmax_time_updated = current_time
         return (current_temperature_internal, current_humidity_internal, current_temperature_external,
                 current_humidity_external, self.max_temperature, self.min_temperature_time, self.max_temperature_time)
+
+    def get_local_hour(self):
+        """
+        Compute the number of hours passed since local midnight.
+
+        :return: the number of hours since local midnight. Examples: 0. for midnight, 12. for local noon, 12.5 for
+                 half an hour after local noon.
+        """
+        return (time.time() / 3600. + self.utc_shift) % 24.
 
 
 class switch(object):
@@ -123,8 +143,8 @@ class switch(object):
         # self.temp_pattern = [[100, 110], [200, 210], [300, 310], [400, 410], [500, 510], [600, 610],
         #                          [3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
         self.temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
-                                  [26000., 27000.], [36000., 37000.], [46000., 47000.], [56000., 57000.], \
-                                  [61000., 62000.], [69000., 70000.], [77000., 78000.], [83000., 84000.]]
+                             [26000., 27000.], [36000., 37000.], [46000., 47000.], [56000., 57000.], \
+                             [61000., 62000.], [69000., 70000.], [77000., 78000.], [83000., 84000.]]
         # Definition of the threshold temperature
         self.transition_temperature = 5.
 
@@ -183,7 +203,7 @@ def date_and_time():
 
 
 def look_up_device(dev_name):
-    """Look up the device by its name
+    """Look up the device by its name. If two devices are found with the same name, print an error message and exit.
 
     Args:
         dev_name: device name (utf-8 string)
@@ -227,7 +247,9 @@ if __name__ == "__main__":
     temperature_device_internal = look_up_device(u'Temperatur- und Feuchtesensor Gartenkeller')
     switch_device = look_up_device(u"Steckdosenschalter Gartenkeller")
 
-    th = temperature_humidity(temperature_device_external, temperature_device_internal)
+    # Set geographical longitude (in degrees, positive to the East) of site
+    longitude = 7.9
+    th = temperature_humidity(longitude, temperature_device_external, temperature_device_internal)
     sw = switch(switch_device)
 
     while True:
