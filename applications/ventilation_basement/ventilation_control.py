@@ -43,18 +43,13 @@ class temperature_humidity(object):
         self.temperature_device_internal = temperature_device_internal
 
         self.temperatures = []
-        self.minmax_time_updated = 0.
+        self.minmax_time_updated = time.time()
         self.min_temperature = 5.
         # Set default time stamp of temperature minimum to 4:00 a.m. UTC
         self.min_temperature_time = 14400.
         self.max_temperature = 10.
         # Set default time stamp of temperature maximum to 12:00 a.m. UTC
         self.max_temperature_time = 43200.0
-
-        # Time in seconds between two consecutive computations of minimum and maximum temperatures
-        self.min_time_between_minmax_updates = 86400.
-        # Time period in seconds for which temperature measurements are kept for min/max computations
-        self.retention_time_for_temperature_measurements = 86400.
 
         self.update_temperature_humidity()
 
@@ -78,42 +73,34 @@ class temperature_humidity(object):
         # Unix timestamp (counted in seconds since 1970.0)
         current_time = time.time()
         temp_object = [current_time, current_temperature_external]
-        self.temperatures.append(temp_object)
+        lh = self.get_local_hour(current_time)
 
-        # Update minimum and maximum temperature only once per "self.min_time_between_minmax_updates" seconds
-        if current_time - self.minmax_time_updated >= self.min_time_between_minmax_updates:
-            if len(self.temperatures) > 0:
-                # Drop entries older than retention time:
-                for i in range(len(self.temperatures)):
-                    if current_time - self.temperatures[i][0] < self.retention_time_for_temperature_measurements:
-                        break
-                self.temperatures = self.temperatures[i:]
-
-            self.min_temperature_new = 100.
-            self.max_temperature_new = -100.
+        # Update minima / maxima data at the first invocation after 12:00 a.m. local time,
+        # but only if data have been recorded at least since 01:00 p.m. on previous day
+        if current_time - self.minmax_time_updated > 82800. and 12. < lh < 12.1:
+            self.min_temperature = 100.
+            self.max_temperature = -100.
             for to in self.temperatures:
                 lh = self.get_local_hour(to[1])
                 # Look for maximum temperature only between 1:00 and 6:00 p.m. local time
-                if to[1] > self.max_temperature_new and 13. < lh < 18.:
-                    self.max_temperature_new = to[1]
-                    self.max_temperature_time_new = to[0]
+                if to[1] > self.max_temperature and 13. < lh < 18.:
+                    self.max_temperature = to[1]
+                    self.max_temperature_time = to[0]
                 # Look for minimum temperature only between 3:00 and 9:00 a.m. local time
-                if to[1] < self.min_temperature_new and 3. < lh < 9.:
-                    self.min_temperature_new = to[1]
-                    self.min_temperature_time_new = to[0]
-            if self.max_temperature_time_new != self.max_temperature_time:
-                print "\n", date_and_time(), \
-                    " Updating maximum external temperature: New maximum temperature: ", self.max_temperature_new, \
-                    ", Time of maximum: ", datetime.datetime.fromtimestamp(self.max_temperature_time_new)
-                self.max_temperature = self.max_temperature_new
-                self.max_temperature_time = self.max_temperature_time_new
-            if self.min_temperature_time_new != self.min_temperature_time:
-                print "\n", date_and_time(), \
-                    " Updating minimum external temperature: New minimum temperature: ", self.min_temperature_new, \
-                    ", Time of minimum: ", datetime.datetime.fromtimestamp(self.min_temperature_time_new)
-                self.min_temperature = self.min_temperature_new
-                self.min_temperature_time = self.min_temperature_time_new
+                if to[1] < self.min_temperature and 3. < lh < 9.:
+                    self.min_temperature = to[1]
+                    self.min_temperature_time = to[0]
+            print "\n", date_and_time(), " Updating maximum and minimum external temperatures: " \
+                " \nNew maximum temperature: ", self.max_temperature, \
+                ", Time of maximum: ", datetime.datetime.fromtimestamp(self.max_temperature_time), \
+                " \nNew minimum temperature: ", self.min_temperature, \
+                ", Time of minimum: ", datetime.datetime.fromtimestamp(self.min_temperature_time)
+
             self.minmax_time_updated = current_time
+            self.temperatures = [temp_object]
+        else:
+            self.temperatures.append(temp_object)
+
         return (current_temperature_internal, current_humidity_internal, current_temperature_external,
                 current_humidity_external, self.max_temperature, self.min_temperature_time, self.max_temperature_time)
 
@@ -140,8 +127,6 @@ class switch(object):
 
     def __init__(self, switch_device):
         self.switch_device = switch_device
-        # self.temp_pattern = [[100, 110], [200, 210], [300, 310], [400, 410], [500, 510], [600, 610],
-        #                          [3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
         self.temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
                              [26000., 27000.], [36000., 37000.], [46000., 47000.], [56000., 57000.], \
                              [61000., 62000.], [69000., 70000.], [77000., 78000.], [83000., 84000.]]
