@@ -104,14 +104,15 @@ class temperature_humidity(object):
         return (current_temperature_internal, current_humidity_internal, current_temperature_external,
                 current_humidity_external, self.max_temperature, self.min_temperature_time, self.max_temperature_time)
 
-    def get_local_hour(self):
+    def get_local_hour(self, timestamp):
         """
         Compute the number of hours passed since local midnight.
 
+        :param timestamp: Unix timestamp (seconds passed since Jan. 1st, 1970, 0:00 UTC)
         :return: the number of hours since local midnight. Examples: 0. for midnight, 12. for local noon, 12.5 for
                  half an hour after local noon.
         """
-        return (time.time() / 3600. + self.utc_shift) % 24.
+        return (timestamp / 3600. + self.utc_shift) % 24.
 
 
 class switch(object):
@@ -244,4 +245,4 @@ if __name__ == "__main__":
         sw.ventilator_state_update(current_temperature_internal, current_temperature_external,
                                    current_humidity_external, max_temperature, min_temperature_time,
                                    max_temperature_time)
-        time.sleep(120.)
+        time.sleep(121.)
