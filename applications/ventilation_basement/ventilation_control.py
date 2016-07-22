@@ -46,10 +46,10 @@ class temperature_humidity(object):
         self.minmax_time_updated = time.time()
         self.min_temperature = 5.
         # Set default time stamp of temperature minimum to 4:00 a.m. UTC
-        self.min_temperature_time = 14400.
+        self.min_temperature_time = 10800.
         self.max_temperature = 10.
         # Set default time stamp of temperature maximum to 12:00 a.m. UTC
-        self.max_temperature_time = 43200.0
+        self.max_temperature_time = 39600.
 
         self.update_temperature_humidity()
 
@@ -128,9 +128,9 @@ class switch(object):
 
     def __init__(self, switch_device):
         self.switch_device = switch_device
-        self.temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [18000., 19000.], \
+        self.temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [19000., 20000.], \
                              [26000., 27000.], [36000., 37000.], [46000., 47000.], [56000., 57000.], \
-                             [61000., 62000.], [69000., 70000.], [77000., 78000.], [83000., 84000.]]
+                             [65000., 66000.], [73000., 74000.], [79000., 80000.], [84000., 85000.]]
         # Definition of the threshold temperature
         self.transition_temperature = 5.
 
