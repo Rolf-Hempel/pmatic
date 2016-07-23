@@ -210,6 +210,7 @@ def look_up_device(params, dev_name):
     Returns: the device object
 
     """
+    devices = {}
     try:
         devices = ccu.devices.query(device_name=dev_name)._devices.values()
     except Exception as e:

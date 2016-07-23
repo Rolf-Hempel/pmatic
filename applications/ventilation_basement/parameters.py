@@ -67,7 +67,6 @@ class parameters(object):
             "\ntransition_temperature: ", self.transition_temperature
 
 
-
 if __name__ == "__main__":
     a = {"hostname": "Vega", "CCU address": "192.168.0.51", "user": "rolf", "password": "Px9820rH"}
     print "Parameters explicitly set in file:", a
