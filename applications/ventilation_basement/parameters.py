@@ -8,6 +8,7 @@ class parameters(object):
 
     def update_parameters(self):
         self.parameters_old = self.parameters
+        # with open("/etc/config/addons/pmatic/scripts/applications/ventilation_basement/parameter_file", "r") as parameter_file:
         with open("parameter_file", "r") as parameter_file:
             self.parameters = json.load(parameter_file)
         if self.test_for_changes():
