@@ -26,6 +26,7 @@ from math import radians
 from os.path import expanduser, isfile
 
 import pmatic
+from parameters import parameters
 
 
 class temperature_humidity(object):
@@ -37,7 +38,8 @@ class temperature_humidity(object):
 
     """
 
-    def __init__(self, longitude, temperature_device_external, temperature_device_internal):
+    def __init__(self, params, longitude, temperature_device_external, temperature_device_internal):
+        self.params = params
         self.utc_shift = longitude / 15.
         self.temperature_device_external = temperature_device_external
         self.temperature_device_internal = temperature_device_internal
@@ -46,10 +48,10 @@ class temperature_humidity(object):
         self.minmax_time_updated = time.time()
         self.min_temperature = 5.
         # Set default time stamp of temperature minimum to 4:00 a.m. UTC
-        self.min_temperature_time = 10800.
+        self.min_temperature_time = self.params.min_temperature_time
         self.max_temperature = 10.
         # Set default time stamp of temperature maximum to 12:00 a.m. UTC
-        self.max_temperature_time = 39600.
+        self.max_temperature_time = self.params.max_temperature_time
 
         self.update_temperature_humidity()
 
@@ -70,6 +72,10 @@ class temperature_humidity(object):
         # Convert humidity from percent to a float between 0. and 1.
         current_humidity_internal = self.temperature_device_internal.humidity.value / 100.
 
+        if params.output_level > 2:
+            print_output("T int: " + str(current_temperature_internal) + ", H int: " + str(
+                current_humidity_internal) + ", T ext: " + str(current_temperature_external) + ", H ext: " + str(
+                current_humidity_external))
         # Unix timestamp (counted in seconds since 1970.0)
         current_time = time.time()
         temp_object = [current_time, current_temperature_external]
@@ -81,7 +87,7 @@ class temperature_humidity(object):
             self.min_temperature = 100.
             self.max_temperature = -100.
             for to in self.temperatures:
-                lh = self.get_local_hour(to[1])
+                lh = self.get_local_hour(to[0])
                 # Look for maximum temperature only between 1:00 and 6:00 p.m. local time
                 if to[1] > self.max_temperature and 13. < lh < 18.:
                     self.max_temperature = to[1]
@@ -90,11 +96,13 @@ class temperature_humidity(object):
                 if to[1] < self.min_temperature and 3. < lh < 9.:
                     self.min_temperature = to[1]
                     self.min_temperature_time = to[0]
-            print "\n", date_and_time(), " Updating maximum and minimum external temperatures: " \
-                " \nNew maximum temperature: ", self.max_temperature, \
-                ", Time of maximum: ", datetime.datetime.fromtimestamp(self.max_temperature_time), \
-                " \nNew minimum temperature: ", self.min_temperature, \
-                ", Time of minimum: ", datetime.datetime.fromtimestamp(self.min_temperature_time)
+            if self.params.output_level > 1:
+                print ""
+                print_output(" Updating maximum and minimum external temperatures:\nNew maximum temperature: " + str(
+                    self.max_temperature) + ", Time of maximum: " + str(datetime.datetime.fromtimestamp(
+                    self.max_temperature_time)) + " \nNew minimum temperature: " + str(
+                    self.min_temperature) + ", Time of minimum: " + str(datetime.datetime.fromtimestamp(
+                    self.min_temperature_time)))
 
             self.minmax_time_updated = current_time
             self.temperatures = [temp_object]
@@ -126,13 +134,14 @@ class switch(object):
 
     """
 
-    def __init__(self, switch_device):
+    def __init__(self, params, switch_device):
+        self.params = params
         self.switch_device = switch_device
         self.temp_pattern = [[3000., 4000.], [8000., 9000.], [13000., 14000.], [19000., 20000.], \
                              [26000., 27000.], [36000., 37000.], [46000., 47000.], [56000., 57000.], \
                              [65000., 66000.], [73000., 74000.], [79000., 80000.], [84000., 85000.]]
         # Definition of the threshold temperature
-        self.transition_temperature = 5.
+        self.transition_temperature = self.params.transition_temperature
 
     def ventilator_state_update(self, current_temperature_internal, current_temperature_external,
                                 current_humidity_external, max_temperature, min_temperature_time, max_temperature_time):
@@ -162,6 +171,7 @@ class switch(object):
         switch_on_time = False
         for interval in self.temp_pattern:
             if interval[0] < (time.time() - temp_pattern_origin) % 86400. < interval[1]:
+                interval_index = self.temp_pattern.index(interval)
                 switch_on_time = True
                 break
 
@@ -169,12 +179,14 @@ class switch(object):
 
         try:
             if self.switch_device.is_on and not switch_on_time:
-                print date_and_time(), " Switching ", self.switch_device.name, " off"
+                if self.params.output_level > 1:
+                    print_output(" Switching " + self.switch_device.name + " off")
                 self.switch_device.switch_off()
             elif switch_on_time and not self.switch_device.is_on and dew_point_external < current_temperature_internal:
-                print date_and_time(), " Switching ", self.switch_device.name, " on, T int: ", \
-                    current_temperature_internal, ", T ext: ", current_temperature_external, \
-                    ", Dew point: ", dew_point_external
+                if self.params.output_level > 1:
+                    print_output(" Switching " + self.switch_device.name + " on, Interval index: " + str(interval_index)
+                                 + ", T int: " + str(current_temperature_internal) + ", T ext: "
+                                 + str(current_temperature_external) + ", Dew point: " + str(dew_point_external))
                 self.switch_device.switch_on()
         except Exception as e:
             print e
@@ -188,10 +200,11 @@ def date_and_time():
     return datetime.datetime.fromtimestamp(time.time())
 
 
-def look_up_device(dev_name):
+def look_up_device(params, dev_name):
     """Look up the device by its name. If two devices are found with the same name, print an error message and exit.
 
     Args:
+        params: parameter object
         dev_name: device name (utf-8 string)
 
     Returns: the device object
@@ -202,47 +215,65 @@ def look_up_device(dev_name):
     except Exception as e:
         print e
     if len(devices) == 1:
-        print dev_name
+        if params.output_level > 0:
+            print dev_name
         return devices[0]
     elif len(devices) > 1:
-        print date_and_time(), " More than one device with name ", dev_name, " found, first one taken"
+        print " More than one device with name ", dev_name, " found, first one taken."
     else:
-        print date_and_time(), " Error: No device with name ", dev_name, " found, execution halted."
+        print " Error: No device with name ", dev_name, " found, execution halted."
         sys.exit(1)
+
+
+def print_output(output_string):
+    print datetime.datetime.fromtimestamp(time.time()), output_string
 
 
 if __name__ == "__main__":
 
-    # Look for config file. If found: read credentials for remote CCU access
-    config_file_name = expanduser("~") + "/.pmatic.config"
-    if isfile(config_file_name):
-        print "Remote execution on PC:"
-        file = open(config_file_name, 'r')
-        addr, user, passwd = file.read().splitlines()
-        print "CCU address: ", addr, ", user: ", user, ", password: ", passwd
-        ccu = pmatic.CCU(address=addr, credentials=(user, passwd), connect_timeout=5)
-    else:
-        print "Local execution on CCU:"
-        ccu = pmatic.CCU()
+    params = parameters()
+
+    if params.hostname == "homematic-ccu2":
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
+        if params.output_level > 0:
+            print ""
+            print_output(
+                "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
+        ccu = pmatic.CCU()
+    else:
+        if params.output_level > 0:
+            print ""
+            print_output(
+                "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
+        ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
+
+    if params.output_level > 1:
+        params.print_parameters()
 
     # Look up devices for outside and internal temperature/humidity measurement and ventilator switching
-    print "\n", date_and_time(), " Starting ventilation control program\nDevices used:"
-    temperature_device_external = look_up_device(u'Temperatur- und Feuchtesensor außen')
-    temperature_device_internal = look_up_device(u'Temperatur- und Feuchtesensor Gartenkeller')
-    switch_device = look_up_device(u"Steckdosenschalter Gartenkeller")
+    if params.output_level > 0:
+        print ""
+        print_output("Devices used:")
+    temperature_device_external = look_up_device(params, u'Temperatur- und Feuchtesensor außen')
+    temperature_device_internal = look_up_device(params, u'Temperatur- und Feuchtesensor Gartenkeller')
+    switch_device = look_up_device(params, u"Steckdosenschalter Gartenkeller")
 
     # Set geographical longitude (in degrees, positive to the East) of site
-    longitude = 7.9
-    th = temperature_humidity(longitude, temperature_device_external, temperature_device_internal)
-    sw = switch(switch_device)
+    longitude = params.longitude
+    th = temperature_humidity(params, longitude, temperature_device_external, temperature_device_internal)
+    sw = switch(params, switch_device)
 
     while True:
+        if params.update_parameters():
+            if params.output_level > 1:
+                print "\nParameters have changed!"
+                params.print_parameters()
+
         current_temperature_internal, current_humidity_internal, current_temperature_external, \
         current_humidity_external, max_temperature, min_temperature_time, max_temperature_time = \
             th.update_temperature_humidity()
         sw.ventilator_state_update(current_temperature_internal, current_temperature_external,
                                    current_humidity_external, max_temperature, min_temperature_time,
                                    max_temperature_time)
-        time.sleep(121.)
+        time.sleep(params.main_loop_sleep_time)
