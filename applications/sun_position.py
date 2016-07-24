@@ -18,16 +18,16 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from pmatic import utils
 from math import degrees, radians
 
-import pmatic.applications.ventilation_basement.parameters as parameters
+from parameters import parameters
+from pmatic import utils
+
 
 class sun_position(object):
-
-    def __init__(self, longitude, latitude):
-        self.longitude = parameters.longitude
-        self.latitude = parameters.latitude
+    def __init__(self, params):
+        self.longitude = radians(params.longitude)
+        self.latitude = radians(params.latitude)
         self.update_position
 
     def update_position(self):
@@ -37,8 +37,10 @@ class sun_position(object):
     def look_up_position(self):
         return self.azimuth, self.elevation
 
-if __name__=="__main__":
-    sun = sun_position()
-    (azimuth, elevation) = sun.update_position()
+
+if __name__ == "__main__":
+    params = parameters()
+    sun = sun_position(params)
+    azimuth, elevation = sun.update_position()
 
     print "Azimuth: ", degrees(azimuth), ", Elevation: ", degrees(elevation)

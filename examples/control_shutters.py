@@ -28,7 +28,8 @@ for device in ccu.devices.query(device_type=[u"HM-LC-Bl1PBU-FM"]):
     print device.channels[1].values.keys()
     print device.summary_state
 
-    print "Rolladen-Level: ", device.blind.level
-    print "Set level: ", device.blind.set_level(0.5)
+    print "Rolladen-Level before set operation: ", device.blind.level
+    print "Set level: ", device.blind.set_level(0.3)
+    print "Rolladen-Level after set operation: ", device.blind.level
 
     print ""

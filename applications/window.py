@@ -19,56 +19,25 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import codecs
-import datetime
-import sys
-import time
 from math import radians
-from os.path import expanduser, isfile
 
 import pmatic
+from miscellaneous import *
+from parameters import parameters
 from sun_position import sun_position
 
 
-def date_and_time():
-    """Compute the current date and time.
-
-    :return: Character string with current date and time information
-    """
-    return datetime.datetime.fromtimestamp(time.time())
-
-
-def look_up_device(dev_name):
-    """Look up the device by its name
-
-    Args:
-        dev_name: device name (utf-8 string)
-
-    Returns: the device object
-
-    """
-    try:
-        devices = ccu.devices.query(device_name=dev_name)._devices.values()
-    except Exception as e:
-        print e
-    if len(devices) == 1:
-        print dev_name
-        return devices[0]
-    elif len(devices) > 1:
-        print date_and_time(), " More than one device with name ", dev_name, " found, first one taken"
-    else:
-        print date_and_time(), " Error: No device with name ", dev_name, " found, execution halted."
-        sys.exit(1)
-
-
 class window(object):
-    def __init__(self, room_name, shutter_name, ccu, sun):
+    def __init__(self, params, ccu, sun, window_name, room_name, shutter_name):
+        self.params = params
+        self.ccu = ccu
+        self.sun = sun
+        self.window_name = window_name
         self.room_name = room_name
         self.shutter_name = shutter_name
-        self.shutter = look_up_device(shutter_name)
+        self.shutter = look_up_device(params, ccu, shutter_name)
         self.shutter_last_setting = -1.
         self.shutter_last_set_manually = 0.
-        self.shutter_inhibition_time = 7200.
-        self.sun = sun
         self.open_spaces = []
 
     def add_open_space(self, azimuth_lower, azimuth_upper, elevation_lower, elevation_upper):
@@ -85,15 +54,19 @@ class window(object):
         return sunlit
 
     def set_shutter(self, value):
+        success = True
         if value < 0. or value > 1.:
-            print "Error: Invalid shutter value ", value, " specified."
+            print_output("Error: Invalid shutter value " + str(value) + " specified.")
             success = False
         else:
             current_time = time.time()
             # Test if current shutter setting differs from target value and no manual intervention is active
-            if value != self.shutter.level and current_time - self.shutter_last_set_manually > self.shutter_inhibition_time:
+            if value != self.shutter.blind.level and \
+                                    current_time - self.shutter_last_set_manually > self.params.shutter_inhibition_time:
                 try:
-                    success = self.shutter.set_value(value)
+                    if self.params.output_level > 1:
+                        print_output("Setting shutter " + self.shutter_name + " to new level: " + str(value))
+                    success = self.shutter.blind.set_level(value)
                     self.shutter_last_setting = value
                 except Exception as e:
                     print e
@@ -103,61 +76,87 @@ class window(object):
         return success
 
     def test_manual_intervention(self):
-        if self.shutter.level != self.shutter_last_setting and self.shutter_last_setting != -1.:
+        if self.shutter.blind.level != self.shutter_last_setting and self.shutter_last_setting != -1.:
+            if self.params.output_level > 1:
+                print_output("Manual intervention for shutter " + self.shutter_name + " found, new level: "
+                             + str(self.shutter.blind.level))
             self.shutter_last_set_manually = time.time()
-            self.shutter_last_setting = self.shutter.level
+            self.shutter_last_setting = self.shutter.blind.level
 
 
 class windows(object):
-    def __init__(self, ccu, sun):
+    def __init__(self, params, ccu, sun):
+        self.params = params
         self.ccu = ccu
         self.sun = sun
         self.window_dict = {}
 
+        if self.params.output_level > 0:
+            print "\nThe following shutter devices are used:"
         # Initialize all windows and set open sky areas
-        window_name = u'Küche links'
-        w = window(u'Küche', 'xxx', ccu, sun)
+        window_name = u'Schlafzimmer'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Schlafzimmer', u'Rolladenaktor Schlafzimmer')
         w.add_open_space(50., 120., 0., 90.)
         w.add_open_space(120., 180., 20., 90.)
         w.add_open_space(180., 220., 0., 90.)
         self.window_dict[window_name] = w
 
+        if self.params.output_level > 0:
+            print "\nWindows with shutter control:"
+            for w in self.window_dict.values():
+                print "Room: ", w.room_name, ", Window: ", w.window_name, ", Device: ", w.shutter_name
+
     def close_all_shutters(self):
+        if self.params.output_level > 0:
+            print_output("Closing all shutters")
         for window in self.window_dict.values():
             window.set_shutter(0.)
 
     def open_all_shutters(self):
+        if self.params.output_level > 0:
+            print_output("Opening all shutters")
         for window in self.window_dict.values():
             window.set_shutter(1.)
 
     def test_manual_intervention(self):
+        if self.params.output_level > 0:
+            print_output("Testing all shutters for manual intervention")
         for window in self.window_dict.values():
             window.test_manual_intervention()
 
 
 if __name__ == "__main__":
-    # Look for config file. If found: read credentials for remote CCU access
-    config_file_name = expanduser("~") + "/.pmatic.config"
-    if isfile(config_file_name):
-        print "Remote execution on PC:"
-        file = open(config_file_name, 'r')
-        addr, user, passwd = file.read().splitlines()
-        print "CCU address: ", addr, ", user: ", user, ", password: ", passwd
-        ccu = pmatic.CCU(address=addr, credentials=(user, passwd), connect_timeout=5)
-    else:
-        print "Local execution on CCU:"
-        ccu = pmatic.CCU()
+
+    params = parameters()
+
+    if params.hostname == "homematic-ccu2":
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/shutter_control.txt', encoding='utf-8', mode='a')
+        if params.output_level > 0:
+            print ""
+            print_output(
+                "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
+        ccu = pmatic.CCU()
+    else:
+        if params.output_level > 0:
+            print ""
+            print_output(
+                "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
+        ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
 
-    longitude = radians(7.9)
-    latitude = radians(50.8)
-    sun = sun_position(longitude, latitude)
-    sun_twilight_threshold = radians(-5.)
+    if params.output_level > 1:
+        params.print_parameters()
 
-    windows = windows(ccu, sun)
+    sun = sun_position(params)
+    sun_twilight_threshold = radians(params.sun_twilight_threshold)
+
+    windows = windows(params, ccu, sun)
 
     while True:
+        if params.update_parameters():
+            if params.output_level > 1:
+                print "\nParameters have changed!"
+                params.print_parameters()
         windows.test_manual_intervention()
         sun_azimuth, sun_elevation = sun.update_position()
         if sun_elevation < sun_twilight_threshold:
@@ -165,4 +164,4 @@ if __name__ == "__main__":
         else:
             windows.open_all_shutters()
 
-        time.sleep(120.)
+        time.sleep(params.main_loop_sleep_time)

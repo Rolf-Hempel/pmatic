@@ -92,6 +92,14 @@ class parameters(object):
                 self.average_humidity_external = float(self.parameters["average_humidity_external"])
             else:
                 self.average_humidity_external = 0.6
+            if "sun_twilight_threshold" in self.parameters.keys():
+                self.sun_twilight_threshold = float(self.parameters["sun_twilight_threshold"])
+            else:
+                self.sun_twilight_threshold = -5.
+            if "shutter_inhibition_time" in self.parameters.keys():
+                self.shutter_inhibition_time = float(self.parameters["shutter_inhibition_time"])
+            else:
+                self.shutter_inhibition_time = 7200.
             return True
         else:
             return False
@@ -105,9 +113,13 @@ class parameters(object):
     def print_parameters(self):
         print "\nParameters:", "\nhostname: ", self.hostname, "\nCCU address: ", self.ccu_address, "\nuser: ", \
             self.user, "\npassword: ", self.password, "\nmain_loop_sleep_time: ", self.main_loop_sleep_time, \
-            "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nmin_temperature_time: ", \
-            self.min_temperature_time, "\nmax_temperature_time: ", self.max_temperature_time, \
-            "\ntransition_temperature: ", self.transition_temperature
+            "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
+            "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
+            "\nmax_temperature: ", self.max_temperature, "\nmax_temperature_time: ", self.max_temperature_time, \
+            "\ntransition_temperature: ", self.transition_temperature, \
+            "\naverage_humidity_external: ", self.average_humidity_external, \
+            "\nsun_twilight_threshold: ", self.sun_twilight_threshold, \
+            "\nshutter_inhibition_time: ", self.shutter_inhibition_time
 
 
 if __name__ == "__main__":
