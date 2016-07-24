@@ -1,3 +1,23 @@
+#!/usr/bin/env python
+# encoding: utf-8
+#
+# Application code for pmatic - Python API for Homematic. Easy to use.
+# Copyright (C) 2016 Rolf Hempel <rolf6419@gmx.de>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 import json
 
 
@@ -26,6 +46,9 @@ class parameters(object):
                 self.user = "rolf"
             if "password" in self.parameters.keys():
                 self.password = self.parameters["password"]
+            else:
+                # Don't forget to set the password explicitly in the parameter file
+                self.password = ""
             if "main_loop_sleep_time" in self.parameters.keys():
                 self.main_loop_sleep_time = float(self.parameters["main_loop_sleep_time"])
             else:
@@ -33,23 +56,38 @@ class parameters(object):
             if "output_level" in self.parameters.keys():
                 self.output_level = int(self.parameters["output_level"])
             else:
-                self.output_level = 0
+                self.output_level = 1
             if "longitude" in self.parameters.keys():
                 self.longitude = float(self.parameters["longitude"])
             else:
                 self.longitude = 7.9
+            self.utc_shift = self.longitude / 15.
+            if "min_temperature" in self.parameters.keys():
+                self.min_temperature = float(self.parameters["min_temperature"])
+            else:
+                self.min_temperature = 5.
             if "min_temperature_time" in self.parameters.keys():
                 self.min_temperature_time = float(self.parameters["min_temperature_time"])
             else:
+                # Set default time stamp of temperature minimum to 3:00 a.m. UTC
                 self.min_temperature_time = 10800.
+            if "max_temperature" in self.parameters.keys():
+                self.max_temperature = float(self.parameters["max_temperature"])
+            else:
+                self.max_temperature = 10.
             if "max_temperature_time" in self.parameters.keys():
                 self.max_temperature_time = float(self.parameters["max_temperature_time"])
             else:
+                # Set default time stamp of temperature maximum to 11:00 a.m. UTC
                 self.max_temperature_time = 39600.
             if "transition_temperature" in self.parameters.keys():
                 self.transition_temperature = float(self.parameters["transition_temperature"])
             else:
                 self.transition_temperature = 5.
+            if "average_humidity_external" in self.parameters.keys():
+                self.average_humidity_external = float(self.parameters["average_humidity_external"])
+            else:
+                self.average_humidity_external = 0.6
             return True
         else:
             return False
@@ -69,7 +107,7 @@ class parameters(object):
 
 
 if __name__ == "__main__":
-    a = {"hostname": "Vega", "CCU address": "192.168.0.51", "user": "rolf", "password": "Px9820rH"}
+    a = {"hostname": "Vega", "CCU address": "192.168.0.51", "user": "rolf", "output_level": "3"}
     print "Parameters explicitly set in file:", a
     with open("parameter_file", 'w') as f:
         json.dump(a, f)
@@ -78,7 +116,7 @@ if __name__ == "__main__":
 
     params.print_parameters()
 
-    a = {"hostname": "Vega", "CCU address": "192.168.0.51", "user": "rolf", "password": "Px9820rH"}
+    a = {"hostname": "Vega", "CCU address": "192.168.0.51", "user": "rolf", "output_level": "3"}
     print "\nParameters explicitly set in file:", a
     with open("parameter_file", 'w') as f:
         json.dump(a, f)
