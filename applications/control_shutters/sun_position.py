@@ -21,11 +21,13 @@
 from pmatic import utils
 from math import degrees, radians
 
+import pmatic.applications.ventilation_basement.parameters as parameters
+
 class sun_position(object):
 
     def __init__(self, longitude, latitude):
-        self.longitude = longitude
-        self.latitude = latitude
+        self.longitude = parameters.longitude
+        self.latitude = parameters.latitude
         self.update_position
 
     def update_position(self):
@@ -36,7 +38,7 @@ class sun_position(object):
         return self.azimuth, self.elevation
 
 if __name__=="__main__":
-    sun = sun_position(radians(7.), radians(51.))
+    sun = sun_position()
     (azimuth, elevation) = sun.update_position()
 
     print "Azimuth: ", degrees(azimuth), ", Elevation: ", degrees(elevation)

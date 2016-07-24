@@ -62,6 +62,10 @@ class parameters(object):
             else:
                 self.longitude = 7.9
             self.utc_shift = self.longitude / 15.
+            if "latitude" in self.parameters.keys():
+                self.latitude = float(self.parameters["latitude"])
+            else:
+                self.latitude = 50.7
             if "min_temperature" in self.parameters.keys():
                 self.min_temperature = float(self.parameters["min_temperature"])
             else:
