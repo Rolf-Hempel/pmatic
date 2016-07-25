@@ -22,14 +22,14 @@ import json
 
 
 class parameters(object):
-    def __init__(self):
+    def __init__(self, parameter_file_name):
+        self.parameter_file_name = parameter_file_name
         self.parameters = {}
         self.update_parameters()
 
     def update_parameters(self):
         self.parameters_old = self.parameters
-        # with open("/etc/config/addons/pmatic/scripts/applications/ventilation_basement/parameter_file", "r") as parameter_file:
-        with open("parameter_file", "r") as parameter_file:
+        with open(self.parameter_file_name, "r") as parameter_file:
             self.parameters = json.load(parameter_file)
         if self.test_for_changes():
             if "hostname" in self.parameters.keys():

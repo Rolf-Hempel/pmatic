@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import codecs
+import os.path
 from math import radians
 
 import pmatic
@@ -126,10 +127,11 @@ class windows(object):
 
 
 if __name__ == "__main__":
+    ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/ventilation_basement/parameter_file"
+    remote_parameter_file_name = "parameter_file"
 
-    params = parameters()
-
-    if params.hostname == "homematic-ccu2":
+    if os.path.isfile(ccu_parameter_file_name):
+        params = parameters(ccu_parameter_file_name)
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/shutter_control.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
@@ -138,6 +140,7 @@ if __name__ == "__main__":
                 "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU()
     else:
+        params = parameters(remote_parameter_file_name)
         if params.output_level > 0:
             print ""
             print_output(
