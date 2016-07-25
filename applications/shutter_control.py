@@ -20,7 +20,7 @@
 
 import codecs
 import os.path
-from math import radians
+from math import radians, degrees
 
 import pmatic
 from miscellaneous import *
@@ -68,6 +68,7 @@ class window(object):
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(value))
                     success = self.shutter.blind.set_level(value)
+                    time.sleep(params.shutter_trigger_delay)
                     self.shutter_last_setting = value
                 except Exception as e:
                     print e
@@ -108,19 +109,19 @@ class windows(object):
                 print "Room: ", w.room_name, ", Window: ", w.window_name, ", Device: ", w.shutter_name
 
     def close_all_shutters(self):
-        if self.params.output_level > 0:
+        if self.params.output_level > 2:
             print_output("Closing all shutters")
         for window in self.window_dict.values():
             window.set_shutter(0.)
 
     def open_all_shutters(self):
-        if self.params.output_level > 0:
+        if self.params.output_level > 2:
             print_output("Opening all shutters")
         for window in self.window_dict.values():
             window.set_shutter(1.)
 
     def test_manual_intervention(self):
-        if self.params.output_level > 0:
+        if self.params.output_level > 2:
             print_output("Testing all shutters for manual intervention")
         for window in self.window_dict.values():
             window.test_manual_intervention()
@@ -157,11 +158,16 @@ if __name__ == "__main__":
 
     while True:
         if params.update_parameters():
+            sun = sun_position(params)
+            sun_twilight_threshold = radians(params.sun_twilight_threshold)
             if params.output_level > 1:
                 print "\nParameters have changed!"
                 params.print_parameters()
         windows.test_manual_intervention()
         sun_azimuth, sun_elevation = sun.update_position()
+        if params.output_level > 2:
+            print_output("Sun position: Azimuth = " + str(degrees(sun_azimuth)) +
+                         ", Elevation = " + str(degrees(sun_elevation)))
         if sun_elevation < sun_twilight_threshold:
             windows.close_all_shutters()
         else:

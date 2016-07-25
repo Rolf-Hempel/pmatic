@@ -100,6 +100,10 @@ class parameters(object):
                 self.shutter_inhibition_time = float(self.parameters["shutter_inhibition_time"])
             else:
                 self.shutter_inhibition_time = 7200.
+            if "shutter_trigger_delay" in self.parameters.keys():
+                self.shutter_trigger_delay = float(self.parameters["shutter_trigger_delay"])
+            else:
+                self.shutter_trigger_delay = 10.
             return True
         else:
             return False
@@ -119,7 +123,8 @@ class parameters(object):
             "\ntransition_temperature: ", self.transition_temperature, \
             "\naverage_humidity_external: ", self.average_humidity_external, \
             "\nsun_twilight_threshold: ", self.sun_twilight_threshold, \
-            "\nshutter_inhibition_time: ", self.shutter_inhibition_time
+            "\nshutter_inhibition_time: ", self.shutter_inhibition_time, \
+            "\nshutter_trigger_delay: ", self.shutter_trigger_delay
 
 
 if __name__ == "__main__":
