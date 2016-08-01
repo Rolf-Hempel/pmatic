@@ -104,6 +104,10 @@ class parameters(object):
                 self.shutter_trigger_delay = float(self.parameters["shutter_trigger_delay"])
             else:
                 self.shutter_trigger_delay = 10.
+            if "max_ventilation_temperature" in self.parameters.keys():
+                self.max_ventilation_temperature = float(self.parameters["max_ventilation_temperature"])
+            else:
+                self.max_ventilation_temperature = 19.
             return True
         else:
             return False
