@@ -98,10 +98,82 @@ class windows(object):
         # Initialize all windows and set open sky areas
         window_name = u'Schlafzimmer'
         w = window(self.params, self.ccu, self.sun, window_name, u'Schlafzimmer', u'Rolladenaktor Schlafzimmer')
-        w.add_open_space(50., 120., 0., 90.)
-        w.add_open_space(120., 180., 20., 90.)
-        w.add_open_space(180., 220., 0., 90.)
+        w.add_open_space(51., 76., 7., 90.)
+        w.add_open_space(76., 116., 4., 90.)
+        w.add_open_space(116., 136., 7., 50.)
+        w.add_open_space(136., 156., 13., 50.)
+        w.add_open_space(156., 171., 7., 50.)
+        w.add_open_space(171., 191., 7., 35.)
+        w.add_open_space(191., 216., 7., 20.)
         self.window_dict[window_name] = w
+
+        window_name = u'Kinderzimmer'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Kinderzimmer', u'Rolladenaktor Kinderzimmer')
+        w.add_open_space(231., 360., 0., 90.)
+        self.window_dict[window_name] = w
+
+        window_name = u'Arbeitszimmer'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Arbeitszimmer', u'Rolladenaktor Arbeitszimmer')
+        w.add_open_space(231., 246., 2., 20.)
+        w.add_open_space(246., 256, 2., 40.)
+        w.add_open_space(256., 271., 2., 55.)
+        w.add_open_space(271., 360., 2., 60.)
+        self.window_dict[window_name] = w
+
+        window_name = u'Badezimmer'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Badezimmer', u'Rolladenaktor Badezimmer')
+        w.add_open_space(61., 78., 8., 27.)
+        w.add_open_space(78., 146, 4., 55.)
+        w.add_open_space(146., 166., 13., 57.)
+        w.add_open_space(166., 201., 4., 55.)
+        self.window_dict[window_name] = w
+
+
+        window_name = u'Wohnzimmer rechts'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Wohnzimmer rechts', u'Rolladenaktor Wohnzimmer rechts')
+        w.add_open_space(231., 360., 2., 90.)
+        self.window_dict[window_name] = w
+
+        window_name = u'Wohnzimmer links'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Wohnzimmer links',
+                   u'Rolladenaktor Wohnzimmer links')
+        w.add_open_space(231., 360., 2., 90.)
+        self.window_dict[window_name] = w
+
+        window_name = u'Terrassentür'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Terrassentür',
+                   u'Rolladenaktor Terrassentür')
+        w.add_open_space(151., 181., 0., 33.)
+        w.add_open_space(181., 191., 0., 38.)
+        w.add_open_space(191., 241., 20., 38.)
+        w.add_open_space(241., 246., 7., 37.)
+        w.add_open_space(246., 293., 3., 40.)
+        self.window_dict[window_name] = w
+
+        window_name = u'Terrassenfenster'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Terrassenfenster',
+                   u'Rolladenaktor Terrassenfenster')
+        w.add_open_space(151., 181., 0., 33.)
+        w.add_open_space(181., 191., 0., 38.)
+        w.add_open_space(191., 241., 20., 38.)
+        w.add_open_space(241., 246., 7., 37.)
+        w.add_open_space(246., 293., 3., 40.)
+        self.window_dict[window_name] = w
+
+        window_name = u'Küche links'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Küche links',
+                   u'Rolladenaktor Küche links')
+        w.add_open_space(0., 360., 0., 90.)
+
+        window_name = u'Küche rechts'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Küche rechts',
+                   u'Rolladenaktor Küche rechts')
+        w.add_open_space(0., 360., 0., 90.)
+
+        window_name = u'Gäste-WC'
+        w = window(self.params, self.ccu, self.sun, window_name, u'Gäste-WC',
+                   u'Rolladenaktor Gäste-WC')
+        w.add_open_space(0., 360., 0., 90.)
 
         if self.params.output_level > 0:
             print "\nWindows with shutter control:"
