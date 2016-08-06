@@ -6,7 +6,7 @@ import time
 
 import pmatic
 
-ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/ventilation_basement/parameter_file"
+ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/examples/parameter_file"
 remote_parameter_file_name = "parameter_file"
 
 if os.path.isfile(ccu_parameter_file_name):
