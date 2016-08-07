@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def nominal_to_true(c, setting_nominal):
+def true_to_nominal(c, setting_nominal):
     return c[0] * setting_nominal ** 2 + c[1] * setting_nominal + c[2]
 
 def compute_coef(window_name, prn, heights, total_height):
@@ -13,19 +13,19 @@ def compute_coef(window_name, prn, heights, total_height):
     array[:, 0] = prw ** 2
     array[:, 1] = prw
     array[:, 2] = 1.
-    # print "array: ", array, "\n"
+    print "array: ", array, "\n"
 
     coef = np.linalg.solve(array, prn)
     print "coef: ", coef
-    # print "\nTranslation from true to nominal settings:"
+    print "\nTranslation from nominal to true settings:"
 
-    # for i in range(11):
-    #     setting_nominal = float(i)*0.1
-    #     print "true: ", setting_nominal, ", nominal: ", nominal_to_true(coef, setting_nominal)
+    for i in range(11):
+        setting_true = float(i)*0.1
+        print "true: ", setting_true, ", nominal: ", true_to_nominal(coef, setting_true)
 
-    # print "\nTest if coefficients match measurements:"
-    # for i in range(3):
-    #     print "true: ", prw[i], ", nominal: ", nominal_to_true(coef, prw[i])
+    print "\nTest if coefficients match measurements:"
+    for i in range(3):
+        print "true: ", prw[i], ", nominal: ", true_to_nominal(coef, prw[i])
 
     return coef
 

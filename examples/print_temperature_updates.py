@@ -49,6 +49,8 @@ if not devices:
 else:
     print("Waiting for changes...")
 
+    # ccu.events._interface_id = "test123interface"
     ccu.events.init()
+    print ("after initialization")
     ccu.events.wait()
     ccu.events.close()

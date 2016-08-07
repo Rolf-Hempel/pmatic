@@ -40,10 +40,14 @@ class window(object):
         self.shutter_last_setting = -1.
         self.shutter_last_set_manually = 0.
         self.open_spaces = []
+        self.shutter_coef = [0., 1., 0.]
 
     def add_open_space(self, azimuth_lower, azimuth_upper, elevation_lower, elevation_upper):
         self.open_spaces.append([radians(azimuth_lower), radians(azimuth_upper), \
                                  radians(elevation_lower), radians(elevation_upper)])
+
+    def add_shutter_coef(self, coef):
+        self.shutter_coef = coef
 
     def test_sunlit(self):
         sun_azimuth, sun_elevation = self.sun.Look_up_position()
@@ -53,6 +57,16 @@ class window(object):
                 sunlit = True
                 break
         return sunlit
+
+    def true_to_nominal(self, setting_true):
+        if setting_true == 1.:
+            return 1.
+        elif setting_true == 0.:
+            return 0.
+        else:
+            return max(1.,
+                       min(0., self.shutter_coef[0] * setting_true ** 2 + self.shutter_coef[1] * setting_true +
+                           self.shutter_coef[2]))
 
     def set_shutter(self, value):
         success = True
@@ -67,7 +81,7 @@ class window(object):
                 try:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(value))
-                    success = self.shutter.blind.set_level(value)
+                    success = self.shutter.blind.set_level(self.true_to_nominal(value))
                     time.sleep(params.shutter_trigger_delay)
                     self.shutter_last_setting = value
                 except Exception as e:
@@ -110,6 +124,7 @@ class windows(object):
         window_name = u'Kinderzimmer'
         w = window(self.params, self.ccu, self.sun, window_name, u'Kinderzimmer', u'Rolladenaktor Kinderzimmer')
         w.add_open_space(231., 360., 0., 90.)
+        w.add_shutter_coef([-0.26234962, 0.98880658, 0.24321233])
         self.window_dict[window_name] = w
 
         window_name = u'Arbeitszimmer'
@@ -118,6 +133,7 @@ class windows(object):
         w.add_open_space(246., 256, 2., 40.)
         w.add_open_space(256., 271., 2., 55.)
         w.add_open_space(271., 360., 2., 60.)
+        w.add_shutter_coef([-0.26234962, 0.98880658, 0.24321233])
         self.window_dict[window_name] = w
 
         window_name = u'Badezimmer'
@@ -128,9 +144,9 @@ class windows(object):
         w.add_open_space(166., 201., 4., 55.)
         self.window_dict[window_name] = w
 
-
         window_name = u'Wohnzimmer rechts'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Wohnzimmer rechts', u'Rolladenaktor Wohnzimmer rechts')
+        w = window(self.params, self.ccu, self.sun, window_name, u'Wohnzimmer rechts',
+                   u'Rolladenaktor Wohnzimmer rechts')
         w.add_open_space(231., 360., 2., 90.)
         self.window_dict[window_name] = w
 
@@ -163,17 +179,31 @@ class windows(object):
         window_name = u'Küche links'
         w = window(self.params, self.ccu, self.sun, window_name, u'Küche links',
                    u'Rolladenaktor Küche links')
-        w.add_open_space(0., 360., 0., 90.)
+        w.add_open_space(51., 79., 8., 90.)
+        w.add_open_space(79., 106., 5., 90.)
+        w.add_open_space(106., 136., 14., 90.)
+        w.add_open_space(136., 171., 20., 90.)
+        w.add_open_space(171., 211., 8., 90.)
 
         window_name = u'Küche rechts'
         w = window(self.params, self.ccu, self.sun, window_name, u'Küche rechts',
                    u'Rolladenaktor Küche rechts')
-        w.add_open_space(0., 360., 0., 90.)
+        w.add_open_space(141., 156., 16., 90.)
+        w.add_open_space(156., 206., 5., 90.)
+        w.add_open_space(206., 231., 20., 90.)
+        w.add_open_space(231., 266., 16., 30.)
+        w.add_open_space(266., 276., 3., 25.)
+        w.add_open_space(276., 291., 3., 19.)
+        w.add_open_space(291., 301., 3., 13.)
 
         window_name = u'Gäste-WC'
         w = window(self.params, self.ccu, self.sun, window_name, u'Gäste-WC',
                    u'Rolladenaktor Gäste-WC')
-        w.add_open_space(0., 360., 0., 90.)
+        w.add_open_space(51., 79., 8., 90.)
+        w.add_open_space(79., 121., 5., 90.)
+        w.add_open_space(121., 141., 14., 90.)
+        w.add_open_space(141., 176., 18., 90.)
+        w.add_open_space(176., 211., 7., 90.)
 
         if self.params.output_level > 0:
             print "\nWindows with shutter control:"
