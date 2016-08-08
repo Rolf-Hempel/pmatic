@@ -29,7 +29,27 @@ from sun_position import sun_position
 
 
 class window(object):
+    """This class provides all functions to operate a window shutter.
+
+    The parts of the sky which are visible from the window can be defined on initialization, as well as the parameters
+    for the translation function between nominal and true shutter settings. During operation, manual interventions are
+    recognized. In this case the shutter of the corresponding window is left untouched by the program until the shutter
+    is opened completely manually. A test function which determines if the sun can currently illuminate the window is
+    provieded.
+
+    """
+
     def __init__(self, params, ccu, sun, window_name, room_name, shutter_name):
+        """
+        Store objects and names corresponding to this window on initialization
+
+        :param params: parameter object
+        :param ccu: pmatic CCU data object
+        :param sun: object which stores parameters for computing the current position of the sun
+        :param window_name: window name (utf-8 string)
+        :param room_name: room name (utf-8 string)
+        :param shutter_name: shutter name (utf-8 string)
+        """
         self.params = params
         self.ccu = ccu
         self.sun = sun
@@ -38,18 +58,42 @@ class window(object):
         self.shutter_name = shutter_name
         self.shutter = look_up_device(params, ccu, shutter_name)
         self.shutter_last_setting = -1.
-        self.shutter_last_set_manually = 0.
+        self.shutter_manual_intervention_active = False
         self.open_spaces = []
         self.shutter_coef = [0., 1., 0.]
 
     def add_open_space(self, azimuth_lower, azimuth_upper, elevation_lower, elevation_upper):
+        """
+        Add a rectangular patch of sky which is visible from this window. The complete patch of sky visible from this
+        window can be composed of an arbitrary number of such rectangles.
+
+        :param azimuth_lower: lower bound of rectangle in azimuth
+        :param azimuth_upper: upper bound of rectangle in azimuth
+        :param elevation_lower: lower bound of rectangle in elevation
+        :param elevation_upper: upper bound of rectangle in elevation
+        :return: -
+        """
         self.open_spaces.append([radians(azimuth_lower), radians(azimuth_upper), \
                                  radians(elevation_lower), radians(elevation_upper)])
 
     def add_shutter_coef(self, coef):
+        """
+        Store the coefficients of a quadratic function which translates intended (true) shutter settings into nominal
+        settings to be given to the pmatic shutter control function. The function is defined as:
+            setting_nominal = coef[0] * setting_true**2 + coef[1]*setting_true + coef[2]
+        The translation takes place in method "true_to_nominal".
+
+        :param coef: list with function parameters
+        :return: -
+        """
         self.shutter_coef = coef
 
     def test_sunlit(self):
+        """
+        Test if currently the sun can potentially illuminate the window (without regarding clouds).
+
+        :return: True, if sun is in an open sky patch. False, otherwise
+        """
         sun_azimuth, sun_elevation = self.sun.Look_up_position()
         sunlit = False
         for ([azimuth_lower, azimuth_upper, elevation_lower, elevation_upper]) in self.open_spaces:
@@ -59,16 +103,33 @@ class window(object):
         return sunlit
 
     def true_to_nominal(self, setting_true):
+        """
+        Translate intended (true) shutter settings into nominal settings to be given to the pmatic shutter control
+        function. For a definition refer to method add_shutter_coef.
+
+        :param setting_true: intended shutter setting. 0 for closed, 1 for completely opened shutter.
+        :return: nominal setting to be passed to the pmatic shutter operation function.
+        """
+
+        # Test if shutter is to be opened or closed completely
         if setting_true == 1.:
             return 1.
         elif setting_true == 0.:
             return 0.
         else:
+            # For intermediate settings apply translation function
             return max(1.,
                        min(0., self.shutter_coef[0] * setting_true ** 2 + self.shutter_coef[1] * setting_true +
                            self.shutter_coef[2]))
 
     def set_shutter(self, value):
+        """
+        Set the shutter to a given level: 0 for completely closed, 1 for completely opened shutter. Any value in between
+        is possible.
+
+        :param value: intended shutter setting
+        :return: True, if shutter was set successfully; False otherwise
+        """
         success = True
         if value < 0. or value > 1.:
             print_output("Error: Invalid shutter value " + str(value) + " specified.")
@@ -76,12 +137,13 @@ class window(object):
         else:
             current_time = time.time()
             # Test if current shutter setting differs from target value and no manual intervention is active
-            if value != self.shutter.blind.level and \
-                                    current_time - self.shutter_last_set_manually > self.params.shutter_inhibition_time:
+            if value != self.shutter.blind.level and not self.shutter_manual_intervention_active:
                 try:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(value))
+                    # Apply translation between intended and nominal shutter settings
                     success = self.shutter.blind.set_level(self.true_to_nominal(value))
+                    # After a shutter operation, wait for a pre-defined period in order to avoid radio interference
                     time.sleep(params.shutter_trigger_delay)
                     self.shutter_last_setting = value
                 except Exception as e:
@@ -92,15 +154,32 @@ class window(object):
         return success
 
     def test_manual_intervention(self):
+        """
+        Test if the shutter has been operated manually since the last setting operation. In this case set vatiable
+        "self.shutter_manual_intervention_active" to True. This will inhibit shutter operations by this program until
+        the shutter is opened completely manually.
+
+        :return: -
+        """
         if self.shutter.blind.level != self.shutter_last_setting and self.shutter_last_setting != -1.:
             if self.params.output_level > 1:
                 print_output("Manual intervention for shutter " + self.shutter_name + " found, new level: "
                              + str(self.shutter.blind.level))
-            self.shutter_last_set_manually = time.time()
-            self.shutter_last_setting = self.shutter.blind.level
+            self.shutter_manual_intervention_active = True
+        if self.shutter_manual_intervention_active and self.shutter.blind.level == 1.:
+            if self.params.output_level > 1:
+                print_output("End of manual intervention for shutter " + self.shutter_name)
+            self.shutter_manual_intervention_active = False
+        self.shutter_last_setting = self.shutter.blind.level
 
 
 class windows(object):
+    """
+    This class keeps a dictionary with all window objects, to be accessed via the window name. Collective operations
+    to open and close all windows, or windows which satisfy a certain condition, are provided.
+
+    """
+
     def __init__(self, params, ccu, sun):
         self.params = params
         self.ccu = ccu
@@ -109,7 +188,7 @@ class windows(object):
 
         if self.params.output_level > 0:
             print "\nThe following shutter devices are used:"
-        # Initialize all windows and set open sky areas
+        # Initialize all windows. Set open sky areas and coefficients for translating true to nominal shutter settings
         window_name = u'Schlafzimmer'
         w = window(self.params, self.ccu, self.sun, window_name, u'Schlafzimmer', u'Rolladenaktor Schlafzimmer')
         w.add_open_space(51., 76., 7., 90.)
@@ -120,6 +199,7 @@ class windows(object):
         w.add_open_space(171., 191., 7., 35.)
         w.add_open_space(191., 216., 7., 20.)
         w.add_shutter_coef([-0.12959185, 0.86158566, 0.25446371])
+        # Add the window object to the dictionary with all windows
         self.window_dict[window_name] = w
 
         window_name = u'Kinderzimmer'
@@ -217,6 +297,7 @@ class windows(object):
         w.add_shutter_coef([-0.20875883, 0.89494005, 0.28198548])
         self.window_dict[window_name] = w
 
+        # Print a list of all windows
         if self.params.output_level > 0:
             print "\nWindows with shutter control:"
             for w in self.window_dict.values():
@@ -235,6 +316,8 @@ class windows(object):
             window.set_shutter(1.)
 
     def test_manual_intervention(self):
+        # Test for manual intervention. This method invokes the corresponding method in class "window". The result is
+        # stored in all window objects individually.
         if self.params.output_level > 2:
             print_output("Testing all shutters for manual intervention")
         for window in self.window_dict.values():
@@ -242,9 +325,12 @@ class windows(object):
 
 
 if __name__ == "__main__":
+    # Depending on whether the program is executed on the CCU2 itself or on a remote PC, the parameters are stored at
+    # different locations.
     ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/ventilation_basement/parameter_file"
     remote_parameter_file_name = "parameter_file"
 
+    # Test if the CCU parameter file is found. In this case the program runs on the CCU2.
     if os.path.isfile(ccu_parameter_file_name):
         params = parameters(ccu_parameter_file_name)
         # For execution on CCU redirect stdout to a protocol file
@@ -265,26 +351,34 @@ if __name__ == "__main__":
     if params.output_level > 1:
         params.print_parameters()
 
+    # Create the object which stores parameters for computing the sun's location in the sky
     sun = sun_position(params)
     sun_twilight_threshold = radians(params.sun_twilight_threshold)
 
+    # Create window dictionary and initialize parameters for all windows
     windows = windows(params, ccu, sun)
 
+    # Main loop
     while True:
+        # Read parameter file and check if since the last iteration parameters have changed
         if params.update_parameters():
             sun = sun_position(params)
             sun_twilight_threshold = radians(params.sun_twilight_threshold)
             if params.output_level > 1:
                 print "\nParameters have changed!"
                 params.print_parameters()
+        # Check if since last iteration a shutter has been operated manually
         windows.test_manual_intervention()
+        # Compute the current sun position
         sun_azimuth, sun_elevation = sun.update_position()
         if params.output_level > 2:
             print_output("Sun position: Azimuth = " + str(degrees(sun_azimuth)) +
                          ", Elevation = " + str(degrees(sun_elevation)))
+        # If the sun is below a certain elevation threshold, close all shutters, otherwise open them (if they are not
+        # open yet.
         if sun_elevation < sun_twilight_threshold:
             windows.close_all_shutters()
         else:
             windows.open_all_shutters()
-
+        # Add a delay before the next main loop iteration
         time.sleep(params.main_loop_sleep_time)

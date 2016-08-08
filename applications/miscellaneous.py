@@ -24,7 +24,8 @@ import time
 
 
 def date_and_time():
-    """Compute the current date and time.
+    """
+    Compute the current date and time
 
     :return: Character string with current date and time information
     """
@@ -33,28 +34,24 @@ def date_and_time():
 
 def get_local_hour(params, timestamp):
     """
-    Compute the number of hours passed since local midnight.
+    Compute the number of hours passed since local midnight
 
-    Args:
-        params: parameter object
-        timestamp: Unix timestamp (seconds passed since Jan. 1st, 1970, 0:00 UTC)
-
-    Returns: the number of hours since local midnight. Examples: 0. for midnight, 12. for local noon, 12.5 for
+    :param params: parameter object
+    :param timestamp: Unix timestamp (seconds passed since Jan. 1st, 1970, 0:00 UTC)
+    :return: the number of hours since local midnight. Examples: 0. for midnight, 12. for local noon, 12.5 for
              half an hour after local noon.
     """
     return (timestamp / 3600. + params.utc_shift) % 24.
 
 
 def look_up_device(params, ccu, dev_name):
-    """Look up the device by its name. If two devices are found with the same name, print an error message and exit.
+    """
+    Look up the device by its name. If two devices are found with the same name, print an error message and exit.
 
-    Args:
-        params: parameter object
-        ccu: pmatic CCU data object
-        dev_name: device name (utf-8 string)
-
-    Returns: the device object
-
+    :param params: parameter object
+    :param ccu: pmatic CCU data object
+    :param dev_name: device name (utf-8 string)
+    :return: the device object
     """
     devices = {}
     try:
@@ -73,12 +70,10 @@ def look_up_device(params, ccu, dev_name):
 
 
 def print_output(output_string):
-    """Print a text string to stdout, preceded by the current UTC date and time.
+    """
+    Print a text string to stdout, preceded by the current UTC date and time
 
-    Args:
-        output_string: character string to be printed behind the UTC time info
-
-    Returns: -
-
+    :param output_string: character string to be printed behind the UTC time info
+    :return: -
     """
     print datetime.datetime.fromtimestamp(time.time()), output_string

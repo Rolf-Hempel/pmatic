@@ -13,19 +13,19 @@ def compute_coef(window_name, prn, heights, total_height):
     array[:, 0] = prw ** 2
     array[:, 1] = prw
     array[:, 2] = 1.
-    # print "array: ", array, "\n"
+    print "array: ", array, "\n"
 
     coef = np.linalg.solve(array, prn)
     print "coef: ", coef
-    # print "\nTranslation from nominal to true settings:"
-    #
-    # for i in range(11):
-    #     setting_true = float(i)*0.1
-    #     print "true: ", setting_true, ", nominal: ", true_to_nominal(coef, setting_true)
-    #
-    # print "\nTest if coefficients match measurements:"
-    # for i in range(3):
-    #     print "true: ", prw[i], ", nominal: ", true_to_nominal(coef, prw[i])
+    print "\nTranslation from nominal to true settings:"
+
+    for i in range(11):
+        setting_true = float(i)*0.1
+        print "true: ", setting_true, ", nominal: ", true_to_nominal(coef, setting_true)
+
+    print "\nTest if coefficients match measurements:"
+    for i in range(3):
+        print "true: ", prw[i], ", nominal: ", true_to_nominal(coef, prw[i])
 
     return coef
 
