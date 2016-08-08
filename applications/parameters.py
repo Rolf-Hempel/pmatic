@@ -95,15 +95,11 @@ class parameters(object):
             if "sun_twilight_threshold" in self.parameters.keys():
                 self.sun_twilight_threshold = float(self.parameters["sun_twilight_threshold"])
             else:
-                self.sun_twilight_threshold = -5.
-            if "shutter_inhibition_time" in self.parameters.keys():
-                self.shutter_inhibition_time = float(self.parameters["shutter_inhibition_time"])
-            else:
-                self.shutter_inhibition_time = 7200.
+                self.sun_twilight_threshold = -1.
             if "shutter_trigger_delay" in self.parameters.keys():
                 self.shutter_trigger_delay = float(self.parameters["shutter_trigger_delay"])
             else:
-                self.shutter_trigger_delay = 10.
+                self.shutter_trigger_delay = 40.
             if "max_ventilation_temperature" in self.parameters.keys():
                 self.max_ventilation_temperature = float(self.parameters["max_ventilation_temperature"])
             else:
