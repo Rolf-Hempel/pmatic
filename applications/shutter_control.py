@@ -327,7 +327,7 @@ class windows(object):
 if __name__ == "__main__":
     # Depending on whether the program is executed on the CCU2 itself or on a remote PC, the parameters are stored at
     # different locations.
-    ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/ventilation_basement/parameter_file"
+    ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/parameter_file"
     remote_parameter_file_name = "parameter_file"
 
     # Test if the CCU parameter file is found. In this case the program runs on the CCU2.
