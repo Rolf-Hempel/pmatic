@@ -123,8 +123,8 @@ class parameters(object):
             "\ntransition_temperature: ", self.transition_temperature, \
             "\naverage_humidity_external: ", self.average_humidity_external, \
             "\nsun_twilight_threshold: ", self.sun_twilight_threshold, \
-            "\nshutter_inhibition_time: ", self.shutter_inhibition_time, \
-            "\nshutter_trigger_delay: ", self.shutter_trigger_delay
+            "\nshutter_trigger_delay: ", self.shutter_trigger_delay, \
+            "\nmax_ventilation_temperature: ", self.max_ventilation_temperature
 
 
 if __name__ == "__main__":
