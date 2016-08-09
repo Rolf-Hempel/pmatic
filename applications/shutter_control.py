@@ -136,8 +136,24 @@ class window(object):
             success = False
         else:
             try:
+                self.shutter_current_setting = self.shutter.blind.level
+                # Test if the shutter has been operated manually since the last setting operation. In this case set
+                # variable "self.shutter_manual_intervention_active" to True. This will inhibit shutter operations by
+                # this program until the shutter is opened completely manually.
+                if self.shutter_current_setting != self.shutter_last_setting and self.shutter_last_setting != -1.:
+                    if self.shutter_current_setting == 1.:
+                        if self.params.output_level > 1:
+                            print_output("End of manual intervention for shutter " + self.shutter_name)
+                        self.shutter_manual_intervention_active = False
+                    else:
+                        if self.params.output_level > 1:
+                            print_output("Manual intervention for shutter " + self.shutter_name + " found, new level: "
+                                         + str(self.shutter_current_setting))
+                        self.shutter_manual_intervention_active = True
+                self.shutter_last_setting = self.shutter_current_setting
+
                 # Test if current shutter setting differs from target value and no manual intervention is active
-                if value != self.shutter.blind.level and not self.shutter_manual_intervention_active:
+                if value != self.shutter_current_setting and not self.shutter_manual_intervention_active:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(value))
                     # Apply translation between intended and nominal shutter settings
@@ -150,32 +166,6 @@ class window(object):
                     print e
                 success = False
         return success
-
-    def test_manual_intervention(self):
-        """
-        Test if the shutter has been operated manually since the last setting operation. In this case set vatiable
-        "self.shutter_manual_intervention_active" to True. This will inhibit shutter operations by this program until
-        the shutter is opened completely manually.
-
-        :return: -
-        """
-        try:
-            self.shutter_current_setting = self.shutter.blind.level
-            if self.shutter_current_setting != self.shutter_last_setting and self.shutter_last_setting != -1.:
-                if self.params.output_level > 1:
-                    print_output("Manual intervention for shutter " + self.shutter_name + " found, new level: "
-                                 + str(self.shutter_current_setting))
-                self.shutter_manual_intervention_active = True
-            if self.shutter_manual_intervention_active and self.shutter_current_setting == 1.:
-                if self.params.output_level > 1:
-                    print_output("End of manual intervention for shutter " + self.shutter_name)
-                self.shutter_manual_intervention_active = False
-            self.shutter_last_setting = self.shutter_current_setting
-        except Exception as e:
-            if self.params.output_level > 0:
-                print e
-
-
 
 
 class windows(object):
@@ -320,14 +310,6 @@ class windows(object):
         for window in self.window_dict.values():
             window.set_shutter(1.)
 
-    def test_manual_intervention(self):
-        # Test for manual intervention. This method invokes the corresponding method in class "window". The result is
-        # stored in all window objects individually.
-        if self.params.output_level > 2:
-            print_output("Testing all shutters for manual intervention")
-        for window in self.window_dict.values():
-            window.test_manual_intervention()
-
 
 if __name__ == "__main__":
     # Depending on whether the program is executed on the CCU2 itself or on a remote PC, the parameters are stored at
@@ -372,8 +354,6 @@ if __name__ == "__main__":
             if params.output_level > 1:
                 print "\nParameters have changed!"
                 params.print_parameters()
-        # Check if since last iteration a shutter has been operated manually
-        windows.test_manual_intervention()
         # Compute the current sun position
         sun_azimuth, sun_elevation = sun.update_position()
         if params.output_level > 2:
