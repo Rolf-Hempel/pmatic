@@ -135,22 +135,20 @@ class window(object):
             print_output("Error: Invalid shutter value " + str(value) + " specified.")
             success = False
         else:
-            current_time = time.time()
-            # Test if current shutter setting differs from target value and no manual intervention is active
-            if value != self.shutter.blind.level and not self.shutter_manual_intervention_active:
-                try:
+            try:
+                # Test if current shutter setting differs from target value and no manual intervention is active
+                if value != self.shutter.blind.level and not self.shutter_manual_intervention_active:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(value))
                     # Apply translation between intended and nominal shutter settings
                     success = self.shutter.blind.set_level(self.true_to_nominal(value))
                     # After a shutter operation, wait for a pre-defined period in order to avoid radio interference
-                    time.sleep(params.shutter_trigger_delay)
+                    time.sleep(self.params.shutter_trigger_delay)
                     self.shutter_last_setting = value
-                except Exception as e:
+            except Exception as e:
+                if self.params.output_level > 0:
                     print e
-                    # Set last setting to impossible value, so deviation will not be interpreted as manual intervention
-                    self.shutter_last_setting = -1.
-                    success = False
+                success = False
         return success
 
     def test_manual_intervention(self):
@@ -161,16 +159,23 @@ class window(object):
 
         :return: -
         """
-        if self.shutter.blind.level != self.shutter_last_setting and self.shutter_last_setting != -1.:
-            if self.params.output_level > 1:
-                print_output("Manual intervention for shutter " + self.shutter_name + " found, new level: "
-                             + str(self.shutter.blind.level))
-            self.shutter_manual_intervention_active = True
-        if self.shutter_manual_intervention_active and self.shutter.blind.level == 1.:
-            if self.params.output_level > 1:
-                print_output("End of manual intervention for shutter " + self.shutter_name)
-            self.shutter_manual_intervention_active = False
-        self.shutter_last_setting = self.shutter.blind.level
+        try:
+            self.shutter_current_setting = self.shutter.blind.level
+            if self.shutter_current_setting != self.shutter_last_setting and self.shutter_last_setting != -1.:
+                if self.params.output_level > 1:
+                    print_output("Manual intervention for shutter " + self.shutter_name + " found, new level: "
+                                 + str(self.shutter_current_setting))
+                self.shutter_manual_intervention_active = True
+            if self.shutter_manual_intervention_active and self.shutter_current_setting == 1.:
+                if self.params.output_level > 1:
+                    print_output("End of manual intervention for shutter " + self.shutter_name)
+                self.shutter_manual_intervention_active = False
+            self.shutter_last_setting = self.shutter_current_setting
+        except Exception as e:
+            if self.params.output_level > 0:
+                print e
+
+
 
 
 class windows(object):
