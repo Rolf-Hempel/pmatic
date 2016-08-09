@@ -54,7 +54,7 @@ class parameters(object):
             else:
                 self.main_loop_sleep_time = 71.
             if "lookup_level_sleep_time" in self.parameters.keys():
-                self.main_loop_sleep_time = float(self.parameters["lookup_level_sleep_time"])
+                self.lookup_level_sleep_time = float(self.parameters["lookup_level_sleep_time"])
             else:
                 self.lookup_level_sleep_time = 5.
             if "output_level" in self.parameters.keys():
