@@ -52,7 +52,11 @@ class parameters(object):
             if "main_loop_sleep_time" in self.parameters.keys():
                 self.main_loop_sleep_time = float(self.parameters["main_loop_sleep_time"])
             else:
-                self.main_loop_sleep_time = 121.
+                self.main_loop_sleep_time = 71.
+            if "lookup_level_sleep_time" in self.parameters.keys():
+                self.main_loop_sleep_time = float(self.parameters["lookup_level_sleep_time"])
+            else:
+                self.lookup_level_sleep_time = 5.
             if "output_level" in self.parameters.keys():
                 self.output_level = int(self.parameters["output_level"])
             else:
@@ -117,6 +121,7 @@ class parameters(object):
     def print_parameters(self):
         print "\nParameters:", "\nhostname: ", self.hostname, "\nCCU address: ", self.ccu_address, "\nuser: ", \
             self.user, "\npassword: ", self.password, "\nmain_loop_sleep_time: ", self.main_loop_sleep_time, \
+            "\nlookup_level_sleep_time: ", self.lookup_level_sleep_time, \
             "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
             "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
             "\nmax_temperature: ", self.max_temperature, "\nmax_temperature_time: ", self.max_temperature_time, \
