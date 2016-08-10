@@ -137,7 +137,7 @@ class window(object):
         else:
             try:
                 self.shutter_current_setting = self.shutter.blind.level
-                time.sleep(self.params.lookup_level_sleep_time)
+                time.sleep(self.params.lookup_sleep_time)
                 # Test if the shutter has been operated manually since the last setting operation. In this case set
                 # variable "self.shutter_manual_intervention_active" to True. This will inhibit shutter operations by
                 # this program until the shutter is opened completely manually.

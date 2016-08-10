@@ -53,10 +53,10 @@ class parameters(object):
                 self.main_loop_sleep_time = float(self.parameters["main_loop_sleep_time"])
             else:
                 self.main_loop_sleep_time = 71.
-            if "lookup_level_sleep_time" in self.parameters.keys():
-                self.lookup_level_sleep_time = float(self.parameters["lookup_level_sleep_time"])
+            if "lookup_sleep_time" in self.parameters.keys():
+                self.lookup_sleep_time = float(self.parameters["lookup_sleep_time"])
             else:
-                self.lookup_level_sleep_time = 5.
+                self.lookup_sleep_time = 5.
             if "temperature_update_interval" in self.parameters.keys():
                 self.temperature_update_interval = float(self.parameters["temperature_update_interval"])
             else:
@@ -87,6 +87,14 @@ class parameters(object):
                 self.max_temperature = float(self.parameters["max_temperature"])
             else:
                 self.max_temperature = 10.
+            if "max_temperature_hot" in self.parameters.keys():
+                self.max_temperature_hot = float(self.parameters["max_temperature_hot"])
+            else:
+                self.max_temperature_hot = 25.
+            if "max_temperature_cold" in self.parameters.keys():
+                self.max_temperature_cold = float(self.parameters["max_temperature_cold"])
+            else:
+                self.max_temperature_cold = 15.
             if "max_temperature_time" in self.parameters.keys():
                 self.max_temperature_time = float(self.parameters["max_temperature_time"])
             else:
@@ -96,6 +104,10 @@ class parameters(object):
                 self.transition_temperature = float(self.parameters["transition_temperature"])
             else:
                 self.transition_temperature = 5.
+            if "current_temperature_hot" in self.parameters.keys():
+                self.current_temperature_hot = float(self.parameters["current_temperature_hot"])
+            else:
+                self.current_temperature_hot = 22.
             if "average_humidity_external" in self.parameters.keys():
                 self.average_humidity_external = float(self.parameters["average_humidity_external"])
             else:
@@ -125,12 +137,14 @@ class parameters(object):
     def print_parameters(self):
         print "\nParameters:", "\nhostname: ", self.hostname, "\nCCU address: ", self.ccu_address, "\nuser: ", \
             self.user, "\npassword: ", self.password, "\nmain_loop_sleep_time: ", self.main_loop_sleep_time, \
-            "\nlookup_level_sleep_time: ", self.lookup_level_sleep_time, \
+            "\nlookup_sleep_time: ", self.lookup_sleep_time, \
             "\ntemperature_update_interval: ", self.temperature_update_interval, \
             "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
             "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
-            "\nmax_temperature: ", self.max_temperature, "\nmax_temperature_time: ", self.max_temperature_time, \
-            "\ntransition_temperature: ", self.transition_temperature, \
+            "\nmax_temperature: ", self.max_temperature, "\nmax_temperature_hot: ", self.max_temperature_hot, \
+            "\nmax_temperature_cold: ", self.max_temperature_cold, "\nmax_temperature_time: ", \
+            self.max_temperature_time, "\ntransition_temperature: ", self.transition_temperature, \
+            "\ncurrent_temperature_hot: ", self.current_temperature_hot, \
             "\naverage_humidity_external: ", self.average_humidity_external, \
             "\nsun_twilight_threshold: ", self.sun_twilight_threshold, \
             "\nshutter_trigger_delay: ", self.shutter_trigger_delay, \
