@@ -61,6 +61,14 @@ class parameters(object):
                 self.temperature_update_interval = float(self.parameters["temperature_update_interval"])
             else:
                 self.temperature_update_interval = 1800.
+            if "brightness_update_interval" in self.parameters.keys():
+                self.brightness_update_interval = float(self.parameters["brightness_update_interval"])
+            else:
+                self.brightness_update_interval = 300.
+            if "brightness_time_span" in self.parameters.keys():
+                self.brightness_time_span = float(self.parameters["brightness_time_span"])
+            else:
+                self.brightness_time_span = 3600.
             if "output_level" in self.parameters.keys():
                 self.output_level = int(self.parameters["output_level"])
             else:
@@ -112,6 +120,14 @@ class parameters(object):
                 self.average_humidity_external = float(self.parameters["average_humidity_external"])
             else:
                 self.average_humidity_external = 0.6
+            if "brightness_very_bright" in self.parameters.keys():
+                self.brightness_very_bright = float(self.parameters["brightness_very_bright"])
+            else:
+                self.brightness_very_bright = 20000.
+            if "brightness_dim" in self.parameters.keys():
+                self.brightness_dim = float(self.parameters["brightness_dim"])
+            else:
+                self.brightness_dim = 2000.
             if "sun_twilight_threshold" in self.parameters.keys():
                 self.sun_twilight_threshold = float(self.parameters["sun_twilight_threshold"])
             else:
@@ -139,6 +155,8 @@ class parameters(object):
             self.user, "\npassword: ", self.password, "\nmain_loop_sleep_time: ", self.main_loop_sleep_time, \
             "\nlookup_sleep_time: ", self.lookup_sleep_time, \
             "\ntemperature_update_interval: ", self.temperature_update_interval, \
+            "\nbrightness_update_interval: ", self.brightness_update_interval, \
+            "\nbrightness_time_span: ", self.brightness_time_span, \
             "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
             "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
             "\nmax_temperature: ", self.max_temperature, "\nmax_temperature_hot: ", self.max_temperature_hot, \
@@ -146,6 +164,8 @@ class parameters(object):
             self.max_temperature_time, "\ntransition_temperature: ", self.transition_temperature, \
             "\ncurrent_temperature_hot: ", self.current_temperature_hot, \
             "\naverage_humidity_external: ", self.average_humidity_external, \
+            "\nbrightness_very_bright: ", self.brightness_very_bright, \
+            "\nbrightness_dim: ", self.brightness_dim, \
             "\nsun_twilight_threshold: ", self.sun_twilight_threshold, \
             "\nshutter_trigger_delay: ", self.shutter_trigger_delay, \
             "\nmax_ventilation_temperature: ", self.max_ventilation_temperature

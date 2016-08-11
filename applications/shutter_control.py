@@ -56,7 +56,7 @@ class window(object):
         self.window_name = window_name
         self.room_name = room_name
         self.shutter_name = shutter_name
-        self.shutter = look_up_device(params, ccu, shutter_name)
+        self.shutter = look_up_device_by_name(params, ccu, shutter_name)
         self.shutter_last_setting = -1.
         self.shutter_manual_intervention_active = False
         self.open_spaces = []

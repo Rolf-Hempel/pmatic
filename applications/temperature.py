@@ -75,31 +75,37 @@ class temperature(object):
                 # Update minima / maxima data at the first invocation after 12:00 a.m. local time,
                 # but only if data have been recorded at least since 01:00 p.m. on previous day
                 if current_time - self.temp_dict["minmax_time_updated"] > 82800. and 12. < local_hour < 13.:
-                    self.temp_dict["min_temperature"] = 100.
-                    self.temp_dict["max_temperature"] = -100.
-                    for to in self.temp_dict["temperatures"]:
-                        local_hour = get_local_hour(self.params, to[0])
-                        # Look for maximum temperature only between 1:00 and 6:00 p.m. local time
-                        if to[1] > self.temp_dict["max_temperature"] and 13. < local_hour < 18.:
-                            self.temp_dict["max_temperature"] = to[1]
-                            self.temp_dict["max_temperature_time"] = to[0]
-                        # Look for minimum temperature only between 3:00 and 9:00 a.m. local time
-                        if to[1] < self.temp_dict["min_temperature"] and 3. < local_hour < 9.:
-                            self.temp_dict["min_temperature"] = to[1]
-                            self.temp_dict["min_temperature_time"] = to[0]
                     if self.params.output_level > 1:
-                        print ""
                         print_output(
-                            " Updating maximum and minimum external temperatures:\nNew maximum temperature: " + str(
-                                self.temp_dict["max_temperature"]) + ", Time of maximum: " + str(
-                                datetime.datetime.fromtimestamp(
-                                    self.temp_dict["max_temperature_time"])) + " \nNew minimum temperature: " + str(
-                                self.temp_dict["min_temperature"]) + ", Time of minimum: " + str(
-                                datetime.datetime.fromtimestamp(
-                                    self.temp_dict["min_temperature_time"])))
+                            "\nUpdating maximum and minimum external temperatures:")
+                    min_temperature = 100.
+                    max_temperature = -100.
+                    for temp_object_stored in self.temp_dict["temperatures"]:
+                        local_hour = get_local_hour(self.params, temp_object_stored[0])
+                        # Look for maximum temperature only between 1:00 and 6:00 p.m. local time
+                        if 13. < local_hour < 18. and temp_object_stored[1] > max_temperature:
+                            max_temperature = temp_object_stored[1]
+                            max_temperature_time = temp_object_stored[0]
+                        # Look for minimum temperature only between 3:00 and 9:00 a.m. local time
+                        if 3. < local_hour < 9. and temp_object_stored[1] < min_temperature:
+                            min_temperature = temp_object_stored[1]
+                            min_temperature_time = temp_object_stored[0]
+                    if max_temperature == -100. and min_temperature == 100. and self.params.output_level > 1:
+                        print "No new maximum or minimum temperature found"
+                    else:
+                        if max_temperature > -100.:
+                            if self.params.output_level > 1:
+                                print "New maximum temperature: " + str(max_temperature) + ", Time of maximum: " + str(
+                                    datetime.datetime.fromtimestamp(max_temperature_time))
+                            self.temp_dict["max_temperature"] = max_temperature
+                            self.temp_dict["max_temperature_time"] = max_temperature_time
+                        if min_temperature < 100.:
+                            if self.params.output_level > 1:
+                                print "New minimum temperature: " + str(min_temperature) + ", Time of minimum: " + str(
+                                    datetime.datetime.fromtimestamp(min_temperature_time))
 
-                        self.temp_dict["minmax_time_updated"] = current_time
-                        self.temp_dict["temperatures"] = [temp_object]
+                    self.temp_dict["minmax_time_updated"] = current_time
+                    self.temp_dict["temperatures"] = [temp_object]
                 else:
                     self.temp_dict["temperatures"].append(temp_object)
                 with open("temperature_file", 'w') as temperature_file:
@@ -110,6 +116,12 @@ class temperature(object):
             time.sleep(params.lookup_sleep_time)
 
     def temperature_condition(self):
+        """
+        Compare the current and maximum temperatures with predefined threshold values. For the characterization "hot"
+        both the current temperature and the maximum temperature of the previous day are used.
+
+        :return: character string which characterizes the current temperature situation
+        """
         if self.current_temperature_external > params.current_temperature_hot or self.temp_dict[
             "max_temperature"] > params.max_temperature_hot:
             return "hot"
@@ -128,7 +140,7 @@ if __name__ == "__main__":
     if os.path.isfile(ccu_parameter_file_name):
         params = parameters(ccu_parameter_file_name)
         # For execution on CCU redirect stdout to a protocol file
-        sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/shutter_control.txt', encoding='utf-8', mode='a')
+        sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/temperature.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
             print ""
             print_output(
@@ -146,7 +158,7 @@ if __name__ == "__main__":
         params.print_parameters()
 
     print "\nThe following temperature device will be used:"
-    temperature_device_external = look_up_device(params, ccu, u'Temperatur- und Feuchtesensor außen')
+    temperature_device_external = look_up_device_by_name(params, ccu, u'Temperatur- und Feuchtesensor außen')
 
     temperatures = temperature(params, temperature_device_external)
 

@@ -44,9 +44,9 @@ def get_local_hour(params, timestamp):
     return (timestamp / 3600. + params.utc_shift) % 24.
 
 
-def look_up_device(params, ccu, dev_name):
+def look_up_device_by_name(params, ccu, dev_name):
     """
-    Look up the device by its name. If two devices are found with the same name, print an error message and exit.
+    Look up the device by its name. If several devices are found with the same name, the first one is taken.
 
     :param params: parameter object
     :param ccu: pmatic CCU data object
@@ -66,6 +66,30 @@ def look_up_device(params, ccu, dev_name):
         print " More than one device with name ", dev_name, " found, first one taken."
     else:
         print " Error: No device with name ", dev_name, " found, execution halted."
+        sys.exit(1)
+
+
+def look_up_devices_by_type(params, ccu, dev_type):
+    """
+    Look up all devices with a given type. A list of devices is returned,
+
+    :param params: parameter object
+    :param ccu: pmatic CCU data object
+    :param dev_type: device type (utf-8 string)
+    :return: a list with the devices found
+    """
+    devices = []
+    try:
+        devices = ccu.devices.query(device_type=[dev_type])._devices.values()
+    except Exception as e:
+        print e
+    if len(devices) > 0:
+        if params.output_level > 0:
+            for device in devices:
+                print device.name
+        return devices
+    else:
+        print " Error: No device with type ", dev_type, " found, execution halted."
         sys.exit(1)
 
 

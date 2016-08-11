@@ -54,9 +54,9 @@ if params.output_level > 1:
 if params.output_level > 0:
     print ""
     print_output("Devices used:")
-temperature_device_external = look_up_device(params, ccu, u'Temperatur- und Feuchtesensor außen')
-temperature_device_internal = look_up_device(params, ccu, u'Temperatur- und Feuchtesensor Gartenkeller')
-switch_device = look_up_device(params, ccu, u"Steckdosenschalter Gartenkeller")
+temperature_device_external = look_up_device_by_name(params, ccu, u'Temperatur- und Feuchtesensor außen')
+temperature_device_internal = look_up_device_by_name(params, ccu, u'Temperatur- und Feuchtesensor Gartenkeller')
+switch_device = look_up_device_by_name(params, ccu, u"Steckdosenschalter Gartenkeller")
 
 th = temperature_humidity(params, temperature_device_external, temperature_device_internal)
 sw = switch_ventilator(params, switch_device)
