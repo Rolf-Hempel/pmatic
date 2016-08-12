@@ -141,7 +141,8 @@ class window(object):
                 # Test if the shutter has been operated manually since the last setting operation. In this case set
                 # variable "self.shutter_manual_intervention_active" to True. This will inhibit shutter operations by
                 # this program until the shutter is opened completely manually.
-                if self.shutter_current_setting != self.shutter_last_setting and self.shutter_last_setting != -1.:
+                if abs(self.shutter_current_setting - self.shutter_last_setting) > 0.001 and \
+                        self.shutter_last_setting != -1.:
                     if self.shutter_current_setting == 1.:
                         if self.params.output_level > 1:
                             print_output("End of manual intervention for shutter " + self.shutter_name)
@@ -153,16 +154,17 @@ class window(object):
                         self.shutter_manual_intervention_active = True
                 self.shutter_last_setting = self.shutter_current_setting
 
+                nominal_setting = self.true_to_nominal(value)
                 # Test if current shutter setting differs from target value and no manual intervention is active
-                if value != self.shutter_current_setting and not self.shutter_manual_intervention_active:
+                if abs(nominal_setting - self.shutter_current_setting) > 0.001 and not \
+                        self.shutter_manual_intervention_active:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(value))
                     # Apply translation between intended and nominal shutter settings
-                    print "nominal value: ", self.true_to_nominal(value)
-                    success = self.shutter.blind.set_level(self.true_to_nominal(value))
+                    success = self.shutter.blind.set_level(nominal_setting)
                     # After a shutter operation, wait for a pre-defined period in order to avoid radio interference
                     time.sleep(self.params.shutter_trigger_delay)
-                    self.shutter_last_setting = value
+                    self.shutter_last_setting = nominal_setting
             except Exception as e:
                 if self.params.output_level > 0:
                     print e
