@@ -118,8 +118,8 @@ class window(object):
             return 0.
         else:
             # For intermediate settings apply translation function
-            return max(1.,
-                       min(0., self.shutter_coef[0] * setting_true ** 2 + self.shutter_coef[1] * setting_true +
+            return max(0.,
+                       min(1., self.shutter_coef[0] * setting_true ** 2 + self.shutter_coef[1] * setting_true +
                            self.shutter_coef[2]))
 
     def set_shutter(self, value):
@@ -158,6 +158,7 @@ class window(object):
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(value))
                     # Apply translation between intended and nominal shutter settings
+                    print "nominal value: ", self.true_to_nominal(value)
                     success = self.shutter.blind.set_level(self.true_to_nominal(value))
                     # After a shutter operation, wait for a pre-defined period in order to avoid radio interference
                     time.sleep(self.params.shutter_trigger_delay)
@@ -309,7 +310,7 @@ class windows(object):
         if self.params.output_level > 2:
             print_output("Opening all shutters")
         for window in self.window_dict.values():
-            window.set_shutter(1.)
+            window.set_shutter(0.4)
 
 
 if __name__ == "__main__":
