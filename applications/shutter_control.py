@@ -141,8 +141,8 @@ class window(object):
                 # Test if the shutter has been operated manually since the last setting operation. In this case set
                 # variable "self.shutter_manual_intervention_active" to True. This will inhibit shutter operations by
                 # this program until the shutter is opened completely manually.
-                if abs(self.shutter_current_setting - self.shutter_last_setting) > 0.003 and \
-                        self.shutter_last_setting != -1.:
+                if abs(self.shutter_current_setting - self.shutter_last_setting) > \
+                        self.params.shutter_setting_tolerance and self.shutter_last_setting != -1.:
                     if self.shutter_current_setting == 1.:
                         if self.params.output_level > 1:
                             print_output("End of manual intervention for shutter " + self.shutter_name)
@@ -156,7 +156,7 @@ class window(object):
 
                 nominal_setting = self.true_to_nominal(value)
                 # Test if current shutter setting differs from target value and no manual intervention is active
-                if abs(nominal_setting - self.shutter_current_setting) > 0.003 and not \
+                if abs(nominal_setting - self.shutter_current_setting) > self.params.shutter_setting_tolerance and not \
                         self.shutter_manual_intervention_active:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(value))

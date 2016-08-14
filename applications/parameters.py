@@ -136,6 +136,10 @@ class parameters(object):
                 self.shutter_trigger_delay = float(self.parameters["shutter_trigger_delay"])
             else:
                 self.shutter_trigger_delay = 40.
+            if "shutter_setting_tolerance" in self.parameters.keys():
+                self.shutter_setting_tolerance = float(self.parameters["shutter_setting_tolerance"])
+            else:
+                self.shutter_setting_tolerance = 0.005
             if "max_ventilation_temperature" in self.parameters.keys():
                 self.max_ventilation_temperature = float(self.parameters["max_ventilation_temperature"])
             else:
@@ -168,6 +172,7 @@ class parameters(object):
             "\nbrightness_dim: ", self.brightness_dim, \
             "\nsun_twilight_threshold: ", self.sun_twilight_threshold, \
             "\nshutter_trigger_delay: ", self.shutter_trigger_delay, \
+            "\nshutter_setting_tolerance: ", self.shutter_setting_tolerance, \
             "\nmax_ventilation_temperature: ", self.max_ventilation_temperature
 
 
