@@ -316,13 +316,23 @@ class windows(object):
 
 
 if __name__ == "__main__":
+
     # Depending on whether the program is executed on the CCU2 itself or on a remote PC, the parameters are stored at
     # different locations.
     ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/parameter_file"
-    remote_parameter_file_name = "parameter_file"
+    remote_parameter_file_name = "/home/rolf/Pycharm-Projects/pmatic/applications/parameter_file"
 
-    # Test if the CCU parameter file is found. In this case the program runs on the CCU2.
-    if os.path.isfile(ccu_parameter_file_name):
+    # Test if the remote parameter file is found. In this case the program runs on a remote computer.
+    if os.path.isfile(remote_parameter_file_name):
+        params = parameters(remote_parameter_file_name)
+        if params.output_level > 0:
+            print ""
+            print_output(
+                "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
+        ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
+    else:
+        # Wait for CCU startup to be completed
+        time.sleep(120.)
         params = parameters(ccu_parameter_file_name)
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/shutter_control.txt', encoding='utf-8', mode='a')
@@ -331,13 +341,7 @@ if __name__ == "__main__":
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU()
-    else:
-        params = parameters(remote_parameter_file_name)
-        if params.output_level > 0:
-            print ""
-            print_output(
-                "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
-        ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
+
 
     if params.output_level > 1:
         params.print_parameters()
