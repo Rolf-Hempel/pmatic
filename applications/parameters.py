@@ -278,7 +278,7 @@ class parameters(object):
             "\nshutter_cold_normal_sunlit: ", self.shutter_condition["shutter_cold_normal_sunlit"], \
             "\nshutter_cold_normal_shade: ", self.shutter_condition["shutter_cold_normal_shade"], \
             "\nshutter_cold_dim_sunlit: ", self.shutter_condition["shutter_cold_dim_sunlit"], \
-            "\nshutter_cold_dim_shade: ", self.shutter_condition["shutter_cold_dim_shade"], \
+            "\nshutter_cold_dim_shade: ", self.shutter_condition["shutter_cold_dim_shade"]
 
 
 if __name__ == "__main__":
