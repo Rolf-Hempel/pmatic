@@ -340,10 +340,13 @@ if __name__ == "__main__":
     # different locations.
     ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/parameter_file"
     remote_parameter_file_name = "/home/rolf/Pycharm-Projects/pmatic/applications/parameter_file"
+    ccu_temperature_file_name = "/etc/config/addons/pmatic/scripts/applications/temperature_file"
+    remote_temperature_file_name = "temperature_file"
 
     # Test if the remote parameter file is found. In this case the program runs on a remote computer.
     if os.path.isfile(remote_parameter_file_name):
         params = parameters(remote_parameter_file_name)
+        temperature_file_name = remote_temperature_file_name
         if params.output_level > 0:
             print ""
             print_output(
@@ -351,8 +354,9 @@ if __name__ == "__main__":
         ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
     else:
         # Wait for CCU startup to be completed
-        time.sleep(120.)
+        time.sleep(10.)
         params = parameters(ccu_parameter_file_name)
+        temperature_file_name = ccu_temperature_file_name
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/shutter_control.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
@@ -368,7 +372,7 @@ if __name__ == "__main__":
     sun = sun_position(params)
 
     # Create the object which keeps the current temperature and maximum/minimum values during the previous day
-    temperatures = temperature(params, ccu)
+    temperatures = temperature(params, ccu, temperature_file_name)
 
     # Create the object which looks up the current brightness level and holds the maximum value during the last hour
     brightness_measurements = brightness(params, ccu)

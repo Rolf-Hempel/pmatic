@@ -35,18 +35,19 @@ class temperature(object):
 
     """
 
-    def __init__(self, params, ccu):
+    def __init__(self, params, ccu, temperature_file_name):
         self.params = params
+        self.temperature_file_name = temperature_file_name
 
         if self.params.output_level > 0:
             print "\nThe following temperature device will be used:"
         self.temperature_device_external = look_up_device_by_name(params, ccu, u'Temperatur- und Feuchtesensor außen')
 
         # Check if a file with previously written temperature information is available
-        if os.path.isfile("temperature_file"):
+        if os.path.isfile(self.temperature_file_name):
             if self.params.output_level > 1:
                 print "File with temperature measurements found, read values"
-            with open("temperature_file", "r") as temperature_file:
+            with open(self.temperature_file_name, "r") as temperature_file:
                 self.temp_dict = json.load(temperature_file)
         else:
             # No previously stored data available, initialize a new temperature dictionary
@@ -60,7 +61,7 @@ class temperature(object):
             self.temp_dict["min_temperature_time"] = params.min_temperature_time
             self.temp_dict["max_temperature"] = params.max_temperature
             self.temp_dict["max_temperature_time"] = params.max_temperature_time
-            with open("temperature_file", 'w') as temperature_file:
+            with open(self.temperature_file_name, 'w') as temperature_file:
                 json.dump(self.temp_dict, temperature_file)
         self.current_temperature_external = (self.temp_dict["min_temperature"] + self.temp_dict["max_temperature"]) / 2.
 
@@ -112,7 +113,7 @@ class temperature(object):
                     self.temp_dict["temperatures"] = [temp_object]
                 else:
                     self.temp_dict["temperatures"].append(temp_object)
-                with open("temperature_file", 'w') as temperature_file:
+                with open(self.temperature_file_name, 'w') as temperature_file:
                     json.dump(self.temp_dict, temperature_file)
             except Exception as e:
                 if self.params.output_level > 0:
@@ -140,9 +141,12 @@ if __name__ == "__main__":
     # different locations.
     ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/parameter_file"
     remote_parameter_file_name = "parameter_file"
+    ccu_temperature_file_name = "/etc/config/addons/pmatic/scripts/applications/temperature_file"
+    remote_temperature_file_name = "temperature_file"
 
     if os.path.isfile(ccu_parameter_file_name):
         params = parameters(ccu_parameter_file_name)
+        temperature_file_name = ccu_temperature_file_name
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/temperature.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
@@ -152,6 +156,7 @@ if __name__ == "__main__":
         ccu = pmatic.CCU()
     else:
         params = parameters(remote_parameter_file_name)
+        temperature_file_name = remote_temperature_file_name
         if params.output_level > 0:
             print ""
             print_output(
@@ -161,7 +166,7 @@ if __name__ == "__main__":
     if params.output_level > 1:
         params.print_parameters()
 
-    temperatures = temperature(params, ccu)
+    temperatures = temperature(params, ccu, temperature_file_name)
 
     while True:
         temperatures.update()
