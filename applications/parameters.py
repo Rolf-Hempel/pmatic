@@ -25,6 +25,7 @@ class parameters(object):
     def __init__(self, parameter_file_name):
         self.parameter_file_name = parameter_file_name
         self.parameters = {}
+        self.shutter_condition = {}
         self.update_parameters()
 
     def update_parameters(self):
@@ -144,6 +145,92 @@ class parameters(object):
                 self.max_ventilation_temperature = float(self.parameters["max_ventilation_temperature"])
             else:
                 self.max_ventilation_temperature = 19.
+
+            if "shutter_hot_very-bright_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_hot_very-bright_sunlit"] = float(
+                    self.parameters["shutter_hot_very-bright_sunlit"])
+            else:
+                self.shutter_condition["shutter_hot_very-bright_sunlit"] = 0.25
+            if "shutter_hot_very-bright_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_hot_very-bright_shade"] = float(
+                    self.parameters["shutter_hot_very-bright_shade"])
+            else:
+                self.shutter_condition["shutter_hot_very-bright_shade"] = 0.40
+            if "shutter_hot_normal_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_hot_normal_sunlit"] = float(
+                    self.parameters["shutter_hot_normal_sunlit"])
+            else:
+                self.shutter_condition["shutter_hot_normal_sunlit"] = 0.30
+            if "shutter_hot_normal_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_hot_normal_shade"] = float(self.parameters["shutter_hot_normal_shade"])
+            else:
+                self.shutter_condition["shutter_hot_normal_shade"] = 0.40
+            if "shutter_hot_dim_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_hot_dim_sunlit"] = float(self.parameters["shutter_hot_dim_sunlit"])
+            else:
+                self.shutter_condition["shutter_hot_dim_sunlit"] = 0.40
+            if "shutter_hot_dim_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_hot_dim_shade"] = float(self.parameters["shutter_hot_dim_shade"])
+            else:
+                self.shutter_condition["shutter_hot_dim_shade"] = 0.60
+            if "shutter_normal_very-bright_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_normal_very-bright_sunlit"] = float(
+                    self.parameters["shutter_normal_very-bright_sunlit"])
+            else:
+                self.shutter_condition["shutter_normal_very-bright_sunlit"] = 0.40
+            if "shutter_normal_very-bright_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_normal_very-bright_shade"] = float(
+                    self.parameters["shutter_normal_very-bright_shade"])
+            else:
+                self.shutter_condition["shutter_normal_very-bright_shade"] = 1.00
+            if "shutter_normal_normal_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_normal_normal_sunlit"] = float(
+                    self.parameters["shutter_normal_normal_sunlit"])
+            else:
+                self.shutter_condition["shutter_normal_normal_sunlit"] = 0.60
+            if "shutter_normal_normal_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_normal_normal_shade"] = float(
+                    self.parameters["shutter_normal_normal_shade"])
+            else:
+                self.shutter_condition["shutter_normal_normal_shade"] = 1.00
+            if "shutter_normal_dim_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_normal_dim_sunlit"] = float(
+                    self.parameters["shutter_normal_dim_sunlit"])
+            else:
+                self.shutter_condition["shutter_normal_dim_sunlit"] = 1.00
+            if "shutter_normal_dim_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_normal_dim_shade"] = float(self.parameters["shutter_normal_dim_shade"])
+            else:
+                self.shutter_condition["shutter_normal_dim_shade"] = 1.00
+            if "shutter_cold_very-bright_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_cold_very-bright_sunlit"] = float(
+                    self.parameters["shutter_cold_very-bright_sunlit"])
+            else:
+                self.shutter_condition["shutter_cold_very-bright_sunlit"] = 1.00
+            if "shutter_cold_very-bright_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_cold_very-bright_shade"] = float(
+                    self.parameters["shutter_cold_very-bright_shade"])
+            else:
+                self.shutter_condition["shutter_cold_very-bright_shade"] = 1.00
+            if "shutter_cold_normal_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_cold_normal_sunlit"] = float(
+                    self.parameters["shutter_cold_normal_sunlit"])
+            else:
+                self.shutter_condition["shutter_cold_normal_sunlit"] = 1.00
+            if "shutter_cold_normal_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_cold_normal_shade"] = float(
+                    self.parameters["shutter_cold_normal_shade"])
+            else:
+                self.shutter_condition["shutter_cold_normal_shade"] = 1.00
+            if "shutter_cold_dim_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_cold_dim_sunlit"] = float(self.parameters["shutter_cold_dim_sunlit"])
+            else:
+                self.shutter_condition["shutter_cold_dim_sunlit"] = 1.00
+            if "shutter_cold_dim_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_cold_dim_shade"] = float(self.parameters["shutter_cold_dim_shade"])
+            else:
+                self.shutter_condition["shutter_cold_dim_shade"] = 1.00
+
             return True
         else:
             return False
@@ -173,7 +260,25 @@ class parameters(object):
             "\nsun_twilight_threshold: ", self.sun_twilight_threshold, \
             "\nshutter_trigger_delay: ", self.shutter_trigger_delay, \
             "\nshutter_setting_tolerance: ", self.shutter_setting_tolerance, \
-            "\nmax_ventilation_temperature: ", self.max_ventilation_temperature
+            "\nmax_ventilation_temperature: ", self.max_ventilation_temperature, "\n" \
+            "\nshutter_hot_very-bright_sunlit: ", self.shutter_condition["shutter_hot_very-bright_sunlit"], \
+            "\nshutter_hot_very-bright_shade: ", self.shutter_condition["shutter_hot_very-bright_shade"], \
+            "\nshutter_hot_normal_sunlit: ", self.shutter_condition["shutter_hot_normal_sunlit"], \
+            "\nshutter_hot_normal_shade: ", self.shutter_condition["shutter_hot_normal_shade"], \
+            "\nshutter_hot_dim_sunlit: ", self.shutter_condition["shutter_hot_dim_sunlit"], \
+            "\nshutter_hot_dim_shade: ", self.shutter_condition["shutter_hot_dim_shade"], \
+            "\nshutter_normal_very-bright_sunlit: ", self.shutter_condition["shutter_normal_very-bright_sunlit"], \
+            "\nshutter_normal_very-bright_shade: ", self.shutter_condition["shutter_normal_very-bright_shade"], \
+            "\nshutter_normal_normal_sunlit: ", self.shutter_condition["shutter_normal_normal_sunlit"], \
+            "\nshutter_normal_normal_shade: ", self.shutter_condition["shutter_normal_normal_shade"], \
+            "\nshutter_normal_dim_sunlit: ", self.shutter_condition["shutter_normal_dim_sunlit"], \
+            "\nshutter_normal_dim_shade: ", self.shutter_condition["shutter_normal_dim_shade"], \
+            "\nshutter_cold_very-bright_sunlit: ", self.shutter_condition["shutter_cold_very-bright_sunlit"], \
+            "\nshutter_cold_very-bright_shade: ", self.shutter_condition["shutter_cold_very-bright_shade"], \
+            "\nshutter_cold_normal_sunlit: ", self.shutter_condition["shutter_cold_normal_sunlit"], \
+            "\nshutter_cold_normal_shade: ", self.shutter_condition["shutter_cold_normal_shade"], \
+            "\nshutter_cold_dim_sunlit: ", self.shutter_condition["shutter_cold_dim_sunlit"], \
+            "\nshutter_cold_dim_shade: ", self.shutter_condition["shutter_cold_dim_shade"], \
 
 
 if __name__ == "__main__":

@@ -34,9 +34,11 @@ class brightness(object):
 
     """
 
-    def __init__(self, params, brightness_devices_external):
+    def __init__(self, params, ccu):
         self.params = params
-        self.brightness_devices_external = brightness_devices_external
+        if self.params.output_level > 0:
+            print "\nThe following brightness devices will be used:"
+        self.brightness_devices_external = look_up_devices_by_type(params, ccu, u'HM-Sen-LI-O')
         self.measurement_available = False
         self.brightnesses = []
         self.time_last_updated = 0.
@@ -92,7 +94,7 @@ class brightness(object):
         if not self.measurement_available:
             return "no_measurement_available"
         elif self.brightness_external > params.brightness_very_bright:
-            return "very_bright"
+            return "very-bright"
         elif self.brightness_external < params.brightness_dim:
             return "dim"
         else:
@@ -125,10 +127,7 @@ if __name__ == "__main__":
     if params.output_level > 1:
         params.print_parameters()
 
-    print "\nThe following brightness devices will be used:"
-    brightness_devices_external = look_up_devices_by_type(params, ccu, u'HM-Sen-LI-O')
-
-    brightness_measurements = brightness(params, brightness_devices_external)
+    brightness_measurements = brightness(params, ccu)
 
     while True:
         brightness_measurements.update()

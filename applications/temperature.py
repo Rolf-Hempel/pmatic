@@ -35,9 +35,13 @@ class temperature(object):
 
     """
 
-    def __init__(self, params, temperature_device_external):
+    def __init__(self, params, ccu):
         self.params = params
-        self.temperature_device_external = temperature_device_external
+
+        if self.params.output_level > 0:
+            print "\nThe following temperature device will be used:"
+        self.temperature_device_external = look_up_device_by_name(params, ccu, u'Temperatur- und Feuchtesensor außen')
+
         # Check if a file with previously written temperature information is available
         if os.path.isfile("temperature_file"):
             if self.params.output_level > 1:
@@ -157,10 +161,7 @@ if __name__ == "__main__":
     if params.output_level > 1:
         params.print_parameters()
 
-    print "\nThe following temperature device will be used:"
-    temperature_device_external = look_up_device_by_name(params, ccu, u'Temperatur- und Feuchtesensor außen')
-
-    temperatures = temperature(params, temperature_device_external)
+    temperatures = temperature(params, ccu)
 
     while True:
         temperatures.update()

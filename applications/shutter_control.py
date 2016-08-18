@@ -23,9 +23,11 @@ import os.path
 from math import radians, degrees
 
 import pmatic
+from brightness import brightness
 from miscellaneous import *
 from parameters import parameters
 from sun_position import sun_position
+from temperature import temperature
 
 
 class window(object):
@@ -92,15 +94,15 @@ class window(object):
         """
         Test if currently the sun can potentially illuminate the window (without regarding clouds).
 
-        :return: True, if sun is in an open sky patch. False, otherwise
+        :return: "sunlit", if sun is in an open sky patch. "shade", otherwise
         """
         sun_azimuth, sun_elevation = self.sun.Look_up_position()
-        sunlit = False
+        sunlit_condition = "shade"
         for ([azimuth_lower, azimuth_upper, elevation_lower, elevation_upper]) in self.open_spaces:
             if azimuth_lower <= sun_azimuth <= azimuth_upper and elevation_lower <= sun_elevation <= elevation_upper:
-                sunlit = True
+                sunlit_condition = "sunlit"
                 break
-        return sunlit
+        return sunlit_condition
 
     def true_to_nominal(self, setting_true):
         """
@@ -314,6 +316,23 @@ class windows(object):
         for window in self.window_dict.values():
             window.set_shutter(0.4)
 
+    def adjust_all_shutters(self, temperature_condition, brightness_condition):
+        # Compute the current sun position
+        sun_azimuth, sun_elevation = self.sun.update_position()
+        if params.output_level > 2:
+            print_output("Sun position: Azimuth = " + str(degrees(sun_azimuth)) +
+                         ", Elevation = " + str(degrees(sun_elevation)))
+        sun_twilight_threshold = radians(self.params.sun_twilight_threshold)
+        # If the sun is below a certain elevation threshold, close all shutters
+        if sun_elevation < sun_twilight_threshold:
+            windows.close_all_shutters()
+        else:
+            for window in self.window_dict.values():
+                sunlit_condition = window.test_sunlit()
+                shutter_condition = "shutter_" + temperature_condition + "_" + brightness_condition + "_" + \
+                                    sunlit_condition
+                window.set_shutter(self.params.shutter_condition[shutter_condition])
+
 
 if __name__ == "__main__":
 
@@ -342,13 +361,17 @@ if __name__ == "__main__":
                 "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU()
 
-
     if params.output_level > 1:
         params.print_parameters()
 
     # Create the object which stores parameters for computing the sun's location in the sky
     sun = sun_position(params)
-    sun_twilight_threshold = radians(params.sun_twilight_threshold)
+
+    # Create the object which keeps the current temperature and maximum/minimum values during the previous day
+    temperatures = temperature(params, ccu)
+
+    # Create the object which looks up the current brightness level and holds the maximum value during the last hour
+    brightness_measurements = brightness(params, ccu)
 
     # Create window dictionary and initialize parameters for all windows
     windows = windows(params, ccu, sun)
@@ -358,20 +381,18 @@ if __name__ == "__main__":
         # Read parameter file and check if since the last iteration parameters have changed
         if params.update_parameters():
             sun = sun_position(params)
-            sun_twilight_threshold = radians(params.sun_twilight_threshold)
             if params.output_level > 1:
                 print "\nParameters have changed!"
                 params.print_parameters()
-        # Compute the current sun position
-        sun_azimuth, sun_elevation = sun.update_position()
+        # Update the temperature info
+        temperatures.update()
+        temperature_condition = temperatures.temperature_condition()
+        # Update the brightness info and print out the current temperature and brightness conditions
+        brightness_measurements.update()
+        brightness_condition = brightness_measurements.brightness_condition()
         if params.output_level > 2:
-            print_output("Sun position: Azimuth = " + str(degrees(sun_azimuth)) +
-                         ", Elevation = " + str(degrees(sun_elevation)))
-        # If the sun is below a certain elevation threshold, close all shutters, otherwise open them (if they are not
-        # open yet.
-        if sun_elevation < sun_twilight_threshold:
-            windows.close_all_shutters()
-        else:
-            windows.open_all_shutters()
+            print "temperature condition: ", temperature_condition, ", brightness condition: ", brightness_condition
+        # Set all shutters corresponding to the actual temperature and brightness conditions
+        windows.adjust_all_shutters(temperature_condition, brightness_condition)
         # Add a delay before the next main loop iteration
         time.sleep(params.main_loop_sleep_time)
