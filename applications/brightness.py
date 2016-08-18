@@ -58,7 +58,7 @@ class brightness(object):
             for brightness_device in self.brightness_devices_external:
                 try:
                     brightness_measurements.append(brightness_device.brightness.value)
-                    time.sleep(params.lookup_sleep_time)
+                    time.sleep(self.params.lookup_sleep_time)
                 except Exception as e:
                     if self.params.output_level > 0:
                         print e
@@ -93,9 +93,9 @@ class brightness(object):
         """
         if not self.measurement_available:
             return "no_measurement_available"
-        elif self.brightness_external > params.brightness_very_bright:
+        elif self.brightness_external > self.params.brightness_very_bright:
             return "very-bright"
-        elif self.brightness_external < params.brightness_dim:
+        elif self.brightness_external < self.params.brightness_dim:
             return "dim"
         else:
             return "normal"

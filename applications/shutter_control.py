@@ -319,7 +319,7 @@ class windows(object):
     def adjust_all_shutters(self, temperature_condition, brightness_condition):
         # Compute the current sun position
         sun_azimuth, sun_elevation = self.sun.update_position()
-        if params.output_level > 2:
+        if self.params.output_level > 2:
             print_output("Sun position: Azimuth = " + str(degrees(sun_azimuth)) +
                          ", Elevation = " + str(degrees(sun_elevation)))
         sun_twilight_threshold = radians(self.params.sun_twilight_threshold)

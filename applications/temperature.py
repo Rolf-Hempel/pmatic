@@ -60,7 +60,7 @@ class temperature(object):
             self.temp_dict["min_temperature_time"] = params.min_temperature_time
             self.temp_dict["max_temperature"] = params.max_temperature
             self.temp_dict["max_temperature_time"] = params.max_temperature_time
-            with open("temperatures", 'w') as temperature_file:
+            with open("temperature_file", 'w') as temperature_file:
                 json.dump(self.temp_dict, temperature_file)
         self.current_temperature_external = (self.temp_dict["min_temperature"] + self.temp_dict["max_temperature"]) / 2.
 
@@ -117,7 +117,7 @@ class temperature(object):
             except Exception as e:
                 if self.params.output_level > 0:
                     print e
-            time.sleep(params.lookup_sleep_time)
+            time.sleep(self.params.lookup_sleep_time)
 
     def temperature_condition(self):
         """
@@ -126,10 +126,10 @@ class temperature(object):
 
         :return: character string which characterizes the current temperature situation
         """
-        if self.current_temperature_external > params.current_temperature_hot or self.temp_dict[
-            "max_temperature"] > params.max_temperature_hot:
+        if self.current_temperature_external > self.params.current_temperature_hot or self.temp_dict[
+            "max_temperature"] > self.params.max_temperature_hot:
             return "hot"
-        elif self.temp_dict["max_temperature"] < params.max_temperature_cold:
+        elif self.temp_dict["max_temperature"] < self.params.max_temperature_cold:
             return "cold"
         else:
             return "normal"
