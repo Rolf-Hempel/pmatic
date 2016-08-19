@@ -69,7 +69,7 @@ class parameters(object):
             if "brightness_time_span" in self.parameters.keys():
                 self.brightness_time_span = float(self.parameters["brightness_time_span"])
             else:
-                self.brightness_time_span = 3600.
+                self.brightness_time_span = 1800.
             if "output_level" in self.parameters.keys():
                 self.output_level = int(self.parameters["output_level"])
             else:
@@ -128,7 +128,7 @@ class parameters(object):
             if "brightness_dim" in self.parameters.keys():
                 self.brightness_dim = float(self.parameters["brightness_dim"])
             else:
-                self.brightness_dim = 2000.
+                self.brightness_dim = 3000.
             if "sun_twilight_threshold" in self.parameters.keys():
                 self.sun_twilight_threshold = float(self.parameters["sun_twilight_threshold"])
             else:
@@ -172,7 +172,7 @@ class parameters(object):
             if "shutter_hot_dim_shade" in self.parameters.keys():
                 self.shutter_condition["shutter_hot_dim_shade"] = float(self.parameters["shutter_hot_dim_shade"])
             else:
-                self.shutter_condition["shutter_hot_dim_shade"] = 0.80
+                self.shutter_condition["shutter_hot_dim_shade"] = 1.00
             if "shutter_normal_very-bright_sunlit" in self.parameters.keys():
                 self.shutter_condition["shutter_normal_very-bright_sunlit"] = float(
                     self.parameters["shutter_normal_very-bright_sunlit"])
