@@ -96,7 +96,7 @@ class window(object):
 
         :return: "sunlit", if sun is in an open sky patch. "shade", otherwise
         """
-        sun_azimuth, sun_elevation = self.sun.Look_up_position()
+        sun_azimuth, sun_elevation = self.sun.look_up_position()
         sunlit_condition = "shade"
         for ([azimuth_lower, azimuth_upper, elevation_lower, elevation_upper]) in self.open_spaces:
             if azimuth_lower <= sun_azimuth <= azimuth_upper and elevation_lower <= sun_elevation <= elevation_upper:
@@ -245,9 +245,9 @@ class windows(object):
         w = window(self.params, self.ccu, self.sun, window_name, u'Terrassentür',
                    u'Rolladenaktor Terrassentür')
         w.add_open_space(151., 181., 0., 33.)
-        w.add_open_space(181., 191., 0., 38.)
-        w.add_open_space(191., 241., 20., 38.)
-        w.add_open_space(241., 246., 7., 37.)
+        w.add_open_space(181., 191., 0., 40.)
+        w.add_open_space(191., 241., 20., 41.)
+        w.add_open_space(241., 246., 7., 39.)
         w.add_open_space(246., 293., 3., 40.)
         w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
         self.window_dict[window_name] = w
@@ -256,9 +256,9 @@ class windows(object):
         w = window(self.params, self.ccu, self.sun, window_name, u'Terrassenfenster',
                    u'Rolladenaktor Terrassenfenster')
         w.add_open_space(151., 181., 0., 33.)
-        w.add_open_space(181., 191., 0., 38.)
-        w.add_open_space(191., 241., 20., 38.)
-        w.add_open_space(241., 246., 7., 37.)
+        w.add_open_space(181., 191., 0., 40.)
+        w.add_open_space(191., 241., 20., 41.)
+        w.add_open_space(241., 246., 7., 39.)
         w.add_open_space(246., 293., 3., 40.)
         w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
         self.window_dict[window_name] = w
@@ -277,10 +277,10 @@ class windows(object):
         window_name = u'Küche rechts'
         w = window(self.params, self.ccu, self.sun, window_name, u'Küche rechts',
                    u'Rolladenaktor Küche rechts')
-        w.add_open_space(141., 156., 16., 90.)
+        w.add_open_space(141., 156., 16., 35.)
         w.add_open_space(156., 206., 5., 90.)
         w.add_open_space(206., 231., 20., 90.)
-        w.add_open_space(231., 266., 16., 30.)
+        w.add_open_space(261., 266., 16., 30.)
         w.add_open_space(266., 276., 3., 25.)
         w.add_open_space(276., 291., 3., 19.)
         w.add_open_space(291., 301., 3., 13.)
@@ -317,6 +317,13 @@ class windows(object):
             window.set_shutter(0.4)
 
     def adjust_all_shutters(self, temperature_condition, brightness_condition):
+        # Treat special case: List of brightness values truncated, and at the same time brightness device unavailable
+        if brightness_condition == "no_measurement_available":
+            if self.params.output_level > 2:
+                print_output('Warning: No brightness measurement available, using "normal" instead')
+            bc = "normal"
+        else:
+            bc = brightness_condition
         # Compute the current sun position
         sun_azimuth, sun_elevation = self.sun.update_position()
         if self.params.output_level > 2:
@@ -329,7 +336,7 @@ class windows(object):
         else:
             for window in self.window_dict.values():
                 sunlit_condition = window.test_sunlit()
-                shutter_condition = "shutter_" + temperature_condition + "_" + brightness_condition + "_" + \
+                shutter_condition = "shutter_" + temperature_condition + "_" + bc + "_" + \
                                     sunlit_condition
                 window.set_shutter(self.params.shutter_condition[shutter_condition])
 
