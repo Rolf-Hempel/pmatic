@@ -124,11 +124,11 @@ class parameters(object):
             if "brightness_very_bright" in self.parameters.keys():
                 self.brightness_very_bright = float(self.parameters["brightness_very_bright"])
             else:
-                self.brightness_very_bright = 20000.
+                self.brightness_very_bright = 25000.
             if "brightness_dim" in self.parameters.keys():
                 self.brightness_dim = float(self.parameters["brightness_dim"])
             else:
-                self.brightness_dim = 3000.
+                self.brightness_dim = 4000.
             if "sun_twilight_threshold" in self.parameters.keys():
                 self.sun_twilight_threshold = float(self.parameters["sun_twilight_threshold"])
             else:
@@ -155,20 +155,20 @@ class parameters(object):
                 self.shutter_condition["shutter_hot_very-bright_shade"] = float(
                     self.parameters["shutter_hot_very-bright_shade"])
             else:
-                self.shutter_condition["shutter_hot_very-bright_shade"] = 0.40
+                self.shutter_condition["shutter_hot_very-bright_shade"] = 0.60
             if "shutter_hot_normal_sunlit" in self.parameters.keys():
                 self.shutter_condition["shutter_hot_normal_sunlit"] = float(
                     self.parameters["shutter_hot_normal_sunlit"])
             else:
-                self.shutter_condition["shutter_hot_normal_sunlit"] = 0.30
+                self.shutter_condition["shutter_hot_normal_sunlit"] = 0.40
             if "shutter_hot_normal_shade" in self.parameters.keys():
                 self.shutter_condition["shutter_hot_normal_shade"] = float(self.parameters["shutter_hot_normal_shade"])
             else:
-                self.shutter_condition["shutter_hot_normal_shade"] = 0.60
+                self.shutter_condition["shutter_hot_normal_shade"] = 0.80
             if "shutter_hot_dim_sunlit" in self.parameters.keys():
                 self.shutter_condition["shutter_hot_dim_sunlit"] = float(self.parameters["shutter_hot_dim_sunlit"])
             else:
-                self.shutter_condition["shutter_hot_dim_sunlit"] = 0.40
+                self.shutter_condition["shutter_hot_dim_sunlit"] = 0.60
             if "shutter_hot_dim_shade" in self.parameters.keys():
                 self.shutter_condition["shutter_hot_dim_shade"] = float(self.parameters["shutter_hot_dim_shade"])
             else:
