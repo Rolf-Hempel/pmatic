@@ -140,7 +140,7 @@ class parameters(object):
             if "shutter_setting_tolerance" in self.parameters.keys():
                 self.shutter_setting_tolerance = float(self.parameters["shutter_setting_tolerance"])
             else:
-                self.shutter_setting_tolerance = 0.005
+                self.shutter_setting_tolerance = 0.01
             if "max_ventilation_temperature" in self.parameters.keys():
                 self.max_ventilation_temperature = float(self.parameters["max_ventilation_temperature"])
             else:
