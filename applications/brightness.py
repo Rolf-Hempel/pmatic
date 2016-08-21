@@ -29,8 +29,8 @@ from parameters import parameters
 class brightness(object):
     """
     This class measures the external brightness using several measuring devices. The current brightness is set to the
-    maximum over all devices. Additionally to the current brightness, the maximum over a given period up to the present
-    time is determined. This quantity is used by the shutter control program.
+    maximum over all devices. Additionally to the current brightness, the median of the measurements over a given period
+    up to the present time is determined. This quantity is used by the shutter control program.
 
     """
 
@@ -46,7 +46,7 @@ class brightness(object):
 
     def update(self):
         """
-        Read out values from brightness measurement devices and update the maximum brightness over a longer time span
+        Read out values from brightness measurement devices and update the median brightness over a longer time span
 
         :return: -
         """
@@ -78,16 +78,16 @@ class brightness(object):
         self.measurement_available = False
         if len(self.brightnesses) > 0:
             # print "brightnesses: ", [str(self.brightnesses[j][1]) for j in range(len(self.brightnesses))]
-            self.brightness_external = max([self.brightnesses[j][1] for j in range(len(self.brightnesses))])
+            self.brightness_external = median([self.brightnesses[j][1] for j in range(len(self.brightnesses))])
             self.measurement_available = True
             if self.params.output_level > 2:
                 print_output("Current external brightness: " + str(self.current_brightness_external) +
-                             ", max. brightness over time span: " + str(self.brightness_external))
+                             ", median brightness over time span: " + str(self.brightness_external))
 
 
     def brightness_condition(self):
         """
-        Compare the maximum brightness during the last measurement period with predefined threshold values
+        Compare the median brightness during the last measurement period with predefined threshold values
 
         :return: character string which characterizes the current brightness
         """

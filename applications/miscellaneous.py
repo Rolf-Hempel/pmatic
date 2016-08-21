@@ -92,6 +92,21 @@ def look_up_devices_by_type(params, ccu, dev_type):
         print " Error: No device with type ", dev_type, " found, execution halted."
         sys.exit(1)
 
+def median(numeric_list):
+    """
+    Compute the median value in a list of arithmetic data.
+
+    :param numeric_list: list of arithmetic values
+    :return: median value of the list
+    """
+    lst = sorted(numeric_list)
+    if len(lst) < 1:
+        return None
+    if len(lst) % 2 == 1:
+        return lst[((len(lst) + 1) / 2) - 1]
+    else:
+        return float(sum(lst[(len(lst) / 2) - 1:(len(lst) / 2) + 1])) / 2.0
+
 
 def print_output(output_string):
     """

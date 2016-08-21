@@ -69,7 +69,7 @@ class parameters(object):
             if "brightness_time_span" in self.parameters.keys():
                 self.brightness_time_span = float(self.parameters["brightness_time_span"])
             else:
-                self.brightness_time_span = 1800.
+                self.brightness_time_span = 3600.
             if "output_level" in self.parameters.keys():
                 self.output_level = int(self.parameters["output_level"])
             else:
@@ -86,7 +86,7 @@ class parameters(object):
             if "min_temperature" in self.parameters.keys():
                 self.min_temperature = float(self.parameters["min_temperature"])
             else:
-                self.min_temperature = 5.
+                self.min_temperature = 10.
             if "min_temperature_time" in self.parameters.keys():
                 self.min_temperature_time = float(self.parameters["min_temperature_time"])
             else:
@@ -95,7 +95,7 @@ class parameters(object):
             if "max_temperature" in self.parameters.keys():
                 self.max_temperature = float(self.parameters["max_temperature"])
             else:
-                self.max_temperature = 10.
+                self.max_temperature = 20.
             if "max_temperature_hot" in self.parameters.keys():
                 self.max_temperature_hot = float(self.parameters["max_temperature_hot"])
             else:
