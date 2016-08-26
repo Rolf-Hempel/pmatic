@@ -50,6 +50,15 @@ class parameters(object):
             else:
                 # Don't forget to set the password explicitly in the parameter file
                 self.password = ""
+            if "ow_url_fcst" in self.parameters.keys():
+                self.ow_url_fcst = self.parameters["ow_url_fcst"]
+            else:
+                # Don't forget to set the URL explicitly in the parameter file
+                self.ow_url_fcst = ""
+            if "max_temp_lookahead_time" in self.parameters.keys():
+                self.max_temp_lookahead_time = float(self.parameters["max_temp_lookahead_time"])
+            else:
+                self.max_temp_lookahead_time = 3
             if "main_loop_sleep_time" in self.parameters.keys():
                 self.main_loop_sleep_time = float(self.parameters["main_loop_sleep_time"])
             else:
@@ -243,7 +252,9 @@ class parameters(object):
 
     def print_parameters(self):
         print "\nParameters:", "\nhostname: ", self.hostname, "\nCCU address: ", self.ccu_address, "\nuser: ", \
-            self.user, "\npassword: ", self.password, "\nmain_loop_sleep_time: ", self.main_loop_sleep_time, \
+            self.user, "\npassword: ", self.password, \
+            "\now_url_fcst: ", self.ow_url_fcst, "\nmax_temp_lookahead_time: ", self.max_temp_lookahead_time, \
+            "\nmain_loop_sleep_time: ", self.main_loop_sleep_time, \
             "\nlookup_sleep_time: ", self.lookup_sleep_time, \
             "\ntemperature_update_interval: ", self.temperature_update_interval, \
             "\nbrightness_update_interval: ", self.brightness_update_interval, \
@@ -287,7 +298,7 @@ if __name__ == "__main__":
     with open("parameter_file", 'w') as f:
         json.dump(a, f)
 
-    params = parameters()
+    params = parameters("parameter_file")
 
     params.print_parameters()
 

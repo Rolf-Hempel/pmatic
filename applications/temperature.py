@@ -19,7 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import codecs
-import json
+import json, urllib2
 import os.path
 
 import pmatic
@@ -55,6 +55,7 @@ class temperature(object):
                 print "No file with temperature measurements found, initialize temperature_object and create file"
             self.temp_dict = {}
             self.temp_dict["temperatures"] = []
+            self.temp_dict["temperatures_forecast"] = []
             self.temp_dict["last_updated"] = 0.
             self.temp_dict["minmax_time_updated"] = 0.
             self.temp_dict["min_temperature"] = params.min_temperature
@@ -67,19 +68,21 @@ class temperature(object):
 
     def update(self):
         # Do a new temperature measurement and update the temperature statistics
-        current_time = time.time()
-        local_hour = get_local_hour(self.params, current_time)
-        if current_time - self.temp_dict["last_updated"] > self.params.temperature_update_interval:
+        self.current_time = time.time()
+        local_hour = get_local_hour(self.params, self.current_time)
+        if self.current_time - self.temp_dict["last_updated"] > self.params.temperature_update_interval:
+            # If an internet connection is available, update temperature forecast values
+            self.update_forecast()
             try:
                 self.current_temperature_external = self.temperature_device_external.temperature.value
                 if self.params.output_level > 2:
                     print_output("External temperature: " + str(self.current_temperature_external))
-                temp_object = [current_time, self.current_temperature_external]
-                self.temp_dict["last_updated"] = current_time
+                temp_object = [self.current_time, self.current_temperature_external]
+                self.temp_dict["last_updated"] = self.current_time
 
                 # Update minima / maxima data at the first invocation after 18:00 local time,
                 # but only if data have been recorded for at least 18 hours
-                if current_time - self.temp_dict["minmax_time_updated"] > 64800. and 18. < local_hour < 24.:
+                if self.current_time - self.temp_dict["minmax_time_updated"] > 64800. and 18. < local_hour < 24.:
                     if self.params.output_level > 1:
                         print_output(
                             "\nUpdating maximum and minimum external temperatures:")
@@ -109,7 +112,7 @@ class temperature(object):
                                 print "New minimum temperature: " + str(min_temperature) + ", Time of minimum: " + str(
                                     datetime.datetime.fromtimestamp(min_temperature_time))
 
-                    self.temp_dict["minmax_time_updated"] = current_time
+                    self.temp_dict["minmax_time_updated"] = self.current_time
                     self.temp_dict["temperatures"] = [temp_object]
                 else:
                     self.temp_dict["temperatures"].append(temp_object)
@@ -127,13 +130,55 @@ class temperature(object):
 
         :return: character string which characterizes the current temperature situation
         """
-        if self.current_temperature_external > self.params.current_temperature_hot or self.temp_dict[
-            "max_temperature"] > self.params.max_temperature_hot:
+        if self.current_temperature_external > self.params.current_temperature_hot or \
+                        self.temp_dict["max_temperature"] > self.params.max_temperature_hot or \
+                        self.lookup_max_forecast_temp(self.current_time) > self.params.max_temperature_hot:
             return "hot"
         elif self.temp_dict["max_temperature"] < self.params.max_temperature_cold:
             return "cold"
         else:
             return "normal"
+
+    def update_forecast(self):
+        """
+        Connect with the OpenWeatherMap server and retrieve a five days temperature forecast
+
+        :return: -
+        """
+        try:
+            req = urllib2.Request(self.params.ow_url_fcst)
+            response = urllib2.urlopen(req)
+            output_fcst = response.read()
+            json_out_fcst = json.loads(output_fcst)
+            if self.params.output_level > 2:
+                print_output("New temperature forecast downloaded from OpenWeatherMap")
+        except:
+            # If not successful (e.g. no internet connection), leave the forecast values unchanged.
+            return
+
+        # Update the forecast temperature values along with the corresponding Unix timestamps
+        self.temp_dict["temperatures_forecast"] = []
+        count =  json_out_fcst['cnt']
+        for i in range(1,count):
+            timestamp = json_out_fcst['list'][i]['dt']
+            # date = json_out_fcst['list'][i]['dt_txt']
+            temp = json_out_fcst['list'][i]['main']['temp']
+            # print timestamp, date, temp
+            self.temp_dict["temperatures_forecast"].append([timestamp, temp])
+
+    def lookup_max_forecast_temp(self):
+        """
+        Look up the maximum temperature in forecast data which have been downloaded last time an internet connection
+        was available.
+
+        :return: maximum stored temperature entry (Celsius) with a timestamp in the future. If there is no such entry,
+        -100. is returned.
+        """
+        max_temp = -100.
+        for [timestamp, temperature] in self.temp_dict["temperatures_forecast"]:
+            if timestamp > self.current_time:
+                max_temp = max(max_temp, temperature)
+        return max_temp
 
 
 if __name__ == "__main__":
