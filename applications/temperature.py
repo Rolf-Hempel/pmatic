@@ -19,8 +19,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import codecs
-import json, urllib2
+import json
 import os.path
+import urllib2
 
 import pmatic
 from miscellaneous import *
@@ -84,8 +85,7 @@ class temperature(object):
                 # but only if data have been recorded for at least 18 hours
                 if self.current_time - self.temp_dict["minmax_time_updated"] > 64800. and 18. < local_hour < 24.:
                     if self.params.output_level > 1:
-                        print_output(
-                            "\nUpdating maximum and minimum external temperatures:")
+                        print_output("\nUpdating maximum and minimum external temperatures:")
                     min_temperature = 100.
                     max_temperature = -100.
                     for temp_object_stored in self.temp_dict["temperatures"]:
@@ -154,16 +154,15 @@ class temperature(object):
             response = urllib2.urlopen(req)
             output_fcst = response.read()
             json_out_fcst = json.loads(output_fcst)
-            if self.params.output_level > 2:
-                print_output("New temperature forecast downloaded from OpenWeatherMap")
         except:
             # If not successful (e.g. no internet connection), leave the forecast values unchanged.
             return
-
+        if self.params.output_level > 2:
+            print_output("New temperature forecast downloaded from OpenWeatherMap")
         # Update the forecast temperature values along with the corresponding Unix timestamps
         self.temp_dict["temperatures_forecast"] = []
-        count =  json_out_fcst['cnt']
-        for i in range(1,count):
+        count = json_out_fcst['cnt']
+        for i in range(1, count):
             timestamp = json_out_fcst['list'][i]['dt']
             # date = json_out_fcst['list'][i]['dt_txt']
             temp = json_out_fcst['list'][i]['main']['temp']
@@ -180,7 +179,8 @@ class temperature(object):
         """
         max_temp = -100.
         for [timestamp, temperature] in self.temp_dict["temperatures_forecast"]:
-            if timestamp > self.current_time:
+            if timestamp > self.current_time and (
+                timestamp - self.current_time) / 86400. < self.params.max_temp_lookahead_time:
                 max_temp = max(max_temp, temperature)
         return max_temp
 

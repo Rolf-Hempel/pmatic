@@ -58,7 +58,7 @@ class parameters(object):
             if "max_temp_lookahead_time" in self.parameters.keys():
                 self.max_temp_lookahead_time = float(self.parameters["max_temp_lookahead_time"])
             else:
-                self.max_temp_lookahead_time = 3
+                self.max_temp_lookahead_time = 3.
             if "main_loop_sleep_time" in self.parameters.keys():
                 self.main_loop_sleep_time = float(self.parameters["main_loop_sleep_time"])
             else:
@@ -108,7 +108,7 @@ class parameters(object):
             if "max_temperature_very_hot" in self.parameters.keys():
                 self.max_temperature_very_hot = float(self.parameters["max_temperature_very_hot"])
             else:
-                self.max_temperature_very_hot = 29.
+                self.max_temperature_very_hot = 30.
             if "max_temperature_hot" in self.parameters.keys():
                 self.max_temperature_hot = float(self.parameters["max_temperature_hot"])
             else:
@@ -129,7 +129,7 @@ class parameters(object):
             if "current_temperature_very_hot" in self.parameters.keys():
                 self.current_temperature_very_hot = float(self.parameters["current_temperature_very_hot"])
             else:
-                self.current_temperature_very_hot = 25.
+                self.current_temperature_very_hot = 28.
             if "current_temperature_hot" in self.parameters.keys():
                 self.current_temperature_hot = float(self.parameters["current_temperature_hot"])
             else:
