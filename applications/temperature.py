@@ -130,7 +130,11 @@ class temperature(object):
 
         :return: character string which characterizes the current temperature situation
         """
-        if self.current_temperature_external > self.params.current_temperature_hot or \
+        if self.current_temperature_external > self.params.current_temperature_very_hot or \
+                        self.temp_dict["max_temperature"] > self.params.max_temperature_very_hot or \
+                        self.lookup_max_forecast_temp(self.current_time) > self.params.max_temperature_very_hot:
+            return "very-hot"
+        elif self.current_temperature_external > self.params.current_temperature_hot or \
                         self.temp_dict["max_temperature"] > self.params.max_temperature_hot or \
                         self.lookup_max_forecast_temp(self.current_time) > self.params.max_temperature_hot:
             return "hot"
