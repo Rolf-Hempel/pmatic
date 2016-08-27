@@ -249,7 +249,9 @@ class windows(object):
         w.add_open_space(191., 241., 20., 41.)
         w.add_open_space(241., 246., 7., 39.)
         w.add_open_space(246., 293., 3., 40.)
-        w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
+        # w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
+        # Special case: do not open high windows too much
+        w.add_shutter_coef([-0.72, 1.72, 0.])
         self.window_dict[window_name] = w
 
         window_name = u'Terrassenfenster'
@@ -260,7 +262,9 @@ class windows(object):
         w.add_open_space(191., 241., 20., 41.)
         w.add_open_space(241., 246., 7., 39.)
         w.add_open_space(246., 293., 3., 40.)
-        w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
+        # w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
+        # Special case: do not open high windows too much
+        w.add_shutter_coef([-0.72, 1.72, 0.])
         self.window_dict[window_name] = w
 
         window_name = u'Küche links'

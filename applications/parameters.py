@@ -299,9 +299,13 @@ class parameters(object):
             "\nbrightness_time_span: ", self.brightness_time_span, \
             "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
             "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
-            "\nmax_temperature: ", self.max_temperature, "\nmax_temperature_hot: ", self.max_temperature_hot, \
-            "\nmax_temperature_cold: ", self.max_temperature_cold, "\nmax_temperature_time: ", \
-            self.max_temperature_time, "\ntransition_temperature: ", self.transition_temperature, \
+            "\nmax_temperature: ", self.max_temperature, \
+            "\nmax_temperature_hot: ", self.max_temperature_hot, \
+            "\nmax_temperature_very_hot: ", self.max_temperature_very_hot, \
+            "\nmax_temperature_cold: ", self.max_temperature_cold, \
+            "\nmax_temperature_time: ", self.max_temperature_time, \
+            "\ntransition_temperature: ", self.transition_temperature, \
+            "\ncurrent_temperature_very_hot: ", self.current_temperature_very_hot, \
             "\ncurrent_temperature_hot: ", self.current_temperature_hot, \
             "\naverage_humidity_external: ", self.average_humidity_external, \
             "\nbrightness_very_bright: ", self.brightness_very_bright, \
