@@ -22,19 +22,21 @@ import pmatic.api
 
 # Print all methods including their arguments and description which is available on your device
 
-pm = pmatic.api.init(
+API = pmatic.api.init(
      address="http://192.168.0.51",
      credentials=("rolf", "Px9820rH"))
 
-pm.print_methods()
+API.print_methods()
 
-print pm.ccu_get_serial()
+print API.ccu_get_serial()
 
-print pm.sys_var_get_all()
+print API.sys_var_get_all()
 
-print pm.sys_var_get_value(u'40')
+print API.sys_var_get_value(id=u'1333')
 
-print pm.sys_var_get_value_by_name("Alarmmeldungen")
+print API.sys_var_get_value_by_name(name="maximale Aussentemperatur")
 
+API.sys_var_set_float(name="maximale Aussentemperatur", value=32.)
 
+API.close()
 
