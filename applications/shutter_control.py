@@ -284,7 +284,7 @@ class windows(object):
         w.add_open_space(141., 156., 16., 35.)
         w.add_open_space(156., 206., 5., 90.)
         w.add_open_space(206., 261., 20., 90.)
-        w.add_open_space(261., 266., 16., 30.)
+        w.add_open_space(261., 266., 3., 30.)
         w.add_open_space(266., 276., 3., 25.)
         w.add_open_space(276., 291., 3., 19.)
         w.add_open_space(291., 301., 3., 13.)
