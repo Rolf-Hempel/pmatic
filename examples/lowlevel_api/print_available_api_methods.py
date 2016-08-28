@@ -21,6 +21,20 @@
 import pmatic.api
 
 # Print all methods including their arguments and description which is available on your device
-pmatic.api.init(
-    address="http://192.168.1.26",
-    credentials=("Admin", "EPIC-SECRET-PW")).print_methods()
+
+pm = pmatic.api.init(
+     address="http://192.168.0.51",
+     credentials=("rolf", "Px9820rH"))
+
+pm.print_methods()
+
+print pm.ccu_get_serial()
+
+print pm.sys_var_get_all()
+
+print pm.sys_var_get_value(u'40')
+
+print pm.sys_var_get_value_by_name("Alarmmeldungen")
+
+
+
