@@ -123,26 +123,6 @@ class temperature(object):
                     print e
             time.sleep(self.params.lookup_sleep_time)
 
-    def temperature_condition(self):
-        """
-        Compare the current and maximum temperatures with predefined threshold values. For the characterization "hot"
-        both the current temperature and the maximum temperature of the previous day are used.
-
-        :return: character string which characterizes the current temperature situation
-        """
-        if self.current_temperature_external > self.params.current_temperature_very_hot or \
-                        self.temp_dict["max_temperature"] > self.params.max_temperature_very_hot or \
-                        self.lookup_max_forecast_temp(self.current_time) > self.params.max_temperature_very_hot:
-            return "very-hot"
-        elif self.current_temperature_external > self.params.current_temperature_hot or \
-                        self.temp_dict["max_temperature"] > self.params.max_temperature_hot or \
-                        self.lookup_max_forecast_temp(self.current_time) > self.params.max_temperature_hot:
-            return "hot"
-        elif self.temp_dict["max_temperature"] < self.params.max_temperature_cold:
-            return "cold"
-        else:
-            return "normal"
-
     def update_forecast(self):
         """
         Connect with the OpenWeatherMap server and retrieve a five days temperature forecast
@@ -174,15 +154,43 @@ class temperature(object):
         Look up the maximum temperature in forecast data which have been downloaded last time an internet connection
         was available.
 
-        :return: maximum stored temperature entry (Celsius) with a timestamp in the future. If there is no such entry,
-        -100. is returned.
+        :return: if temperature predictions are available for at least one day, return maximum predicted temperature
+        (Celsius). If there are not enough predictions, return None.
         """
         max_temp = -100.
+        max_timestamp = 0.
         for [timestamp, temperature] in self.temp_dict["temperatures_forecast"]:
             if timestamp > self.current_time and (
                 timestamp - self.current_time) / 86400. < self.params.max_temp_lookahead_time:
                 max_temp = max(max_temp, temperature)
-        return max_temp
+                max_timestamp = max(max_timestamp, timestamp)
+        if max_timestamp - self.current_time >= 86400.:
+            return max_temp
+        else:
+            return None
+
+    def temperature_condition(self):
+        """
+        Compare the current and maximum temperatures with predefined threshold values. For the characterization
+        "very-hot" and "hot" both the current temperature and the maximum forecast temperature (or, if not available,
+        the maximum temperature of the previous day) are used. The temperature is called "cold" if the maximum
+        temperature of the previous day was below a certain threshold.
+
+        :return: character string which characterizes the current temperature situation
+        """
+        temperature_forecast = self.lookup_max_forecast_temp()
+        if self.current_temperature_external > self.params.current_temperature_very_hot or \
+                        temperature_forecast != None and temperature_forecast > self.params.max_temperature_very_hot or \
+                        temperature_forecast == None and self.temp_dict["max_temperature"] > self.params.max_temperature_very_hot:
+            return "very-hot"
+        elif self.current_temperature_external > self.params.current_temperature_hot or \
+                        temperature_forecast != None and temperature_forecast > self.params.max_temperature_hot or \
+                        temperature_forecast == None and self.temp_dict["max_temperature"] > self.params.max_temperature_hot:
+            return "hot"
+        elif self.temp_dict["max_temperature"] < self.params.max_temperature_cold:
+            return "cold"
+        else:
+            return "normal"
 
 
 if __name__ == "__main__":

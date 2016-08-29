@@ -23,11 +23,62 @@ import os.path
 from math import radians, degrees
 
 import pmatic
+import pmatic.api
 from brightness import brightness
 from miscellaneous import *
 from parameters import parameters
 from sun_position import sun_position
 from temperature import temperature
+
+
+class sysvar_activities(object):
+    """This class defines shutter setting activities controlled by system variables.
+
+    This makes it possible to trigger activities from outside this program, e.g. by setting a system variable with
+    a HomeMatic remote control unit.
+
+    """
+
+    def __init__(self, params, api):
+        """
+        Define the activities and their corresponding data structures.
+
+        :param params: parameter object
+        :param api: pmatic object which gives access to the JSON RPC Api of HomeMatic
+        :return: -
+        """
+        self.api = api
+        self.params = params
+        self.ventilate_upper = {"active": False, "setting": 1.,
+                                "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer']}
+        self.ventilate_lower = {"active": False, "setting": 1.,
+                                "windows": [u'Wohnzimmer rechts', u'Küche rechts', u'Gäste-WC']}
+        self.ventilate_kitchen = {"active": False, "setting": 1., "windows": [u'Küche rechts', u'Gäste-WC']}
+        self.tv_evening = {"active": False, "setting": 0.,
+                           "windows": [u'Wohnzimmer rechts', u'Wohnzimmer links', u'Terrassentür', u'Terrassenfenster']}
+        self.sysvars = {u'Lüften Obergeschoss': self.ventilate_upper, u'Lüften Erdgeschoss': self.ventilate_lower,
+                        u'Lüften Küche': self.ventilate_kitchen, u'Fernsehabend': self.tv_evening}
+
+    def update(self):
+        """
+        Update the system variable settings
+        :return: -
+        """
+        for sysvar_name, activity in self.sysvars.iteritems():
+            activity["active"] = self.api.sys_var_get_value_by_name(name=sysvar_name)
+
+    def sysvar_induced_setting(self, window_name):
+        """
+        For a window with name "window_name": Find out if it is included in an activity selected by an active system
+        variable. For the first match, return the corresponding shutter setting.
+
+        :param window_name:
+        :return:
+        """
+        for activity in self.sysvars.values():
+            if activity["active"] and window_name in activity["windows"]:
+                return activity["setting"]
+        return None
 
 
 class window(object):
@@ -41,12 +92,13 @@ class window(object):
 
     """
 
-    def __init__(self, params, ccu, sun, window_name, room_name, shutter_name):
+    def __init__(self, params, ccu, sysvar_act, sun, window_name, room_name, shutter_name):
         """
         Store objects and names corresponding to this window on initialization
 
         :param params: parameter object
         :param ccu: pmatic CCU data object
+        :param sysvar_act: object with shutter setting activities controlled by system variables
         :param sun: object which stores parameters for computing the current position of the sun
         :param window_name: window name (utf-8 string)
         :param room_name: room name (utf-8 string)
@@ -54,6 +106,7 @@ class window(object):
         """
         self.params = params
         self.ccu = ccu
+        self.sysvar_act = sysvar_act
         self.sun = sun
         self.window_name = window_name
         self.room_name = room_name
@@ -133,35 +186,43 @@ class window(object):
         :return: True, if shutter was set successfully; False otherwise
         """
         success = True
-        if value < 0. or value > 1.:
-            print_output("Error: Invalid shutter value " + str(value) + " specified.")
+        true_setting = value
+        if true_setting < 0. or true_setting > 1.:
+            print_output("Error: Invalid shutter value " + str(true_setting) + " specified.")
             success = False
         else:
             try:
                 self.shutter_current_setting = self.shutter.blind.level
                 time.sleep(self.params.lookup_sleep_time)
-                # Test if the shutter has been operated manually since the last setting operation. In this case set
-                # variable "self.shutter_manual_intervention_active" to True. This will inhibit shutter operations by
-                # this program until the shutter is opened completely manually.
-                if abs(self.shutter_current_setting - self.shutter_last_setting) > \
-                        self.params.shutter_setting_tolerance and self.shutter_last_setting != -1.:
-                    if self.shutter_current_setting == 1.:
-                        if self.params.output_level > 1:
-                            print_output("End of manual intervention for shutter " + self.shutter_name)
-                        self.shutter_manual_intervention_active = False
-                    else:
-                        if self.params.output_level > 1:
-                            print_output("Manual intervention for shutter " + self.shutter_name + " found, new level: "
-                                         + str(self.shutter_current_setting))
-                        self.shutter_manual_intervention_active = True
-                self.shutter_last_setting = self.shutter_current_setting
+                # Check if for this window a setting has been selected via a system variable
+                sysvar_induced_setting = sysvar_act.sysvar_induced_setting(self.window_name)
+                if sysvar_induced_setting != None:
+                    # A sysvar-induced setting overrides (and resets) a manual intervention
+                    true_setting = sysvar_induced_setting
+                    self.shutter_manual_intervention_active = False
+                else:
+                    # Test if the shutter has been operated manually since the last setting operation. In this case set
+                    # variable "self.shutter_manual_intervention_active" to True. This will inhibit shutter operations by
+                    # this program until the shutter is opened completely manually.
+                    if abs(self.shutter_current_setting - self.shutter_last_setting) > \
+                            self.params.shutter_setting_tolerance and self.shutter_last_setting != -1.:
+                        if self.shutter_current_setting == 1.:
+                            if self.params.output_level > 1:
+                                print_output("End of manual intervention for shutter " + self.shutter_name)
+                            self.shutter_manual_intervention_active = False
+                        else:
+                            if self.params.output_level > 1:
+                                print_output("Manual intervention for shutter " + self.shutter_name + " found, new level: "
+                                             + str(self.shutter_current_setting))
+                            self.shutter_manual_intervention_active = True
+                    self.shutter_last_setting = self.shutter_current_setting
 
-                nominal_setting = self.true_to_nominal(value)
+                nominal_setting = self.true_to_nominal(true_setting)
                 # Test if current shutter setting differs from target value and no manual intervention is active
                 if abs(nominal_setting - self.shutter_current_setting) > self.params.shutter_setting_tolerance and not \
                         self.shutter_manual_intervention_active:
                     if self.params.output_level > 1:
-                        print_output("Setting shutter " + self.shutter_name + " to new level: " + str(value))
+                        print_output("Setting shutter " + self.shutter_name + " to new level: " + str(true_setting))
                     # Apply translation between intended and nominal shutter settings
                     success = self.shutter.blind.set_level(nominal_setting)
                     # After a shutter operation, wait for a pre-defined period in order to avoid radio interference
@@ -181,9 +242,10 @@ class windows(object):
 
     """
 
-    def __init__(self, params, ccu, sun):
+    def __init__(self, params, ccu, sysvar_act, sun):
         self.params = params
         self.ccu = ccu
+        self.sysvar_act = sysvar_act
         self.sun = sun
         self.window_dict = {}
 
@@ -191,7 +253,8 @@ class windows(object):
             print "\nThe following shutter devices are used:"
         # Initialize all windows. Set open sky areas and coefficients for translating true to nominal shutter settings
         window_name = u'Schlafzimmer'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Schlafzimmer', u'Rolladenaktor Schlafzimmer')
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Schlafzimmer',
+                   u'Rolladenaktor Schlafzimmer')
         w.add_open_space(51., 76., 7., 90.)
         w.add_open_space(76., 116., 4., 90.)
         w.add_open_space(116., 136., 7., 50.)
@@ -204,13 +267,15 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Kinderzimmer'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Kinderzimmer', u'Rolladenaktor Kinderzimmer')
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Kinderzimmer',
+                   u'Rolladenaktor Kinderzimmer')
         w.add_open_space(231., 360., 0., 90.)
         w.add_shutter_coef([-0.26234962, 0.98880658, 0.24321233])
         self.window_dict[window_name] = w
 
         window_name = u'Arbeitszimmer'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Arbeitszimmer', u'Rolladenaktor Arbeitszimmer')
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Arbeitszimmer',
+                   u'Rolladenaktor Arbeitszimmer')
         w.add_open_space(231., 246., 2., 20.)
         w.add_open_space(246., 256, 2., 40.)
         w.add_open_space(256., 271., 2., 55.)
@@ -219,7 +284,8 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Badezimmer'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Badezimmer', u'Rolladenaktor Badezimmer')
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Badezimmer',
+                   u'Rolladenaktor Badezimmer')
         w.add_open_space(61., 78., 8., 27.)
         w.add_open_space(78., 146, 4., 55.)
         w.add_open_space(146., 166., 13., 57.)
@@ -228,21 +294,21 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Wohnzimmer rechts'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Wohnzimmer rechts',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer rechts',
                    u'Rolladenaktor Wohnzimmer rechts')
         w.add_open_space(231., 360., 2., 90.)
         w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
         self.window_dict[window_name] = w
 
         window_name = u'Wohnzimmer links'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Wohnzimmer links',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer links',
                    u'Rolladenaktor Wohnzimmer links')
         w.add_open_space(231., 360., 2., 90.)
         w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
         self.window_dict[window_name] = w
 
         window_name = u'Terrassentür'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Terrassentür',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Terrassentür',
                    u'Rolladenaktor Terrassentür')
         w.add_open_space(151., 181., 0., 33.)
         w.add_open_space(181., 191., 0., 40.)
@@ -255,7 +321,7 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Terrassenfenster'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Terrassenfenster',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Terrassenfenster',
                    u'Rolladenaktor Terrassenfenster')
         w.add_open_space(151., 181., 0., 33.)
         w.add_open_space(181., 191., 0., 40.)
@@ -268,7 +334,7 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Küche links'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Küche links',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Küche links',
                    u'Rolladenaktor Küche links')
         w.add_open_space(51., 79., 8., 90.)
         w.add_open_space(79., 106., 5., 90.)
@@ -279,7 +345,7 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Küche rechts'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Küche rechts',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Küche rechts',
                    u'Rolladenaktor Küche rechts')
         w.add_open_space(141., 156., 16., 35.)
         w.add_open_space(156., 206., 5., 90.)
@@ -292,7 +358,7 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Gäste-WC'
-        w = window(self.params, self.ccu, self.sun, window_name, u'Gäste-WC',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Gäste-WC',
                    u'Rolladenaktor Gäste-WC')
         w.add_open_space(51., 79., 8., 90.)
         w.add_open_space(79., 121., 5., 90.)
@@ -313,12 +379,6 @@ class windows(object):
             print_output("Closing all shutters")
         for window in self.window_dict.values():
             window.set_shutter(0.)
-
-    def open_all_shutters(self):
-        if self.params.output_level > 2:
-            print_output("Opening all shutters")
-        for window in self.window_dict.values():
-            window.set_shutter(0.4)
 
     def adjust_all_shutters(self, temperature_condition, brightness_condition):
         # Treat special case: List of brightness values truncated, and at the same time brightness device unavailable
@@ -363,6 +423,7 @@ if __name__ == "__main__":
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
+        api = pmatic.api.init(address=params.ccu_address, credentials=(params.user, params.password))
     else:
         # Wait for CCU startup to be completed
         time.sleep(10.)
@@ -375,6 +436,7 @@ if __name__ == "__main__":
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU()
+        api = pmatic.api.init()
 
     if params.output_level > 1:
         params.print_parameters()
@@ -388,8 +450,11 @@ if __name__ == "__main__":
     # Create the object which looks up the current brightness level and holds the maximum value during the last hour
     brightness_measurements = brightness(params, ccu)
 
+    # Create the object which defines shutter setting activities controlled by system variables
+    sysvar_act = sysvar_activities(params, api)
+
     # Create window dictionary and initialize parameters for all windows
-    windows = windows(params, ccu, sun)
+    windows = windows(params, ccu, sysvar_act, sun)
 
     # Main loop
     while True:
@@ -407,6 +472,8 @@ if __name__ == "__main__":
         brightness_condition = brightness_measurements.brightness_condition()
         if params.output_level > 2:
             print "temperature condition: ", temperature_condition, ", brightness condition: ", brightness_condition
+        # Update the system variable setting
+        sysvar_act.update()
         # Set all shutters corresponding to the actual temperature and brightness conditions
         windows.adjust_all_shutters(temperature_condition, brightness_condition)
         # Add a delay before the next main loop iteration
