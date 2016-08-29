@@ -36,20 +36,20 @@ print API.sys_var_get_all()
 
 print ""
 
-API.sys_var_set_float(name=u'Lüften Obergeschoss', value=1.)
+API.sys_var_set_float(name=u'Lueften Obergeschoss', value=1.)
 
-API.sys_var_set_float(name=u'Lüften Erdgeschoss', value=0.)
+API.sys_var_set_float(name=u'Lueften Erdgeschoss', value=0.)
 
-API.sys_var_set_float(name=u'Lüften Küche', value=0.)
+API.sys_var_set_float(name=u'Lueften Kueche', value=0.)
 
 API.sys_var_set_float(name=u'Fernsehabend', value=0.)
 
 
-print API.sys_var_get_value_by_name(name=u'Lüften Obergeschoss')
+print API.sys_var_get_value_by_name(name=u'Lueften Obergeschoss')
 
-print API.sys_var_get_value_by_name(name=u'Lüften Erdgeschoss')
+print API.sys_var_get_value_by_name(name=u'Lueften Erdgeschoss')
 
-print API.sys_var_get_value_by_name(name=u'Lüften Küche')
+print API.sys_var_get_value_by_name(name=u'Lueften Kueche')
 
 print API.sys_var_get_value_by_name(name=u'Fernsehabend')
 

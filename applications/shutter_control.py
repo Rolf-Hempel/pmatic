@@ -56,8 +56,8 @@ class sysvar_activities(object):
         self.ventilate_kitchen = {"active": 0., "setting": 1., "windows": [u'Küche rechts', u'Gäste-WC']}
         self.tv_evening = {"active": 0., "setting": 0.,
                            "windows": [u'Wohnzimmer rechts', u'Wohnzimmer links', u'Terrassentür', u'Terrassenfenster']}
-        self.sysvars = {u'Lüften Obergeschoss': self.ventilate_upper, u'Lüften Erdgeschoss': self.ventilate_lower,
-                        u'Lüften Küche': self.ventilate_kitchen, u'Fernsehabend': self.tv_evening}
+        self.sysvars = {u'Lueften Obergeschoss': self.ventilate_upper, u'Lueften Erdgeschoss': self.ventilate_lower,
+                        u'Lueften Kueche': self.ventilate_kitchen, u'Fernsehabend': self.tv_evening}
 
     def update(self):
         """
