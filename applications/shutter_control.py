@@ -195,7 +195,7 @@ class window(object):
                 self.shutter_current_setting = self.shutter.blind.level
                 time.sleep(self.params.lookup_sleep_time)
                 # Check if for this window a setting has been selected via a system variable
-                sysvar_induced_setting = sysvar_act.sysvar_induced_setting(self.window_name)
+                sysvar_induced_setting = self.sysvar_act.sysvar_induced_setting(self.window_name)
                 if sysvar_induced_setting != None:
                     # A sysvar-induced setting overrides (and resets) a manual intervention
                     true_setting = sysvar_induced_setting
@@ -217,6 +217,7 @@ class window(object):
                             self.shutter_manual_intervention_active = True
                     self.shutter_last_setting = self.shutter_current_setting
 
+                # Apply translation between intended and nominal shutter settings
                 nominal_setting = self.true_to_nominal(true_setting)
                 # Test if current shutter setting differs from target value and no manual intervention is active
                 if abs(nominal_setting - self.shutter_current_setting) > self.params.shutter_setting_tolerance and not \
