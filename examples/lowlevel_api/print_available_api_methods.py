@@ -32,11 +32,27 @@ print API.ccu_get_serial()
 
 print API.sys_var_get_all()
 
-print API.sys_var_get_value(id=u'1333')
+# print API.sys_var_get_value(id=u'40')
 
-print API.sys_var_get_value_by_name(name="maximale Aussentemperatur")
+print ""
 
-API.sys_var_set_float(name="maximale Aussentemperatur", value=32.)
+API.sys_var_set_float(name=u'Lüften Obergeschoss', value=1.)
+
+API.sys_var_set_float(name=u'Lüften Erdgeschoss', value=0.)
+
+API.sys_var_set_float(name=u'Lüften Küche', value=0.)
+
+API.sys_var_set_float(name=u'Fernsehabend', value=0.)
+
+
+print API.sys_var_get_value_by_name(name=u'Lüften Obergeschoss')
+
+print API.sys_var_get_value_by_name(name=u'Lüften Erdgeschoss')
+
+print API.sys_var_get_value_by_name(name=u'Lüften Küche')
+
+print API.sys_var_get_value_by_name(name=u'Fernsehabend')
+
 
 API.close()
 

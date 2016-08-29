@@ -49,12 +49,12 @@ class sysvar_activities(object):
         """
         self.api = api
         self.params = params
-        self.ventilate_upper = {"active": False, "setting": 1.,
+        self.ventilate_upper = {"active": 0., "setting": 1.,
                                 "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer']}
-        self.ventilate_lower = {"active": False, "setting": 1.,
+        self.ventilate_lower = {"active": 0., "setting": 1.,
                                 "windows": [u'Wohnzimmer rechts', u'Küche rechts', u'Gäste-WC']}
-        self.ventilate_kitchen = {"active": False, "setting": 1., "windows": [u'Küche rechts', u'Gäste-WC']}
-        self.tv_evening = {"active": False, "setting": 0.,
+        self.ventilate_kitchen = {"active": 0., "setting": 1., "windows": [u'Küche rechts', u'Gäste-WC']}
+        self.tv_evening = {"active": 0., "setting": 0.,
                            "windows": [u'Wohnzimmer rechts', u'Wohnzimmer links', u'Terrassentür', u'Terrassenfenster']}
         self.sysvars = {u'Lüften Obergeschoss': self.ventilate_upper, u'Lüften Erdgeschoss': self.ventilate_lower,
                         u'Lüften Küche': self.ventilate_kitchen, u'Fernsehabend': self.tv_evening}
@@ -65,7 +65,7 @@ class sysvar_activities(object):
         :return: -
         """
         for sysvar_name, activity in self.sysvars.iteritems():
-            activity["active"] = self.api.sys_var_get_value_by_name(name=sysvar_name)
+            activity["active"] = float(self.api.sys_var_get_value_by_name(name=sysvar_name))
 
     def sysvar_induced_setting(self, window_name):
         """
@@ -75,8 +75,8 @@ class sysvar_activities(object):
         :param window_name:
         :return:
         """
-        for activity in self.sysvars.values():
-            if activity["active"] and window_name in activity["windows"]:
+        for sysvar_name, activity in self.sysvars.iteritems():
+            if activity["active"]==1. and window_name in activity["windows"]:
                 return activity["setting"]
         return None
 
