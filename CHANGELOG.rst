@@ -4,9 +4,18 @@ The pmatic Changelog
 Unreleased (Use snapshot builds to get these changes)
 -----------------------------------------------------
 
+General
+```````
+
+* Improved low level API error handling when trying to use calls which need arguments
+  but using positional arguments instead of named arguments
+* FIX: Fixed quoting of arguments passed to CCU local low level API
+* FIX: Fixed encoding of arguments passed to CCU local low level API
+
 Manager
 ```````
 
+* FIX: Fixed manual execution of scripts via the "execute scripts" dialog
 * FIX: Schedules executed on startup were not shown as triggered and running in GUI
 * FIX: Fixed visualization of "keep alive" scripts current state when aborted via GUI
 * FIX: Fixed file descriptor inheritance to "external executed" scripts
