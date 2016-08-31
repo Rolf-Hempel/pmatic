@@ -22,8 +22,8 @@ import pmatic.api
 
 # Print all methods including their arguments and description which is available on your device
 api = pmatic.api.init(
-    address="http://192.168.1.26",
-    credentials=("Admin", "EPIC-SECRET-PW"))
+    address="http://192.168.0.51",
+    credentials=("rolf", "Px9820rH"))
 
 fmt = "%-40s %-10s %-30s"
 

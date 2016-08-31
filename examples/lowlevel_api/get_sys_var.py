@@ -26,7 +26,7 @@ import pmatic.api
 
 # Print all methods including their arguments and description which is available on your device
 api = pmatic.api.init(
-    address="http://192.168.1.26",
-    credentials=("Admin", "EPIC-SECRET-PW"))
+    address="http://192.168.0.51",
+    credentials=("rolf", "Px9820rH"))
 
-print api.sys_var_get_value_by_name(name="Anwesenheit")
+print api.sys_var_get_value_by_name(name="Lueften Obergeschoss")

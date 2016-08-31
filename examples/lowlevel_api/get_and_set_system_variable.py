@@ -34,7 +34,7 @@ print API.sys_var_get_all()
 
 print ""
 
-API.sys_var_set_float(name=u'Lueften Obergeschoss', value=1.)
+API.sys_var_set_float(name=u'Lueften Obergeschoss', value=0.5)
 
 print API.sys_var_get_value_by_name(name=u'Lueften Obergeschoss')
 
