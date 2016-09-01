@@ -488,7 +488,7 @@ if __name__ == "__main__":
         # Update the system variable setting
         sysvar_act.update()
         # Shutter operations only if not suspended by system variable, and not at night
-        if not sysvar_act.shutter_activities_suspended() and params.lh_night_end < get_local_hour(
+        if not sysvar_act.shutter_activities_suspended() and params.lh_night_end < get_local_hour(params,
                 time.time()) < params.lh_night_begin:
             # Set all shutters corresponding to the actual temperature and brightness conditions
             windows.adjust_all_shutters(temperature_condition, brightness_condition)

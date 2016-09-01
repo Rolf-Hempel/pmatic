@@ -171,6 +171,66 @@ class parameters(object):
             else:
                 self.max_ventilation_temperature = 19.
 
+            if "shutter_very-hot-fcst_very-bright_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_very-hot-fcst_very-bright_sunlit"] = float(
+                    self.parameters["shutter_very-hot-fcst_very-bright_sunlit"])
+            else:
+                self.shutter_condition["shutter_very-hot-fcst_very-bright_sunlit"] = 0.18
+            if "shutter_very-hot-fcst_very-bright_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_very-hot-fcst_very-bright_shade"] = float(
+                    self.parameters["shutter_very-hot-fcst_very-bright_shade"])
+            else:
+                self.shutter_condition["shutter_very-hot-fcst_very-bright_shade"] = 1.00
+            if "shutter_very-hot-fcst_normal_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_very-hot-fcst_normal_sunlit"] = float(
+                    self.parameters["shutter_very-hot-fcst_normal_sunlit"])
+            else:
+                self.shutter_condition["shutter_very-hot-fcst_normal_sunlit"] = 0.30
+            if "shutter_very-hot-fcst_normal_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_very-hot-fcst_normal_shade"] = float(
+                    self.parameters["shutter_very-hot-fcst_normal_shade"])
+            else:
+                self.shutter_condition["shutter_very-hot-fcst_normal_shade"] = 1.00
+            if "shutter_very-hot-fcst_dim_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_very-hot-fcst_dim_sunlit"] = float(
+                    self.parameters["shutter_very-hot-fcst_dim_sunlit"])
+            else:
+                self.shutter_condition["shutter_very-hot-fcst_dim_sunlit"] = 0.50
+            if "shutter_very-hot-fcst_dim_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_very-hot-fcst_dim_shade"] = float(
+                    self.parameters["shutter_very-hot-fcst_dim_shade"])
+            else:
+                self.shutter_condition["shutter_very-hot-fcst_dim_shade"] = 1.00
+            if "shutter_hot-fcst_very-bright_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_hot-fcst_very-bright_sunlit"] = float(
+                    self.parameters["shutter_hot-fcst_very-bright_sunlit"])
+            else:
+                self.shutter_condition["shutter_hot-fcst_very-bright_sunlit"] = 0.25
+            if "shutter_hot-fcst_very-bright_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_hot-fcst_very-bright_shade"] = float(
+                    self.parameters["shutter_hot-fcst_very-bright_shade"])
+            else:
+                self.shutter_condition["shutter_hot-fcst_very-bright_shade"] = 1.00
+            if "shutter_hot-fcst_normal_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_hot-fcst_normal_sunlit"] = float(
+                    self.parameters["shutter_hot-fcst_normal_sunlit"])
+            else:
+                self.shutter_condition["shutter_hot-fcst_normal_sunlit"] = 0.40
+            if "shutter_hot-fcst_normal_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_hot-fcst_normal_shade"] = float(
+                    self.parameters["shutter_hot-fcst_normal_shade"])
+            else:
+                self.shutter_condition["shutter_hot-fcst_normal_shade"] = 1.00
+            if "shutter_hot-fcst_dim_sunlit" in self.parameters.keys():
+                self.shutter_condition["shutter_hot-fcst_dim_sunlit"] = float(
+                    self.parameters["shutter_hot-fcst_dim_sunlit"])
+            else:
+                self.shutter_condition["shutter_hot-fcst_dim_sunlit"] = 0.60
+            if "shutter_hot-fcst_dim_shade" in self.parameters.keys():
+                self.shutter_condition["shutter_hot-fcst_dim_shade"] = float(
+                    self.parameters["shutter_hot-fcst_dim_shade"])
+            else:
+                self.shutter_condition["shutter_hot-fcst_dim_shade"] = 1.00
             if "shutter_very-hot_very-bright_sunlit" in self.parameters.keys():
                 self.shutter_condition["shutter_very-hot_very-bright_sunlit"] = float(
                     self.parameters["shutter_very-hot_very-bright_sunlit"])
@@ -323,6 +383,20 @@ class parameters(object):
             "\nshutter_trigger_delay: ", self.shutter_trigger_delay, \
             "\nshutter_setting_tolerance: ", self.shutter_setting_tolerance, \
             "\nmax_ventilation_temperature: ", self.max_ventilation_temperature, "\n" \
+            "\nshutter_very-hot-fcst_very-bright_sunlit: ", \
+            self.shutter_condition["shutter_very-hot-fcst_very-bright_sunlit"], \
+            "\nshutter_very-hot-fcst_very-bright_shade: ", self.shutter_condition[
+            "shutter_very-hot-fcst_very-bright_shade"], \
+            "\nshutter_very-hot-fcst_normal_sunlit: ", self.shutter_condition["shutter_very-hot-fcst_normal_sunlit"], \
+            "\nshutter_very-hot-fcst_normal_shade: ", self.shutter_condition["shutter_very-hot-fcst_normal_shade"], \
+            "\nshutter_very-hot-fcst_dim_sunlit: ", self.shutter_condition["shutter_very-hot-fcst_dim_sunlit"], \
+            "\nshutter_very-hot-fcst_dim_shade: ", self.shutter_condition["shutter_very-hot-fcst_dim_shade"], \
+            "\nshutter_hot-fcst_very-bright_sunlit: ", self.shutter_condition["shutter_hot-fcst_very-bright_sunlit"], \
+            "\nshutter_hot-fcst_very-bright_shade: ", self.shutter_condition["shutter_hot-fcst_very-bright_shade"], \
+            "\nshutter_hot-fcst_normal_sunlit: ", self.shutter_condition["shutter_hot-fcst_normal_sunlit"], \
+            "\nshutter_hot-fcst_normal_shade: ", self.shutter_condition["shutter_hot-fcst_normal_shade"], \
+            "\nshutter_hot-fcst_dim_sunlit: ", self.shutter_condition["shutter_hot-fcst_dim_sunlit"], \
+            "\nshutter_hot-fcst_dim_shade: ", self.shutter_condition["shutter_hot-fcst_dim_shade"], \
             "\nshutter_very-hot_very-bright_sunlit: ", self.shutter_condition["shutter_very-hot_very-bright_sunlit"], \
             "\nshutter_very-hot_very-bright_shade: ", self.shutter_condition["shutter_very-hot_very-bright_shade"], \
             "\nshutter_very-hot_normal_sunlit: ", self.shutter_condition["shutter_very-hot_normal_sunlit"], \

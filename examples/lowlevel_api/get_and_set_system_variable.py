@@ -38,7 +38,7 @@ API.sys_var_set_float(name=u'Lueften Erdgeschoss', value=False)
 criterion = API.sys_var_get_value_by_name(name=u'Lueften Erdgeschoss')=="true"
 print "Lueften Erdgeschoss: ", criterion
 
-API.sys_var_set_float(name=u'Lueften Obergeschoss', value=False)
+API.sys_var_set_float(name=u'Lueften Obergeschoss', value=True)
 criterion = API.sys_var_get_value_by_name(name=u'Lueften Obergeschoss')=="true"
 print "Lueften Obergeschoss: ", criterion
 
@@ -49,6 +49,10 @@ print "Lueften Kueche: ", criterion
 API.sys_var_set_float(name=u'Fernsehabend', value=False)
 criterion = API.sys_var_get_value_by_name(name=u'Fernsehabend')=="true"
 print "Fernsehabend: ", criterion
+
+API.sys_var_set_float(name=u'Keine Rolladenbewegungen', value=False)
+criterion = API.sys_var_get_value_by_name(name=u'Keine Rolladenbewegungen')=="true"
+print "Keine Rolladenbewegungen: ", criterion
 
 API.close()
 

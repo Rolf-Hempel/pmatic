@@ -179,18 +179,32 @@ class temperature(object):
         :return: character string which characterizes the current temperature situation
         """
         temperature_forecast = self.lookup_max_forecast_temp()
-        if self.current_temperature_external > self.params.current_temperature_very_hot or \
-                        temperature_forecast != None and temperature_forecast > self.params.max_temperature_very_hot or \
-                        temperature_forecast == None and self.temp_dict["max_temperature"] > self.params.max_temperature_very_hot:
+
+        if self.current_temperature_external > self.params.current_temperature_very_hot:
             return "very-hot"
-        elif self.current_temperature_external > self.params.current_temperature_hot or \
-                        temperature_forecast != None and temperature_forecast > self.params.max_temperature_hot or \
-                        temperature_forecast == None and self.temp_dict["max_temperature"] > self.params.max_temperature_hot:
-            return "hot"
-        elif self.temp_dict["max_temperature"] < self.params.max_temperature_cold:
-            return "cold"
+        elif self.params.current_temperature_hot < self.current_temperature_external <= self.params.current_temperature_very_hot:
+            if temperature_forecast == None and self.temp_dict["max_temperature"] > self.params.max_temperature_very_hot:
+                return "very-hot"
+            elif temperature_forecast != None and temperature_forecast > self.params.max_temperature_very_hot:
+                return "very-hot"
+            else:
+                return "hot"
+        elif temperature_forecast == None:
+            if self.temp_dict["max_temperature"] > self.params.max_temperature_hot:
+                return "hot"
+            elif self.temp_dict["max_temperature"] < self.params.max_temperature_cold:
+                return "cold"
+            else:
+                return "normal"
         else:
-            return "normal"
+            if temperature_forecast > self.params.max_temperature_very_hot:
+                return "very-hot-fcst"
+            elif temperature_forecast > self.params.max_temperature_hot:
+                return "hot-fcst"
+            elif self.temp_dict["max_temperature"] < self.params.max_temperature_cold:
+                return "cold"
+            else:
+                return "normal"
 
 
 if __name__ == "__main__":
