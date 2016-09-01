@@ -49,14 +49,18 @@ class sysvar_activities(object):
         """
         self.api = api
         self.params = params
-        self.ventilate_upper = {"active": True, "setting": 1.,
+        self.suspend_shutter_activities = {"active": False}
+        self.ventilate_upper = {"active": False, "setting": 1.,
                                 "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer']}
-        self.ventilate_lower = {"active": True, "setting": 1.,
+        self.ventilate_lower = {"active": False, "setting": 1.,
                                 "windows": [u'Wohnzimmer rechts', u'Küche rechts', u'Gäste-WC']}
-        self.ventilate_kitchen = {"active": True, "setting": 1., "windows": [u'Küche rechts', u'Gäste-WC']}
-        self.tv_evening = {"active": True, "setting": 0.,
+        self.ventilate_kitchen = {"active": False, "setting": 1., "windows": [u'Küche rechts', u'Gäste-WC']}
+        self.tv_evening = {"active": False, "setting": 0.,
                            "windows": [u'Wohnzimmer rechts', u'Wohnzimmer links', u'Terrassentür', u'Terrassenfenster']}
-        self.sysvars = {u'Lueften Obergeschoss': self.ventilate_upper, u'Lueften Erdgeschoss': self.ventilate_lower,
+        self.sysvar_shutter_activities = [self.ventilate_upper, self.ventilate_lower, self.ventilate_kitchen,
+                                          self.tv_evening]
+        self.sysvars = {u'Keine Rolladenbewegungen': self.suspend_shutter_activities,
+                        u'Lueften Obergeschoss': self.ventilate_upper, u'Lueften Erdgeschoss': self.ventilate_lower,
                         u'Lueften Kueche': self.ventilate_kitchen, u'Fernsehabend': self.tv_evening}
 
     def update(self):
@@ -65,7 +69,7 @@ class sysvar_activities(object):
         :return: -
         """
         for sysvar_name, activity in self.sysvars.iteritems():
-            activity["active"] = self.api.sys_var_get_value_by_name(name=sysvar_name)=="true"
+            activity["active"] = self.api.sys_var_get_value_by_name(name=sysvar_name) == "true"
 
     def sysvar_induced_setting(self, window_name):
         """
@@ -75,10 +79,17 @@ class sysvar_activities(object):
         :param window_name:
         :return:
         """
-        for sysvar_name, activity in self.sysvars.iteritems():
+        for activity in self.sysvar_shutter_activities:
             if activity["active"] and window_name in activity["windows"]:
                 return activity["setting"]
         return None
+
+    def shutter_activities_suspended(self):
+        """
+        If the boolean system variable "Keine Rolladenbewegungen" is set to "true", all shutter movements are suspended.
+        :return: True if movements are suspended, otherwise False
+        """
+        return self.suspend_shutter_activities["active"]
 
 
 class window(object):
@@ -212,8 +223,9 @@ class window(object):
                             self.shutter_manual_intervention_active = False
                         else:
                             if self.params.output_level > 1:
-                                print_output("Manual intervention for shutter " + self.shutter_name + " found, new level: "
-                                             + str(self.shutter_current_setting))
+                                print_output(
+                                    "Manual intervention for shutter " + self.shutter_name + " found, new level: "
+                                    + str(self.shutter_current_setting))
                             self.shutter_manual_intervention_active = True
                     self.shutter_last_setting = self.shutter_current_setting
 
@@ -475,7 +487,10 @@ if __name__ == "__main__":
             print "temperature condition: ", temperature_condition, ", brightness condition: ", brightness_condition
         # Update the system variable setting
         sysvar_act.update()
-        # Set all shutters corresponding to the actual temperature and brightness conditions
-        windows.adjust_all_shutters(temperature_condition, brightness_condition)
+        # Shutter operations only if not suspended by system variable, and not at night
+        if not sysvar_act.shutter_activities_suspended() and params.lh_night_end < get_local_hour(
+                time.time()) < params.lh_night_begin:
+            # Set all shutters corresponding to the actual temperature and brightness conditions
+            windows.adjust_all_shutters(temperature_condition, brightness_condition)
         # Add a delay before the next main loop iteration
         time.sleep(params.main_loop_sleep_time)

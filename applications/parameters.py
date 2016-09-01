@@ -92,6 +92,14 @@ class parameters(object):
                 self.latitude = float(self.parameters["latitude"])
             else:
                 self.latitude = 50.7
+            if "lh_night_begin" in self.parameters.keys():
+                self.lh_night_begin = float(self.parameters["lh_night_begin"])
+            else:
+                self.lh_night_begin = 22.
+            if "lh_night_end" in self.parameters.keys():
+                self.lh_night_end = float(self.parameters["lh_night_end"])
+            else:
+                self.lh_night_end = 4.
             if "min_temperature" in self.parameters.keys():
                 self.min_temperature = float(self.parameters["min_temperature"])
             else:
@@ -298,6 +306,7 @@ class parameters(object):
             "\nbrightness_update_interval: ", self.brightness_update_interval, \
             "\nbrightness_time_span: ", self.brightness_time_span, \
             "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
+            "\nlh_night_begin: ", self.lh_night_begin, "\nlh_night_end: ", self.lh_night_end, \
             "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
             "\nmax_temperature: ", self.max_temperature, \
             "\nmax_temperature_hot: ", self.max_temperature_hot, \
