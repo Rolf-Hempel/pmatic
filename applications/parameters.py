@@ -95,11 +95,19 @@ class parameters(object):
             if "lh_night_begin" in self.parameters.keys():
                 self.lh_night_begin = float(self.parameters["lh_night_begin"])
             else:
-                self.lh_night_begin = 22.
+                self.lh_night_begin = 21.
             if "lh_night_end" in self.parameters.keys():
                 self.lh_night_end = float(self.parameters["lh_night_end"])
             else:
-                self.lh_night_end = 4.
+                self.lh_night_end = 3.943
+            if "lh_night_end_saturday" in self.parameters.keys():
+                self.lh_night_end_saturday = float(self.parameters["lh_night_end_saturday"])
+            else:
+                self.lh_night_end_saturday = 4.943
+            if "lh_night_end_sunday" in self.parameters.keys():
+                self.lh_night_end_sunday = float(self.parameters["lh_night_end_sunday"])
+            else:
+                self.lh_night_end_sunday = 5.527
             if "min_temperature" in self.parameters.keys():
                 self.min_temperature = float(self.parameters["min_temperature"])
             else:
@@ -124,7 +132,7 @@ class parameters(object):
             if "max_temperature_cold" in self.parameters.keys():
                 self.max_temperature_cold = float(self.parameters["max_temperature_cold"])
             else:
-                self.max_temperature_cold = 15.
+                self.max_temperature_cold = 18.
             if "max_temperature_time" in self.parameters.keys():
                 self.max_temperature_time = float(self.parameters["max_temperature_time"])
             else:
@@ -367,6 +375,8 @@ class parameters(object):
             "\nbrightness_time_span: ", self.brightness_time_span, \
             "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
             "\nlh_night_begin: ", self.lh_night_begin, "\nlh_night_end: ", self.lh_night_end, \
+            "\nlh_night_end_saturday: ", self.lh_night_end_saturday, \
+            "\nlh_night_end_sunday: ", self.lh_night_end_sunday, \
             "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
             "\nmax_temperature: ", self.max_temperature, \
             "\nmax_temperature_hot: ", self.max_temperature_hot, \

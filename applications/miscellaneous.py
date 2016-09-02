@@ -21,6 +21,9 @@
 import datetime
 import sys
 import time
+import math
+
+from parameters import parameters
 
 
 def date_and_time():
@@ -42,6 +45,38 @@ def get_local_hour(params, timestamp):
              half an hour after local noon.
     """
     return (timestamp / 3600. + params.utc_shift) % 24.
+
+
+def get_day_of_week(params, timestamp):
+    """
+    Compute the week day (based on local time), given the Unix time stamp.
+
+    :param params: parameter object
+    :param timestamp: Unix timestamp (seconds passed since Jan. 1st, 1970, 0:00 UTC)
+    :return: an integer between 1 and 7, with 1 for Monday, 2 for Tuesday, ... and 7 for Sunday
+    """
+    return ((int(math.floor((timestamp + params.utc_shift * 3600.) / 86400.)) + 3) % 7) + 1
+
+
+def not_at_night(params):
+    """
+    Find out if the current time is outside the pre-defined night hours. Treat special cases Saturday and Sunday.
+
+    :param params: parameter object
+    :return: True for day time, otherwise False
+    """
+    timestamp = time.time()
+    # Base the decision on local time
+    local_hour = get_local_hour(params, timestamp)
+    week_day = get_day_of_week(params, timestamp)
+    if 1 <= week_day <= 5:
+        return params.lh_night_end < local_hour < params.lh_night_begin
+    # Special case Saturday:
+    elif week_day == 6:
+        return params.lh_night_end_saturday < local_hour < params.lh_night_begin
+    # Special case Sunday:
+    else:
+        return params.lh_night_end_sunday < local_hour < params.lh_night_begin
 
 
 def look_up_device_by_name(params, ccu, dev_name):
@@ -92,6 +127,7 @@ def look_up_devices_by_type(params, ccu, dev_type):
         print " Error: No device with type ", dev_type, " found, execution halted."
         sys.exit(1)
 
+
 def median(numeric_list):
     """
     Compute the median value in a list of arithmetic data.
@@ -116,3 +152,12 @@ def print_output(output_string):
     :return: -
     """
     print datetime.datetime.fromtimestamp(time.time()), output_string
+
+
+if __name__ == "__main__":
+    params = parameters("parameter_file")
+    time_stamp = time.time()
+    print "Date and time: ", date_and_time(), ", timestamp: ", time_stamp
+    print "Current local hour: ", get_local_hour(params, time_stamp)
+    print "Current day of week: ", get_day_of_week(params, time_stamp + 86400. * 0)
+    print "Not at night: ", not_at_night(params)
