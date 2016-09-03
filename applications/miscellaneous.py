@@ -24,6 +24,7 @@ import time
 import math
 
 from parameters import parameters
+from pmatic.exceptions import PMConnectionError
 
 
 def date_and_time():
@@ -100,8 +101,8 @@ def look_up_device_by_name(params, ccu, dev_name):
     elif len(devices) > 1:
         print " More than one device with name ", dev_name, " found, first one taken."
     else:
-        print " Error: No device with name ", dev_name, " found, execution halted."
-        sys.exit(1)
+        print " Error: No device with name ", dev_name, " found, try again."
+        raise PMConnectionError()
 
 
 def look_up_devices_by_type(params, ccu, dev_type):
@@ -124,8 +125,8 @@ def look_up_devices_by_type(params, ccu, dev_type):
                 print device.name
         return devices
     else:
-        print " Error: No device with type ", dev_type, " found, execution halted."
-        sys.exit(1)
+        print " Error: No device with type ", dev_type, " found, try again."
+        raise PMConnectionError()
 
 
 def median(numeric_list):
