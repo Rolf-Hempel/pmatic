@@ -38,7 +38,13 @@ class brightness(object):
         self.params = params
         if self.params.output_level > 0:
             print "\nThe following brightness devices will be used:"
-        self.brightness_devices_external = look_up_devices_by_type(params, ccu, u'HM-Sen-LI-O')
+        ccu_not_ready_yet = True
+        while ccu_not_ready_yet:
+            try:
+                self.brightness_devices_external = look_up_devices_by_type(params, ccu, u'HM-Sen-LI-O')
+                ccu_not_ready_yet = False
+            except:
+                time.sleep(params.lookup_sleep_time)
         self.measurement_available = False
         self.brightnesses = []
         self.time_last_updated = 0.

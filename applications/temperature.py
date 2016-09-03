@@ -42,7 +42,14 @@ class temperature(object):
 
         if self.params.output_level > 0:
             print "\nThe following temperature device will be used:"
-        self.temperature_device_external = look_up_device_by_name(params, ccu, u'Temperatur- und Feuchtesensor außen')
+        ccu_not_ready_yet = True
+        while ccu_not_ready_yet:
+            try:
+                self.temperature_device_external = look_up_device_by_name(params, ccu,
+                                                                          u'Temperatur- und Feuchtesensor außen')
+                ccu_not_ready_yet = False
+            except:
+                time.sleep(params.lookup_sleep_time)
 
         # Check if a file with previously written temperature information is available
         if os.path.isfile(self.temperature_file_name):

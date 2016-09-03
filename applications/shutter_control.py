@@ -121,11 +121,18 @@ class window(object):
         self.window_name = window_name
         self.room_name = room_name
         self.shutter_name = shutter_name
-        self.shutter = look_up_device_by_name(params, ccu, shutter_name)
         self.shutter_last_setting = -1.
         self.shutter_manual_intervention_active = False
         self.open_spaces = []
         self.shutter_coef = [0., 1., 0.]
+
+        ccu_not_ready_yet = True
+        while ccu_not_ready_yet:
+            try:
+                self.shutter = look_up_device_by_name(params, ccu, shutter_name)
+                ccu_not_ready_yet = False
+            except:
+                time.sleep(params.lookup_sleep_time)
 
     def add_open_space(self, azimuth_lower, azimuth_upper, elevation_lower, elevation_upper):
         """
@@ -462,20 +469,12 @@ if __name__ == "__main__":
     # Create window dictionary and initialize parameters for all windows
     windows = windows(params, ccu, sysvar_act, sun)
 
-    ccu_not_ready_yet = True
-    while ccu_not_ready_yet:
-        try:
-            # Create the object which keeps the current temperature and maximum/minimum values during the previous day
-            temperatures = temperature(params, ccu, temperature_file_name)
+    # Create the object which keeps the current temperature and maximum/minimum values during the previous day
+    temperatures = temperature(params, ccu, temperature_file_name)
 
-            # Create the object which looks up the current brightness level and holds the maximum value during the last hour
-            brightness_measurements = brightness(params, ccu)
-            # If both objects are successfully created, the temperature and brightness devices could be accessed.
-            ccu_not_ready_yet = False
-        except:
-            if params.output_level > 2:
-                print_output("HomeMatic devices for temperature and brightness not accessible yet")
-            time.sleep(params.lookup_sleep_time)
+    # Create the object which looks up the current brightness level and holds the maximum value during the last hour
+    brightness_measurements = brightness(params, ccu)
+    # If both objects are successfully created, the temperature and brightness devices could be accessed.
 
     # Main loop
     while True:
