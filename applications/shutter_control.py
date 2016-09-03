@@ -22,7 +22,6 @@ import codecs
 import os.path
 from math import radians, degrees
 
-import pmatic
 import pmatic.api
 from brightness import brightness
 from miscellaneous import *
@@ -217,7 +216,7 @@ class window(object):
                     # this program until the shutter is opened completely manually.
                     if abs(self.shutter_current_setting - self.shutter_last_setting) > \
                             self.params.shutter_setting_tolerance and self.shutter_last_setting != -1.:
-                        if self.shutter_current_setting == 1.:
+                        if abs(self.shutter_current_setting - 1.) <= self.params.shutter_setting_tolerance:
                             if self.params.output_level > 1:
                                 print_output("End of manual intervention for shutter " + self.shutter_name)
                             self.shutter_manual_intervention_active = False
@@ -272,8 +271,8 @@ class windows(object):
         w.add_open_space(76., 116., 4., 90.)
         w.add_open_space(116., 136., 7., 50.)
         w.add_open_space(136., 156., 13., 50.)
-        w.add_open_space(156., 171., 7., 50.)
-        w.add_open_space(171., 191., 7., 35.)
+        w.add_open_space(156., 175., 7., 50.)
+        w.add_open_space(175., 191., 7., 35.)
         w.add_open_space(191., 216., 7., 20.)
         w.add_shutter_coef([-0.12959185, 0.86158566, 0.25446371])
         # Add the window object to the dictionary with all windows
@@ -383,7 +382,7 @@ class windows(object):
 
         # Print a list of all windows
         if self.params.output_level > 0:
-            print "\nWindows with shutter control:"
+            print_output("\nWindows with shutter control:")
             for w in self.window_dict.values():
                 print "Room: ", w.room_name, ", Window: ", w.window_name, ", Device: ", w.shutter_name
 
@@ -439,7 +438,7 @@ if __name__ == "__main__":
         api = pmatic.api.init(address=params.ccu_address, credentials=(params.user, params.password))
     else:
         # Wait for CCU startup to be completed
-        time.sleep(10.)
+        # time.sleep(10.)
         params = parameters(ccu_parameter_file_name)
         temperature_file_name = ccu_temperature_file_name
         # For execution on CCU redirect stdout to a protocol file
@@ -457,17 +456,26 @@ if __name__ == "__main__":
     # Create the object which stores parameters for computing the sun's location in the sky
     sun = sun_position(params)
 
-    # Create the object which keeps the current temperature and maximum/minimum values during the previous day
-    temperatures = temperature(params, ccu, temperature_file_name)
-
-    # Create the object which looks up the current brightness level and holds the maximum value during the last hour
-    brightness_measurements = brightness(params, ccu)
-
     # Create the object which defines shutter setting activities controlled by system variables
     sysvar_act = sysvar_activities(params, api)
 
     # Create window dictionary and initialize parameters for all windows
     windows = windows(params, ccu, sysvar_act, sun)
+
+    ccu_not_ready_yet = True
+    while ccu_not_ready_yet:
+        try:
+            # Create the object which keeps the current temperature and maximum/minimum values during the previous day
+            temperatures = temperature(params, ccu, temperature_file_name)
+
+            # Create the object which looks up the current brightness level and holds the maximum value during the last hour
+            brightness_measurements = brightness(params, ccu)
+            # If both objects are successfully created, the temperature and brightness devices could be accessed.
+            ccu_not_ready_yet = False
+        except:
+            if params.output_level > 2:
+                print_output("HomeMatic devices for temperature and brightness not accessible yet")
+            time.sleep(params.lookup_sleep_time)
 
     # Main loop
     while True:
@@ -475,7 +483,7 @@ if __name__ == "__main__":
         if params.update_parameters():
             sun = sun_position(params)
             if params.output_level > 1:
-                print "\nParameters have changed!"
+                print_output("\nParameters have changed!")
                 params.print_parameters()
         # Update the temperature info
         temperatures.update()
@@ -484,7 +492,8 @@ if __name__ == "__main__":
         brightness_measurements.update()
         brightness_condition = brightness_measurements.brightness_condition()
         if params.output_level > 2:
-            print "temperature condition: ", temperature_condition, ", brightness condition: ", brightness_condition
+            print_output(
+                "temperature condition: " + temperature_condition + ", brightness condition: " + brightness_condition)
         # Update the system variable setting
         sysvar_act.update()
         # Shutter operations only if not suspended by system variable, and not at night
