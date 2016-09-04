@@ -44,7 +44,7 @@ class brightness(object):
                 self.brightness_devices_external = look_up_devices_by_type(params, ccu, u'HM-Sen-LI-O')
                 ccu_not_ready_yet = False
             except:
-                time.sleep(params.lookup_sleep_time)
+                time.sleep(params.main_loop_sleep_time)
         self.measurement_available = False
         self.brightnesses = []
         self.time_last_updated = 0.

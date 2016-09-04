@@ -49,7 +49,7 @@ class temperature(object):
                                                                           u'Temperatur- und Feuchtesensor außen')
                 ccu_not_ready_yet = False
             except:
-                time.sleep(params.lookup_sleep_time)
+                time.sleep(params.main_loop_sleep_time)
 
         # Check if a file with previously written temperature information is available
         if os.path.isfile(self.temperature_file_name):

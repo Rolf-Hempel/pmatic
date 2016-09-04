@@ -132,7 +132,7 @@ class window(object):
                 self.shutter = look_up_device_by_name(params, ccu, shutter_name)
                 ccu_not_ready_yet = False
             except:
-                time.sleep(params.lookup_sleep_time)
+                time.sleep(params.main_loop_sleep_time)
 
     def add_open_space(self, azimuth_lower, azimuth_upper, elevation_lower, elevation_upper):
         """
