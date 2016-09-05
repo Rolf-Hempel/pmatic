@@ -93,11 +93,6 @@ class parameters(object):
                 self.latitude = float(self.parameters["latitude"])
             else:
                 self.latitude = 50.7
-            if "timezone" in self.parameters.keys():
-                self.timezone = float(self.parameters["timezone"])
-            else:
-                self.timezone = "Europe/Berlin"
-            self.tz = (pytz.timezone(self.timezone))
             if "lh_night_begin" in self.parameters.keys():
                 self.lh_night_begin = float(self.parameters["lh_night_begin"])
             else:
