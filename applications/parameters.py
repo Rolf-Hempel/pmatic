@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import json
+import pytz
 
 
 class parameters(object):
@@ -92,6 +93,11 @@ class parameters(object):
                 self.latitude = float(self.parameters["latitude"])
             else:
                 self.latitude = 50.7
+            if "timezone" in self.parameters.keys():
+                self.timezone = float(self.parameters["timezone"])
+            else:
+                self.timezone = "Europe/Berlin"
+            self.tz = (pytz.timezone(self.timezone))
             if "lh_night_begin" in self.parameters.keys():
                 self.lh_night_begin = float(self.parameters["lh_night_begin"])
             else:
@@ -374,6 +380,7 @@ class parameters(object):
             "\nbrightness_update_interval: ", self.brightness_update_interval, \
             "\nbrightness_time_span: ", self.brightness_time_span, \
             "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
+            "\ntimezone: ", self.timezone, \
             "\nlh_night_begin: ", self.lh_night_begin, "\nlh_night_end: ", self.lh_night_end, \
             "\nlh_night_end_saturday: ", self.lh_night_end_saturday, \
             "\nlh_night_end_sunday: ", self.lh_night_end_sunday, \
