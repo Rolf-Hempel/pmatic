@@ -59,11 +59,11 @@ class sysvar_activities(object):
                                             u'Wohnzimmer rechts']}
         self.tv_evening = {"active": False, "setting": 0.,
                            "windows": [u'Wohnzimmer rechts', u'Wohnzimmer links', u'Terrassentür', u'Terrassenfenster']}
-        self.sysvar_shutter_activities = [self.ventilate_upper, self.ventilate_lower, self.ventilate_kitchen,
-                                          self.tv_evening, self.ventilate_night]
-        self.sysvars = {u'Keine Rolladenbewegungen': self.suspend_shutter_activities,
+        self.sysvar_shutter_activities = [self.tv_evening, self.ventilate_upper, self.ventilate_lower,
+                                          self.ventilate_kitchen, self.ventilate_night]
+        self.sysvars = {u'Keine Rolladenbewegungen': self.suspend_shutter_activities, u'Fernsehabend': self.tv_evening,
                         u'Lueften Obergeschoss': self.ventilate_upper, u'Lueften Erdgeschoss': self.ventilate_lower,
-                        u'Lueften Kueche': self.ventilate_kitchen, u'Fernsehabend': self.tv_evening}
+                        u'Lueften Kueche': self.ventilate_kitchen, u'Lueften Nacht': self.ventilate_night}
 
     def update(self):
         """
