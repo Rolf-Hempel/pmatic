@@ -54,10 +54,13 @@ class sysvar_activities(object):
         self.ventilate_lower = {"active": False, "setting": 1.,
                                 "windows": [u'Wohnzimmer rechts', u'Küche rechts', u'Gäste-WC']}
         self.ventilate_kitchen = {"active": False, "setting": 1., "windows": [u'Küche rechts', u'Gäste-WC']}
+        self.ventilate_night = {"active": False, "setting": 1.,
+                                "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer',
+                                            u'Wohnzimmer rechts']}
         self.tv_evening = {"active": False, "setting": 0.,
                            "windows": [u'Wohnzimmer rechts', u'Wohnzimmer links', u'Terrassentür', u'Terrassenfenster']}
         self.sysvar_shutter_activities = [self.ventilate_upper, self.ventilate_lower, self.ventilate_kitchen,
-                                          self.tv_evening]
+                                          self.tv_evening, self.ventilate_night]
         self.sysvars = {u'Keine Rolladenbewegungen': self.suspend_shutter_activities,
                         u'Lueften Obergeschoss': self.ventilate_upper, u'Lueften Erdgeschoss': self.ventilate_lower,
                         u'Lueften Kueche': self.ventilate_kitchen, u'Fernsehabend': self.tv_evening}
@@ -368,7 +371,8 @@ class windows(object):
                    u'Rolladenaktor Küche rechts')
         w.add_open_space(141., 156., 16., 35.)
         w.add_open_space(156., 206., 5., 90.)
-        w.add_open_space(206., 261., 20., 90.)
+        w.add_open_space(206., 255., 20., 90.)
+        w.add_open_space(255., 261., 3., 90.)
         w.add_open_space(261., 266., 3., 30.)
         w.add_open_space(266., 276., 3., 25.)
         w.add_open_space(276., 291., 3., 19.)
