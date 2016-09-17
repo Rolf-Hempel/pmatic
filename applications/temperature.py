@@ -141,20 +141,22 @@ class temperature(object):
             response = urllib2.urlopen(req)
             output_fcst = response.read()
             json_out_fcst = json.loads(output_fcst)
+            temperature_forecast = []
+            count = json_out_fcst['cnt']
+            # Build a list with the forecast temperature values along with the corresponding Unix timestamps
+            for i in range(1, count):
+                timestamp = json_out_fcst['list'][i]['dt']
+                # date = json_out_fcst['list'][i]['dt_txt']
+                temp = json_out_fcst['list'][i]['main']['temp']
+                # print timestamp, date, temp
+                temperature_forecast.append([timestamp, temp])
+            # Replace the old list with forecast values with the new one
+            self.temp_dict["temperatures_forecast"] = temperature_forecast
         except:
             # If not successful (e.g. no internet connection), leave the forecast values unchanged.
             return
         if self.params.output_level > 2:
             print_output("New temperature forecast downloaded from OpenWeatherMap")
-        # Update the forecast temperature values along with the corresponding Unix timestamps
-        self.temp_dict["temperatures_forecast"] = []
-        count = json_out_fcst['cnt']
-        for i in range(1, count):
-            timestamp = json_out_fcst['list'][i]['dt']
-            # date = json_out_fcst['list'][i]['dt_txt']
-            temp = json_out_fcst['list'][i]['main']['temp']
-            # print timestamp, date, temp
-            self.temp_dict["temperatures_forecast"].append([timestamp, temp])
 
     def lookup_max_forecast_temp(self):
         """
