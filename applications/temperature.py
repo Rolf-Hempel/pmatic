@@ -118,6 +118,8 @@ class temperature(object):
                             if self.params.output_level > 1:
                                 print "New minimum temperature: " + str(min_temperature) + ", Time of minimum: " + str(
                                     datetime.datetime.fromtimestamp(min_temperature_time))
+                            self.temp_dict["min_temperature"] = min_temperature
+                            self.temp_dict["min_temperature_time"] = min_temperature_time
 
                     self.temp_dict["minmax_time_updated"] = self.current_time
                     self.temp_dict["temperatures"] = [temp_object]
