@@ -57,13 +57,31 @@ class sysvar_activities(object):
         self.ventilate_night = {"active": False, "setting": 1.,
                                 "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer',
                                             u'Wohnzimmer rechts']}
+        self.ventilate_sleeping_room = {"active": False, "setting": 1.,
+                                        "windows": [u'Schlafzimmer']}
+        self.shutter_constant_25 = {"active": False, "setting": 0.25,
+                                    "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer',
+                                                u'Wohnzimmer rechts', u'Wohnzimmer links', u'Küche rechts',
+                                                u'Küche links', u'Gäste-WC', u'Terrassentür', u'Terrassenfenster']}
+        self.shutter_constant_50 = {"active": False, "setting": 0.5,
+                                    "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer',
+                                                u'Wohnzimmer rechts', u'Wohnzimmer links', u'Küche rechts',
+                                                u'Küche links', u'Gäste-WC', u'Terrassentür', u'Terrassenfenster']}
         self.tv_evening = {"active": False, "setting": 0.,
                            "windows": [u'Wohnzimmer rechts', u'Wohnzimmer links', u'Terrassentür', u'Terrassenfenster']}
+        self.ventilate_until_morning = {"active": False}
+        self.sysvar_ventilation_activities = [self.tv_evening, self.ventilate_upper, self.ventilate_lower,
+                                          self.ventilate_kitchen, self.ventilate_night, self.ventilate_sleeping_room]
         self.sysvar_shutter_activities = [self.tv_evening, self.ventilate_upper, self.ventilate_lower,
-                                          self.ventilate_kitchen, self.ventilate_night]
+                                          self.ventilate_kitchen, self.ventilate_night, self.ventilate_sleeping_room,
+                                          self.shutter_constant_25, self.shutter_constant_50]
         self.sysvars = {u'Keine Rolladenbewegungen': self.suspend_shutter_activities, u'Fernsehabend': self.tv_evening,
                         u'Lueften Obergeschoss': self.ventilate_upper, u'Lueften Erdgeschoss': self.ventilate_lower,
-                        u'Lueften Kueche': self.ventilate_kitchen, u'Lueften Nacht': self.ventilate_night}
+                        u'Lueften Kueche': self.ventilate_kitchen, u'Lueften Nacht': self.ventilate_night,
+                        u'Lueften Schlafzimmer': self.ventilate_sleeping_room,
+                        u'Lueften bis zum Morgen': self.ventilate_until_morning,
+                        u'Rollaeden 25 Prozent': self.shutter_constant_25,
+                        u'Rollaeden 50 Prozent': self.shutter_constant_50}
 
     def update(self):
         """
@@ -79,7 +97,7 @@ class sysvar_activities(object):
         variable. For the first match, return the corresponding shutter setting.
 
         :param window_name:
-        :return:
+        :return: -
         """
         for activity in self.sysvar_shutter_activities:
             if activity["active"] and window_name in activity["windows"]:
@@ -92,6 +110,20 @@ class sysvar_activities(object):
         :return: True if movements are suspended, otherwise False
         """
         return self.suspend_shutter_activities["active"]
+
+    def reset_ventilation_in_the_morning(self):
+        """
+        If the boolean system variable "Lueften bis zum Morgen" is set to "true", all nocturnal ventilation actions
+        are continued until the shutters are opened in the morning. At this point all ventilation actions are reset,
+        and the system variable is reset to "False".
+        :return: -
+        """
+        if self.ventilate_until_morning["active"]:
+            if self.params.output_level > 1:
+                print_output("Reset ventilation activities in the morning")
+            for activity in self.sysvar_ventilation_activities:
+                activity["active"] = False
+            self.ventilate_until_morning["active"] = False
 
 
 class window(object):
@@ -197,7 +229,7 @@ class window(object):
                        min(1., self.shutter_coef[0] * setting_true ** 2 + self.shutter_coef[1] * setting_true +
                            self.shutter_coef[2]))
 
-    def set_shutter(self, value):
+    def set_shutter(self, value, sun_is_up):
         """
         Set the shutter to a given level: 0 for completely closed, 1 for completely opened shutter. Any value in between
         is possible.
@@ -237,6 +269,11 @@ class window(object):
                                     + str(self.shutter_current_setting))
                             self.shutter_manual_intervention_active = True
                     self.shutter_last_setting = self.shutter_current_setting
+
+                    # If the sun is below the threshold value, close the shutter (if no sysvar-induced setting is
+                    # active, and if there is no manual intervention)
+                    if not sun_is_up:
+                        true_setting = 0.
 
                 # Apply translation between intended and nominal shutter settings
                 nominal_setting = self.true_to_nominal(true_setting)
@@ -417,15 +454,17 @@ class windows(object):
             print_output("Sun position: Azimuth = " + str(degrees(sun_azimuth)) +
                          ", Elevation = " + str(degrees(sun_elevation)))
         sun_twilight_threshold = radians(self.params.sun_twilight_threshold)
-        # If the sun is below a certain elevation threshold, close all shutters
-        if sun_elevation < sun_twilight_threshold:
-            windows.close_all_shutters()
-        else:
-            for window in self.window_dict.values():
-                sunlit_condition = window.test_sunlit()
-                shutter_condition = "shutter_" + temperature_condition + "_" + bc + "_" + \
-                                    sunlit_condition
-                window.set_shutter(self.params.shutter_condition[shutter_condition])
+        # Test if the sun is above the predefined threshold value
+        sun_is_up = sun_elevation > sun_twilight_threshold
+        # Reset nocturnal ventilation activities the first time the sun is above the threshold
+        if sun_is_up:
+            self.sysvar_act.reset_ventilation_in_the_morning()
+
+        for window in self.window_dict.values():
+            sunlit_condition = window.test_sunlit()
+            shutter_condition = "shutter_" + temperature_condition + "_" + bc + "_" + \
+                                sunlit_condition
+            window.set_shutter(self.params.shutter_condition[shutter_condition], sun_is_up)
 
 
 if __name__ == "__main__":
