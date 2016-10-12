@@ -48,30 +48,32 @@ class sysvar_activities(object):
         """
         self.api = api
         self.params = params
-        self.suspend_shutter_activities = {"active": False}
-        self.ventilate_upper = {"active": False, "setting": 1.,
+        self.suspend_shutter_activities = {"name": u'Keine Rolladenbewegungen', "active": False}
+        self.ventilate_upper = {"name": u'Lueften Obergeschoss', "active": False, "setting": 1.,
                                 "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer']}
-        self.ventilate_lower = {"active": False, "setting": 1.,
+        self.ventilate_lower = {"name": u'Lueften Erdgeschoss', "active": False, "setting": 1.,
                                 "windows": [u'Wohnzimmer rechts', u'Küche rechts', u'Gäste-WC']}
-        self.ventilate_kitchen = {"active": False, "setting": 1., "windows": [u'Küche rechts', u'Gäste-WC']}
-        self.ventilate_night = {"active": False, "setting": 1.,
+        self.ventilate_kitchen = {"name": u'Lueften Kueche', "active": False, "setting": 1.,
+                                  "windows": [u'Küche rechts', u'Gäste-WC']}
+        self.ventilate_night = {"name": u'Lueften Nacht', "active": False, "setting": 1.,
                                 "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer',
                                             u'Wohnzimmer rechts']}
-        self.ventilate_sleeping_room = {"active": False, "setting": 1.,
+        self.ventilate_sleeping_room = {"name": u'Lueften Schlafzimmer', "active": False, "setting": 1.,
                                         "windows": [u'Schlafzimmer']}
-        self.shutter_constant_25 = {"active": False, "setting": 0.25,
+        self.shutter_constant_25 = {"name": u'Rollaeden 25 Prozent', "active": False, "setting": 0.25,
                                     "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer',
                                                 u'Wohnzimmer rechts', u'Wohnzimmer links', u'Küche rechts',
                                                 u'Küche links', u'Gäste-WC', u'Terrassentür', u'Terrassenfenster']}
-        self.shutter_constant_50 = {"active": False, "setting": 0.5,
+        self.shutter_constant_50 = {"name": u'Rollaeden 50 Prozent', "active": False, "setting": 0.5,
                                     "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer',
                                                 u'Wohnzimmer rechts', u'Wohnzimmer links', u'Küche rechts',
                                                 u'Küche links', u'Gäste-WC', u'Terrassentür', u'Terrassenfenster']}
-        self.tv_evening = {"active": False, "setting": 0.,
+        self.tv_evening = {"name": u'Fernsehabend', "active": False, "setting": 0.,
                            "windows": [u'Wohnzimmer rechts', u'Wohnzimmer links', u'Terrassentür', u'Terrassenfenster']}
-        self.ventilate_until_morning = {"active": False}
-        self.sysvar_ventilation_activities = [self.tv_evening, self.ventilate_upper, self.ventilate_lower,
-                                          self.ventilate_kitchen, self.ventilate_night, self.ventilate_sleeping_room]
+        self.ventilate_until_morning = {"name": u'Lueften bis zum Morgen', "active": False}
+        self.sysvar_ventilation_activities = [self.ventilate_upper, self.ventilate_lower,
+                                              self.ventilate_kitchen, self.ventilate_night,
+                                              self.ventilate_sleeping_room]
         self.sysvar_shutter_activities = [self.tv_evening, self.ventilate_upper, self.ventilate_lower,
                                           self.ventilate_kitchen, self.ventilate_night, self.ventilate_sleeping_room,
                                           self.shutter_constant_25, self.shutter_constant_50]
@@ -122,7 +124,9 @@ class sysvar_activities(object):
             if self.params.output_level > 1:
                 print_output("Reset ventilation activities in the morning")
             for activity in self.sysvar_ventilation_activities:
+                self.api.sys_var_set_float(name=activity["name"], value=False)
                 activity["active"] = False
+            self.api.sys_var_set_float(name=self.ventilate_until_morning["name"], value=False)
             self.ventilate_until_morning["active"] = False
 
 
