@@ -162,7 +162,7 @@ class parameters(object):
             if "brightness_dim" in self.parameters.keys():
                 self.brightness_dim = float(self.parameters["brightness_dim"])
             else:
-                self.brightness_dim = 4000.
+                self.brightness_dim = 7000.
             if "sun_twilight_threshold" in self.parameters.keys():
                 self.sun_twilight_threshold = float(self.parameters["sun_twilight_threshold"])
             else:

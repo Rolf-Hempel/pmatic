@@ -528,7 +528,7 @@ if __name__ == "__main__":
         # Read parameter file and check if since the last iteration parameters have changed
         if params.update_parameters():
             sun = sun_position(params)
-            if params.output_level > 1:
+            if params.output_level > 0:
                 print_output("\nParameters have changed!")
                 params.print_parameters()
         # Update the temperature info
