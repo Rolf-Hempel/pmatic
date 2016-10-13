@@ -374,7 +374,6 @@ class parameters(object):
             "\nbrightness_update_interval: ", self.brightness_update_interval, \
             "\nbrightness_time_span: ", self.brightness_time_span, \
             "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
-            "\ntimezone: ", self.timezone, \
             "\nlh_night_begin: ", self.lh_night_begin, "\nlh_night_end: ", self.lh_night_end, \
             "\nlh_night_end_saturday: ", self.lh_night_end_saturday, \
             "\nlh_night_end_sunday: ", self.lh_night_end_sunday, \
