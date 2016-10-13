@@ -504,7 +504,7 @@ if __name__ == "__main__":
         ccu = pmatic.CCU()
         api = pmatic.api.init()
 
-    if params.output_level > 1:
+    if params.output_level > 0:
         params.print_parameters()
 
     # Create the object which stores parameters for computing the sun's location in the sky
