@@ -322,7 +322,7 @@ class window(object):
                     self.shutter_last_setting = nominal_setting
             except Exception as e:
                 if self.params.output_level > 0:
-                    print e
+                    print_output(repr(e))
                 success = False
         return success
 

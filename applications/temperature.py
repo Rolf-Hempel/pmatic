@@ -129,7 +129,7 @@ class temperature(object):
                     json.dump(self.temp_dict, temperature_file)
             except Exception as e:
                 if self.params.output_level > 0:
-                    print e
+                    print_output(repr(e))
             time.sleep(self.params.lookup_sleep_time)
 
     def update_forecast(self):

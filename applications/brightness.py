@@ -67,7 +67,7 @@ class brightness(object):
                     time.sleep(self.params.lookup_sleep_time)
                 except Exception as e:
                     if self.params.output_level > 0:
-                        print e
+                        print_output(repr(e))
             if len(brightness_measurements) > 0:
                 # Set the current brightness to the max over all measuring devices
                 self.current_brightness_external = max(brightness_measurements)
