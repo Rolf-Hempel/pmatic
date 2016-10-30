@@ -49,6 +49,7 @@ class sysvar_activities(object):
         self.api = api
         self.params = params
         self.suspend_shutter_activities = {"name": u'Keine Rolladenbewegungen', "active": False}
+        self.suspend_sleeping_room = {"name": u'Keine RB Schlafzimmer', "active": False}
         self.ventilate_upper = {"name": u'Lueften Obergeschoss', "active": False, "setting": 1.,
                                 "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer']}
         self.ventilate_lower = {"name": u'Lueften Erdgeschoss', "active": False, "setting": 1.,
@@ -58,8 +59,6 @@ class sysvar_activities(object):
         self.ventilate_night = {"name": u'Lueften Nacht', "active": False, "setting": 1.,
                                 "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer',
                                             u'Wohnzimmer rechts']}
-        self.ventilate_sleeping_room = {"name": u'Lueften Schlafzimmer', "active": False, "setting": 1.,
-                                        "windows": [u'Schlafzimmer']}
         self.shutter_constant_25 = {"name": u'Rollaeden 25 Prozent', "active": False, "setting": 0.25,
                                     "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer',
                                                 u'Wohnzimmer rechts', u'Wohnzimmer links', u'Küche rechts',
@@ -76,16 +75,15 @@ class sysvar_activities(object):
                            "windows": [u'Wohnzimmer rechts', u'Wohnzimmer links', u'Terrassentür', u'Terrassenfenster']}
         self.ventilate_until_morning = {"name": u'Lueften bis zum Morgen', "active": False}
         self.sysvar_ventilation_activities = [self.ventilate_upper, self.ventilate_lower,
-                                              self.ventilate_kitchen, self.ventilate_night,
-                                              self.ventilate_sleeping_room]
+                                              self.ventilate_kitchen, self.ventilate_night]
         self.sysvar_shutter_activities = [self.tv_evening, self.ventilate_upper, self.ventilate_lower,
-                                          self.ventilate_kitchen, self.ventilate_night, self.ventilate_sleeping_room]
+                                          self.ventilate_kitchen, self.ventilate_night]
         self.constant_daytime_shutter_settings = [self.shutter_constant_25, self.shutter_constant_50,
                                                  self.shutter_constant_100]
         self.sysvars = {u'Keine Rolladenbewegungen': self.suspend_shutter_activities, u'Fernsehabend': self.tv_evening,
                         u'Lueften Obergeschoss': self.ventilate_upper, u'Lueften Erdgeschoss': self.ventilate_lower,
                         u'Lueften Kueche': self.ventilate_kitchen, u'Lueften Nacht': self.ventilate_night,
-                        u'Lueften Schlafzimmer': self.ventilate_sleeping_room,
+                        u'Keine RB Schlafzimmer': self.suspend_sleeping_room,
                         u'Lueften bis zum Morgen': self.ventilate_until_morning,
                         u'Rollaeden 25 Prozent': self.shutter_constant_25,
                         u'Rollaeden 50 Prozent': self.shutter_constant_50,
@@ -496,10 +494,11 @@ class windows(object):
             self.sysvar_act.reset_ventilation_in_the_morning()
 
         for window in self.window_dict.values():
-            sunlit_condition = window.test_sunlit()
-            shutter_condition = "shutter_" + temperature_condition + "_" + bc + "_" + \
-                                sunlit_condition
-            window.set_shutter(self.params.shutter_condition[shutter_condition], sun_is_up)
+            if window.window_name != u'Schlafzimmer' or not self.sysvar_act.suspend_sleeping_room:
+                sunlit_condition = window.test_sunlit()
+                shutter_condition = "shutter_" + temperature_condition + "_" + bc + "_" + \
+                                    sunlit_condition
+                window.set_shutter(self.params.shutter_condition[shutter_condition], sun_is_up)
 
 
 if __name__ == "__main__":
