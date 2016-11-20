@@ -386,7 +386,7 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Wohnzimmer rechts'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer rechts',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
                    u'Rolladenaktor Wohnzimmer rechts')
         w.add_open_space(231., 360., 2., 90.)
         w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
