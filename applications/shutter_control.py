@@ -393,14 +393,14 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Wohnzimmer links'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer links',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
                    u'Rolladenaktor Wohnzimmer links')
         w.add_open_space(231., 360., 2., 90.)
         w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
         self.window_dict[window_name] = w
 
         window_name = u'Terrassentür'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Terrassentür',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
                    u'Rolladenaktor Terrassentür')
         w.add_open_space(151., 181., 0., 33.)
         w.add_open_space(181., 191., 0., 40.)
@@ -413,7 +413,7 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Terrassenfenster'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Terrassenfenster',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
                    u'Rolladenaktor Terrassenfenster')
         w.add_open_space(151., 181., 0., 33.)
         w.add_open_space(181., 191., 0., 40.)
@@ -426,7 +426,7 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Küche links'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Küche links',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Küche',
                    u'Rolladenaktor Küche links')
         w.add_open_space(51., 79., 8., 90.)
         w.add_open_space(79., 106., 5., 90.)
@@ -437,7 +437,7 @@ class windows(object):
         self.window_dict[window_name] = w
 
         window_name = u'Küche rechts'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Küche rechts',
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Küche',
                    u'Rolladenaktor Küche rechts')
         w.add_open_space(141., 156., 16., 35.)
         w.add_open_space(156., 206., 5., 90.)
