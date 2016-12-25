@@ -473,30 +473,31 @@ class windows(object):
         for window in self.window_dict.values():
             window.set_shutter(0.)
 
-    def adjust_all_shutters(self, temperature_condition, brightness_condition):
+    def adjust_all_shutters(self, temperatures, brightnesses):
+        # Don't move shutters if shutter activities are suspended or if at night.
+        if self.sysvar_act.shutter_activities_suspended() or not not_at_night(params):
+            return
+        temperature_condition = temperatures.temperature_condition()
+        brightness_condition = brightnesses.brightness_condition()
         # Treat special case: List of brightness values truncated, and at the same time brightness device unavailable
         if brightness_condition == "no_measurement_available":
             if self.params.output_level > 2:
                 print_output('Warning: No brightness measurement available, using "normal" instead')
-            bc = "normal"
-        else:
-            bc = brightness_condition
-        # Compute the current sun position
-        sun_azimuth, sun_elevation = self.sun.update_position()
-        if self.params.output_level > 2:
-            print_output("Sun position: Azimuth = " + str(degrees(sun_azimuth)) +
-                         ", Elevation = " + str(degrees(sun_elevation)))
-        sun_twilight_threshold = radians(self.params.sun_twilight_threshold)
-        # Test if the sun is above the predefined threshold value
-        sun_is_up = sun_elevation > sun_twilight_threshold
-        # Reset nocturnal ventilation activities the first time the sun is above the threshold
+            brightness_condition = "normal"
+        if params.output_level > 2:
+            print_output(
+                "temperature condition: " + temperature_condition + ", brightness condition: " + brightness_condition)
+        # If "sun_is_up" is False, shutters are to be closed for the night.
+        sun_is_up = sun.sun_is_up(brightnesses)
+        # Reset nocturnal ventilation activities the first time the sun is above the threshold.
         if sun_is_up:
             self.sysvar_act.reset_ventilation_in_the_morning()
-
+        # For each window set the shutter according to lighting and temperature conditions.
         for window in self.window_dict.values():
-            if window.window_name != u'Schlafzimmer' or not self.sysvar_act.suspend_sleeping_room:
+            # Special case "Schlafzimmer": test system variable "Keine RB Schlafzimmer".
+            if window.window_name != u'Schlafzimmer' or not self.sysvar_act.suspend_sleeping_room["active"]:
                 sunlit_condition = window.test_sunlit()
-                shutter_condition = "shutter_" + temperature_condition + "_" + bc + "_" + \
+                shutter_condition = "shutter_" + temperature_condition + "_" + brightness_condition + "_" + \
                                     sunlit_condition
                 window.set_shutter(self.params.shutter_condition[shutter_condition], sun_is_up)
 
@@ -508,7 +509,7 @@ if __name__ == "__main__":
     ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/parameter_file"
     remote_parameter_file_name = "/home/rolf/Pycharm-Projects/pmatic/applications/parameter_file"
     ccu_temperature_file_name = "/etc/config/addons/pmatic/scripts/applications/temperature_file"
-    remote_temperature_file_name = "temperature_file"
+    remote_temperature_file_name = "/home/rolf/Pycharm-Projects/pmatic/applications/temperature_file"
 
     # Test if the remote parameter file is found. In this case the program runs on a remote computer.
     if os.path.isfile(remote_parameter_file_name):
@@ -550,31 +551,27 @@ if __name__ == "__main__":
     temperatures = temperature(params, ccu, temperature_file_name)
 
     # Create the object which looks up the current brightness level and holds the maximum value during the last hour
-    brightness_measurements = brightness(params, ccu)
-    # If both objects are successfully created, the temperature and brightness devices could be accessed.
+    brightnesses = brightness(params, ccu)
+    # If "temperatures" and "brightnesses" are created, the temperature and brightness devices could be accessed.
 
     # Main loop
     while True:
-        # Read parameter file and check if since the last iteration parameters have changed
+        # Read parameter file, check if since the last iteration parameters have changed.
+        # If parameters have changed, create a new sun object. Otherwise just update sun position.
         if params.update_parameters():
             sun = sun_position(params)
             if params.output_level > 0:
                 print_output("\nParameters have changed!")
                 params.print_parameters()
+        else:
+            sun.update_position()
         # Update the temperature info
         temperatures.update()
-        temperature_condition = temperatures.temperature_condition()
-        # Update the brightness info and print out the current temperature and brightness conditions
-        brightness_measurements.update()
-        brightness_condition = brightness_measurements.brightness_condition()
-        if params.output_level > 2:
-            print_output(
-                "temperature condition: " + temperature_condition + ", brightness condition: " + brightness_condition)
+        # Update the brightness info
+        brightnesses.update()
         # Update the system variable setting
         sysvar_act.update()
-        # Shutter operations only if not suspended by system variable, and not at night
-        if not sysvar_act.shutter_activities_suspended() and not_at_night(params):
-            # Set all shutters corresponding to the actual temperature and brightness conditions
-            windows.adjust_all_shutters(temperature_condition, brightness_condition)
+        # Set all shutters corresponding to the actual temperature and brightness conditions.
+        windows.adjust_all_shutters(temperatures, brightnesses)
         # Add a delay before the next main loop iteration
         time.sleep(params.main_loop_sleep_time)

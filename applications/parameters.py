@@ -108,6 +108,10 @@ class parameters(object):
                 self.lh_night_end_sunday = float(self.parameters["lh_night_end_sunday"])
             else:
                 self.lh_night_end_sunday = 5.527
+            if "average_temperature" in self.parameters.keys():
+                self.average_temperature = float(self.parameters["average_temperature"])
+            else:
+                self.average_temperature = 15.
             if "min_temperature" in self.parameters.keys():
                 self.min_temperature = float(self.parameters["min_temperature"])
             else:
@@ -162,10 +166,22 @@ class parameters(object):
                 self.brightness_dim = float(self.parameters["brightness_dim"])
             else:
                 self.brightness_dim = 7000.
-            if "sun_twilight_threshold" in self.parameters.keys():
-                self.sun_twilight_threshold = float(self.parameters["sun_twilight_threshold"])
+            if "sunrise_decision_width" in self.parameters.keys():
+                self.sunrise_decision_width = float(self.parameters["sunrise_decision_width"])
             else:
-                self.sun_twilight_threshold = -5.
+                self.sunrise_decision_width = 7.
+            if "sunrise_decision_interval" in self.parameters.keys():
+                self.sunrise_decision_interval = float(self.parameters["sunrise_decision_interval"])
+            else:
+                self.sunrise_decision_interval = 3600.
+            if "day_brightness_threshold" in self.parameters.keys():
+                self.day_brightness_threshold = float(self.parameters["day_brightness_threshold"])
+            else:
+                self.day_brightness_threshold = 4.
+            if "night_brightness_threshold" in self.parameters.keys():
+                self.night_brightness_threshold = float(self.parameters["night_brightness_threshold"])
+            else:
+                self.night_brightness_threshold = 10.
             if "shutter_trigger_delay" in self.parameters.keys():
                 self.shutter_trigger_delay = float(self.parameters["shutter_trigger_delay"])
             else:
@@ -376,7 +392,7 @@ class parameters(object):
             "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
             "\nlh_night_begin: ", self.lh_night_begin, "\nlh_night_end: ", self.lh_night_end, \
             "\nlh_night_end_saturday: ", self.lh_night_end_saturday, \
-            "\nlh_night_end_sunday: ", self.lh_night_end_sunday, \
+            "\nlh_night_end_sunday: ", self.lh_night_end_sunday, "\naverage_temperature: ", self.average_temperature, \
             "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
             "\nmax_temperature: ", self.max_temperature, \
             "\nmax_temperature_hot: ", self.max_temperature_hot, \
@@ -389,7 +405,10 @@ class parameters(object):
             "\naverage_humidity_external: ", self.average_humidity_external, \
             "\nbrightness_very_bright: ", self.brightness_very_bright, \
             "\nbrightness_dim: ", self.brightness_dim, \
-            "\nsun_twilight_threshold: ", self.sun_twilight_threshold, \
+            "\nsunrise_decision_width: ", self.sunrise_decision_width, \
+            "\nsunrise_decision_interval: ", self.sunrise_decision_interval, \
+            "\nday_brightness_threshold: ", self.day_brightness_threshold, \
+            "\nnight_brightness_threshold: ", self.night_brightness_threshold, \
             "\nshutter_trigger_delay: ", self.shutter_trigger_delay, \
             "\nshutter_setting_tolerance: ", self.shutter_setting_tolerance, \
             "\nmax_ventilation_temperature: ", self.max_ventilation_temperature, "\n" \

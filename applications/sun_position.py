@@ -20,27 +20,59 @@
 
 from math import degrees, radians
 
-from parameters import parameters
+from miscellaneous import *
 from pmatic import utils
 
 
 class sun_position(object):
     def __init__(self, params):
-        self.longitude = radians(params.longitude)
-        self.latitude = radians(params.latitude)
+        self.params = params
+        self.longitude = radians(self.params.longitude)
+        self.latitude = radians(self.params.latitude)
         self.update_position
+        self.sun_is_up_last_changed = 0.
 
     def update_position(self):
         self.azimuth, self.elevation = utils.sun_position(self.longitude, self.latitude)
+        if self.params.output_level > 2:
+            print_output("Sun position: Azimuth = " + str(degrees(self.azimuth)) +
+                         ", Elevation = " + str(degrees(self.elevation)))
         return self.azimuth, self.elevation
 
     def look_up_position(self):
         return self.azimuth, self.elevation
 
+    def sun_is_up(self, brightnesses):
+        # If the sun is high enough, return True anyway
+        if self.elevation > radians(params.sunrise_decision_width):
+            self.last_sun_is_up = True
+        # If the sun is low enough below the horizon, return False anyway
+        elif self.elevation < -radians(params.sunrise_decision_width):
+            self.last_sun_is_up = False
+        # If the sun's elevation is close enough to the horizon, decide based on external brightness
+        else:
+            t = time.time()
+            local_hour = get_local_hour(self.params, t)
+            # Don't change back and forth in the presence of clouds
+            if time.time() - self.sun_is_up_last_changed > params.sunrise_decision_interval:
+                # Around sunrise test is the sky is already bright enough
+                if local_hour < 12.:
+                    if brightnesses.current_brightness_external > params.day_brightness_threshold:
+                        self.last_sun_is_up = True
+                        self.sun_is_up_last_changed = t
+                    else:
+                        self.last_sun_is_up = False
+                # Around sunset test if the sky is already dim enough
+                else:
+                    if brightnesses.current_brightness_external < params.night_brightness_threshold:
+                        self.last_sun_is_up = False
+                        self.sun_is_up_last_changed = t
+                    else:
+                        self.last_sun_is_up = True
+        return self.last_sun_is_up
+
 
 if __name__ == "__main__":
-    params = parameters()
+    params = parameters("parameter_file")
     sun = sun_position(params)
     azimuth, elevation = sun.update_position()
-
-    print "Azimuth: ", degrees(azimuth), ", Elevation: ", degrees(elevation)

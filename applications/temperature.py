@@ -66,10 +66,13 @@ class temperature(object):
             self.temp_dict["temperatures_forecast"] = []
             self.temp_dict["last_updated"] = 0.
             self.temp_dict["minmax_time_updated"] = 0.
+            self.temp_dict["average_temperature"] = params.average_temperature
             self.temp_dict["min_temperature"] = params.min_temperature
             self.temp_dict["min_temperature_time"] = params.min_temperature_time
+            self.temp_dict["min_temperature_local_hour"] = get_local_hour(self.params, params.min_temperature_time)
             self.temp_dict["max_temperature"] = params.max_temperature
             self.temp_dict["max_temperature_time"] = params.max_temperature_time
+            self.temp_dict["max_temperature_local_hour"] = get_local_hour(self.params, params.max_temperature_time)
             with open(self.temperature_file_name, 'w') as temperature_file:
                 json.dump(self.temp_dict, temperature_file)
         self.current_temperature_external = (self.temp_dict["min_temperature"] + self.temp_dict["max_temperature"]) / 2.
@@ -86,45 +89,52 @@ class temperature(object):
                 if self.params.output_level > 2:
                     print_output("External temperature: " + str(self.current_temperature_external))
                 temp_object = [self.current_time, self.current_temperature_external]
+                self.temp_dict["temperatures"].append(temp_object)
                 self.temp_dict["last_updated"] = self.current_time
 
                 # Update minima / maxima data at the first invocation after 18:00 local time,
-                # but only if data have been recorded for at least 18 hours
-                if self.current_time - self.temp_dict["minmax_time_updated"] > 64800. and 18. < local_hour < 24.:
+                # but only if data have been recorded for at least 24 hours
+                if self.current_time - self.temp_dict["minmax_time_updated"] > 86400. and 18. < local_hour < 24.:
                     if self.params.output_level > 1:
-                        print_output("Updating maximum and minimum external temperatures:")
+                        print_output("Updating average, maximum and minimum external temperatures:")
+                    average_temperature = 0.
                     min_temperature = 100.
                     max_temperature = -100.
                     for temp_object_stored in self.temp_dict["temperatures"]:
+                        if self.current_time - temp_object_stored[0] > 86400.:
+                            self.temp_dict["temperatures"].remove(temp_object_stored)
+                            continue
+                        average_temperature += temp_object_stored[1]
                         local_hour = get_local_hour(self.params, temp_object_stored[0])
                         # Look for maximum temperature only between 1:00 and 6:00 p.m. local time
                         if 13. < local_hour < 18. and temp_object_stored[1] > max_temperature:
                             max_temperature = temp_object_stored[1]
                             max_temperature_time = temp_object_stored[0]
+                            max_local_hour = local_hour
                         # Look for minimum temperature only between 3:00 and 9:00 a.m. local time
                         if 3. < local_hour < 9. and temp_object_stored[1] < min_temperature:
                             min_temperature = temp_object_stored[1]
                             min_temperature_time = temp_object_stored[0]
+                            min_local_hour = local_hour
                     if max_temperature == -100. and min_temperature == 100. and self.params.output_level > 1:
                         print "No new maximum or minimum temperature found"
                     else:
+                        self.temp.dict["average_temperature"] = average_temperature / len(self.temp_dict["temperatures"])
                         if max_temperature > -100.:
                             if self.params.output_level > 1:
                                 print "New maximum temperature: " + str(max_temperature) + ", Time of maximum: " + str(
                                     datetime.datetime.fromtimestamp(max_temperature_time))
                             self.temp_dict["max_temperature"] = max_temperature
                             self.temp_dict["max_temperature_time"] = max_temperature_time
+                            self.temp_dict["max_temperature_local_hour"] = max_local_hour
                         if min_temperature < 100.:
                             if self.params.output_level > 1:
                                 print "New minimum temperature: " + str(min_temperature) + ", Time of minimum: " + str(
                                     datetime.datetime.fromtimestamp(min_temperature_time))
                             self.temp_dict["min_temperature"] = min_temperature
                             self.temp_dict["min_temperature_time"] = min_temperature_time
-
+                            self.temp_dict["min_temperature_local_hour"] = min_local_hour
                     self.temp_dict["minmax_time_updated"] = self.current_time
-                    self.temp_dict["temperatures"] = [temp_object]
-                else:
-                    self.temp_dict["temperatures"].append(temp_object)
                 with open(self.temperature_file_name, 'w') as temperature_file:
                     json.dump(self.temp_dict, temperature_file)
             except Exception as e:
