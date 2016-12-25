@@ -27,13 +27,10 @@ from pmatic import utils
 class sun_position(object):
     def __init__(self, params):
         self.params = params
-        self.longitude = radians(self.params.longitude)
-        self.latitude = radians(self.params.latitude)
-        self.update_position
         self.sun_is_up_last_changed = 0.
 
     def update_position(self):
-        self.azimuth, self.elevation = utils.sun_position(self.longitude, self.latitude)
+        self.azimuth, self.elevation = utils.sun_position(radians(self.params.longitude), radians(self.params.latitude))
         if self.params.output_level > 2:
             print_output("Sun position: Azimuth = " + str(degrees(self.azimuth)) +
                          ", Elevation = " + str(degrees(self.elevation)))

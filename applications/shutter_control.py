@@ -559,12 +559,13 @@ if __name__ == "__main__":
         # Read parameter file, check if since the last iteration parameters have changed.
         # If parameters have changed, create a new sun object. Otherwise just update sun position.
         if params.update_parameters():
-            sun = sun_position(params)
             if params.output_level > 0:
                 print_output("\nParameters have changed!")
                 params.print_parameters()
-        else:
-            sun.update_position()
+            # Reset time stamp for last test for sunrise/sunset.
+            sun.sun_is_up_last_changed = 0.
+        # Update sun position
+        sun.update_position()
         # Update the temperature info
         temperatures.update()
         # Update the brightness info

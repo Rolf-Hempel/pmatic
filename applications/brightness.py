@@ -48,7 +48,6 @@ class brightness(object):
         self.measurement_available = False
         self.brightnesses = []
         self.time_last_updated = 0.
-        self.update()
 
     def update(self):
         """
