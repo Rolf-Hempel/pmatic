@@ -44,27 +44,27 @@ class sun_position(object):
 
     def sun_is_up(self, brightnesses):
         # If the sun is high enough, return True anyway
-        if self.elevation > radians(params.sunrise_decision_width):
+        if self.elevation > radians(self.params.sunrise_decision_width):
             self.last_sun_is_up = True
         # If the sun is low enough below the horizon, return False anyway
-        elif self.elevation < -radians(params.sunrise_decision_width):
+        elif self.elevation < -radians(self.params.sunrise_decision_width):
             self.last_sun_is_up = False
         # If the sun's elevation is close enough to the horizon, decide based on external brightness
         else:
             t = time.time()
             local_hour = get_local_hour(self.params, t)
             # Don't change back and forth in the presence of clouds
-            if time.time() - self.sun_is_up_last_changed > params.sunrise_decision_interval:
+            if time.time() - self.sun_is_up_last_changed > self.params.sunrise_decision_interval:
                 # Around sunrise test is the sky is already bright enough
                 if local_hour < 12.:
-                    if brightnesses.current_brightness_external > params.day_brightness_threshold:
+                    if brightnesses.current_brightness_external > self.params.day_brightness_threshold:
                         self.last_sun_is_up = True
                         self.sun_is_up_last_changed = t
                     else:
                         self.last_sun_is_up = False
                 # Around sunset test if the sky is already dim enough
                 else:
-                    if brightnesses.current_brightness_external < params.night_brightness_threshold:
+                    if brightnesses.current_brightness_external < self.params.night_brightness_threshold:
                         self.last_sun_is_up = False
                         self.sun_is_up_last_changed = t
                     else:
