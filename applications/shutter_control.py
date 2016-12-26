@@ -353,7 +353,7 @@ class windows(object):
 
     def adjust_all_shutters(self, temperatures, brightnesses):
         # Don't move shutters if shutter activities are suspended or if at night.
-        if self.sysvar_act.shutter_activities_suspended() or not not_at_night(params):
+        if self.sysvar_act.shutter_activities_suspended() or not not_at_night(self.params):
             return
         temperature_condition = temperatures.temperature_condition()
         brightness_condition = brightnesses.brightness_condition()
@@ -362,11 +362,11 @@ class windows(object):
             if self.params.output_level > 2:
                 print_output('Warning: No brightness measurement available, using "normal" instead')
             brightness_condition = "normal"
-        if params.output_level > 2:
+        if self.params.output_level > 2:
             print_output(
                 "temperature condition: " + temperature_condition + ", brightness condition: " + brightness_condition)
         # If "sun_is_up" is False, shutters are to be closed for the night.
-        sun_is_up = sun.sun_is_up(brightnesses)
+        sun_is_up = self.sun.sun_is_up(brightnesses)
         # Reset nocturnal ventilation activities the first time the sun is above the threshold.
         if sun_is_up:
             self.sysvar_act.reset_ventilation_in_the_morning()
