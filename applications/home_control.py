@@ -68,7 +68,7 @@ if __name__ == "__main__":
         params = parameters(ccu_parameter_file_name)
         temperature_file_name = ccu_temperature_file_name
         # For execution on CCU redirect stdout to a protocol file
-        sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/shutter_control.txt', encoding='utf-8', mode='a')
+        sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/home_control.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
             print ""
             print_output(
