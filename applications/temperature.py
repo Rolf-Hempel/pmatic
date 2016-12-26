@@ -119,7 +119,7 @@ class temperature(object):
                     if max_temperature == -100. and min_temperature == 100. and self.params.output_level > 1:
                         print "No new maximum or minimum temperature found"
                     else:
-                        self.temp.dict["average_temperature"] = average_temperature / len(self.temp_dict["temperatures"])
+                        self.temp_dict["average_temperature"] = average_temperature / len(self.temp_dict["temperatures"])
                         if max_temperature > -100.:
                             if self.params.output_level > 1:
                                 print "New maximum temperature: " + str(max_temperature) + ", Time of maximum: " + str(
