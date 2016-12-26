@@ -63,8 +63,6 @@ if __name__ == "__main__":
         ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
         api = pmatic.api.init(address=params.ccu_address, credentials=(params.user, params.password))
     else:
-        # Wait for CCU startup to be completed
-        # time.sleep(10.)
         params = parameters(ccu_parameter_file_name)
         temperature_file_name = ccu_temperature_file_name
         # For execution on CCU redirect stdout to a protocol file

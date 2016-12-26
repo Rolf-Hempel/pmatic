@@ -24,53 +24,81 @@ import os.path
 import pmatic
 from miscellaneous import *
 from parameters import parameters
-from switch_ventilator import switch_ventilator
-from temperature_humidity import temperature_humidity
+from temperature import temperature
 
-ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/ventilation_basement/parameter_file"
-remote_parameter_file_name = "parameter_file"
 
-if os.path.isfile(ccu_parameter_file_name):
-    params = parameters(ccu_parameter_file_name)
-    # For execution on CCU redirect stdout to a protocol file
-    sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
-    if params.output_level > 0:
-        print ""
-        print_output(
-            "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
-    ccu = pmatic.CCU()
-else:
-    params = parameters(remote_parameter_file_name)
-    if params.output_level > 0:
-        print ""
-        print_output(
-            "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
-    ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
+class ventilation_control(object):
+    def __init__(self, params, ccu):
+        self.params = params
+        if self.params.output_level > 0:
+            print "\nThe following devices will be used for ventilation control:"
+        ccu_not_ready_yet = True
+        while ccu_not_ready_yet:
+            try:
+                self.switch_device = look_up_device_by_name(params, ccu, u"Steckdosenschalter Gartenkeller")
+                self.temperature_device_internal = look_up_device_by_name(params, ccu,
+                                                                          u'Temperatur- und Feuchtesensor Gartenkeller')
+                self.current_temperature_internal = self.temperature_device_internal.temperature.value
+                self.current_humidity_internal = self.temperature_device_internal.humidity.value / 100.
+                ccu_not_ready_yet = False
+            except:
+                time.sleep(params.main_loop_sleep_time)
 
-if params.output_level > 1:
-    params.print_parameters()
+    def update_temperature_humidity_internal(self):
+        try:
+            self.current_temperature_internal = self.temperature_device_internal.temperature.value
+            self.current_humidity_internal = self.temperature_device_internal.humidity.value / 100.
+            if self.params.output_level > 2:
+                print_output("Internal temperature: " + str(self.current_temperature_internal) +
+                             ", humidity: " + str(self.current_humidity_internal))
+        except Exception as e:
+            if self.params.output_level > 0:
+                print_output(repr(e))
 
-# Look up devices for outside and internal temperature/humidity measurement and ventilator switching
-if params.output_level > 0:
-    print ""
-    print_output("Devices used:")
-temperature_device_external = look_up_device_by_name(params, ccu, u'Temperatur- und Feuchtesensor außen')
-temperature_device_internal = look_up_device_by_name(params, ccu, u'Temperatur- und Feuchtesensor Gartenkeller')
-switch_device = look_up_device_by_name(params, ccu, u"Steckdosenschalter Gartenkeller")
 
-th = temperature_humidity(params, temperature_device_external, temperature_device_internal)
-sw = switch_ventilator(params, switch_device)
+if __name__ == "__main__":
 
-# main loop
-while True:
-    if params.update_parameters():
-        if params.output_level > 1:
-            print "\nParameters have changed!"
-            params.print_parameters()
+    ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/parameter_file"
+    remote_parameter_file_name = "/home/rolf/Pycharm-Projects/pmatic/applications/parameter_file"
+    ccu_temperature_file_name = "/etc/config/addons/pmatic/scripts/applications/temperature_file"
+    remote_temperature_file_name = "/home/rolf/Pycharm-Projects/pmatic/applications/temperature_file"
 
-    th.update_temperature_humidity()
-    sw.ventilator_state_update(th.current_temperature_internal, th.current_temperature_external,
-                               th.current_humidity_external, th.max_temperature, th.min_temperature_time,
-                               th.max_temperature_time)
+    if os.path.isfile(ccu_parameter_file_name):
+        params = parameters(ccu_parameter_file_name)
+        temperature_file_name = ccu_temperature_file_name
+        # For execution on CCU redirect stdout to a protocol file
+        sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
+        if params.output_level > 0:
+            print ""
+            print_output(
+                "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
+        ccu = pmatic.CCU()
+    else:
+        params = parameters(remote_parameter_file_name)
+        temperature_file_name = remote_temperature_file_name
+        if params.output_level > 0:
+            print ""
+            print_output(
+                "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
+        ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
 
-    time.sleep(params.main_loop_sleep_time)
+    if params.output_level > 1:
+        params.print_parameters()
+
+    ventilation = ventilation_control(params, ccu)
+    temperatures = temperature(params, ccu, temperature_file_name)
+
+    # Update temperature measurements and server forecast info at every call.
+    params.temperature_update_interval = 0.
+
+    # main loop
+    while True:
+        if params.update_parameters():
+            if params.output_level > 1:
+                print "\nParameters have changed!"
+                params.print_parameters()
+
+        ventilation.update_temperature_humidity_internal()
+        temperatures.update()
+
+        time.sleep(params.main_loop_sleep_time)

@@ -42,7 +42,7 @@ class temperature(object):
         self.temperature_file_name = temperature_file_name
 
         if self.params.output_level > 0:
-            print "\nThe following temperature device will be used:"
+            print "\nThe following external temperature device will be used:"
         ccu_not_ready_yet = True
         while ccu_not_ready_yet:
             try:
@@ -77,6 +77,8 @@ class temperature(object):
             with open(self.temperature_file_name, 'w') as temperature_file:
                 json.dump(self.temp_dict, temperature_file)
         self.current_temperature_external = (self.temp_dict["min_temperature"] + self.temp_dict["max_temperature"]) / 2.
+        self.current_humidity_external = params.average_humidity_external
+        self.dew_point = pmatic.utils.dew_point(self.current_temperature_external, self.current_humidity_external)
 
         # Invalidate statistics.
         self.max_forecast_temperature = None
@@ -95,8 +97,13 @@ class temperature(object):
             self.analyze_forecast()
             try:
                 self.current_temperature_external = self.temperature_device_external.temperature.value
+                self.current_humidity_external = self.temperature_device_external.humidity.value / 100.
+                self.dew_point = pmatic.utils.dew_point(self.current_temperature_external,
+                                                        self.current_humidity_external)
                 if self.params.output_level > 2:
-                    print_output("External temperature: " + str(self.current_temperature_external))
+                    print_output("External temperature: " + str(self.current_temperature_external) +
+                                 ", humidity: " + str(self.current_humidity_external) +
+                                 ", dew point: " + str(self.dew_point))
                 temp_object = [self.current_time, self.current_temperature_external]
                 self.temp_dict["temperatures"].append(temp_object)
                 self.temp_dict["last_updated"] = self.current_time
