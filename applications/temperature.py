@@ -314,6 +314,12 @@ if __name__ == "__main__":
 
     while True:
         temperatures.update()
+        print_output("max. forecast temp.: " + str(temperatures.max_forecast_temperature) + ", at local hour: " +
+                     str(temperatures.max_forecast_temperature_local_hour) + ", min. forecast temp.: " +
+                     str(temperatures.min_forecast_temperature) + ", at local hour: " +
+                     str(temperatures.min_forecast_temperature_local_hour) + ", average temp.: " +
+                     str(temperatures.average_forecast_temperature) + ", No. forecast days: " +
+                     str(temperatures.forecast_days))
         if params.output_level > 2:
             print "temperature condition: ", temperatures.temperature_condition()
         time.sleep(params.main_loop_sleep_time)
