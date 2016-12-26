@@ -22,6 +22,7 @@ import codecs
 import json
 import os.path
 import urllib2
+from math import floor
 
 import pmatic
 from miscellaneous import *
@@ -76,6 +77,8 @@ class temperature(object):
             with open(self.temperature_file_name, 'w') as temperature_file:
                 json.dump(self.temp_dict, temperature_file)
         self.current_temperature_external = (self.temp_dict["min_temperature"] + self.temp_dict["max_temperature"]) / 2.
+        # Initialize time stamp when the forecast was analyzed last time.
+        self.forecast_last_analyzed = 0.
 
     def update(self):
         # Do a new temperature measurement and update the temperature statistics
@@ -84,6 +87,7 @@ class temperature(object):
         if self.current_time - self.temp_dict["last_updated"] > self.params.temperature_update_interval:
             # If an internet connection is available, update temperature forecast values
             self.update_forecast()
+            self.analyze_forecast()
             try:
                 self.current_temperature_external = self.temperature_device_external.temperature.value
                 if self.params.output_level > 2:
@@ -119,7 +123,8 @@ class temperature(object):
                     if max_temperature == -100. and min_temperature == 100. and self.params.output_level > 1:
                         print "No new maximum or minimum temperature found"
                     else:
-                        self.temp_dict["average_temperature"] = average_temperature / len(self.temp_dict["temperatures"])
+                        self.temp_dict["average_temperature"] = average_temperature / len(
+                            self.temp_dict["temperatures"])
                         if max_temperature > -100.:
                             if self.params.output_level > 1:
                                 print "New maximum temperature: " + str(max_temperature) + ", Time of maximum: " + str(
@@ -170,6 +175,49 @@ class temperature(object):
         if self.params.output_level > 2:
             print_output("New temperature forecast downloaded from OpenWeatherMap")
 
+    def analyze_forecast(self):
+        """
+        Look for maximum and minimum forecast temperatures and corresponding local hours, and compute the average
+        temperature. The statistics are always based on whole day periods, with the maximum number of forecast days
+        given by the max_temp_lookahead_time parameter. All values are stored as instance variables and accessed by
+        lookup funktions.
+
+        :return: -
+        """
+        # Compute the number of days for forecast statistics.
+        self.forecast_days = min(floor((self.temp_dict["temperatures_forecast"][-1][0] - self.current_time) / 86400.),
+                             self.params.max_temp_lookahead_time)
+        if self.forecast_days > 0:
+            self.max_forecast_temperature = -100.
+            self.min_forecast_temperature = 100.
+            self.average_forecast_temperature = 0.
+            n_timestamps = 0
+            for [timestamp, temperature] in self.temp_dict["temperatures_forecast"]:
+                if (timestamp - self.current_time) / 86400. > self.forecast_days:
+                    break
+                n_timestamps += 1
+                # Update average, minimum and maximum values.
+                self.average_forecast_temperature += temperature
+                if temperature > self.max_forecast_temperature:
+                    self.max_forecast_temperature = temperature
+                    self.max_forecast_temperature_timestamp = timestamp
+                if temperature < self.min_forecast_temperature:
+                    self.min_forecast_temperature = temperature
+                    self.min_forecast_temperature_timestamp = timestamp
+            # Translate Unix timestamps into local hours and compute average temperature.
+            self.max_forecast_temperature_local_hour = get_local_hour(self.params,
+                                                                      self.max_forecast_temperature_timestamp)
+            self.min_forecast_temperature_local_hour = get_local_hour(self.params,
+                                                                      self.min_forecast_temperature_timestamp)
+            self.average_forecast_temperature = self.average_forecast_temperature / float(n_timestamps)
+        else:
+            # Invalidate statistics if not enough forecast times are available.
+            self.max_forecast_temperature = None
+            self.max_forecast_temperature_local_hour = None
+            self.min_forecast_temperature = None
+            self.min_forecast_temperature_local_hour = None
+            self.average_forecast_temperature = None
+
     def lookup_max_forecast_temp(self):
         """
         Look up the maximum temperature in forecast data which have been downloaded last time an internet connection
@@ -182,7 +230,7 @@ class temperature(object):
         max_timestamp = 0.
         for [timestamp, temperature] in self.temp_dict["temperatures_forecast"]:
             if timestamp > self.current_time and (
-                timestamp - self.current_time) / 86400. < self.params.max_temp_lookahead_time:
+                        timestamp - self.current_time) / 86400. < self.params.max_temp_lookahead_time:
                 max_temp = max(max_temp, temperature)
                 max_timestamp = max(max_timestamp, timestamp)
         if max_timestamp - self.current_time >= 86400.:
