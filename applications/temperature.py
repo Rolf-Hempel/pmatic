@@ -77,8 +77,13 @@ class temperature(object):
             with open(self.temperature_file_name, 'w') as temperature_file:
                 json.dump(self.temp_dict, temperature_file)
         self.current_temperature_external = (self.temp_dict["min_temperature"] + self.temp_dict["max_temperature"]) / 2.
-        # Initialize time stamp when the forecast was analyzed last time.
-        self.forecast_last_analyzed = 0.
+
+        # Invalidate statistics.
+        self.max_forecast_temperature = None
+        self.max_forecast_temperature_local_hour = None
+        self.min_forecast_temperature = None
+        self.min_forecast_temperature_local_hour = None
+        self.average_forecast_temperature = None
 
     def update(self):
         # Do a new temperature measurement and update the temperature statistics
@@ -218,26 +223,6 @@ class temperature(object):
             self.min_forecast_temperature_local_hour = None
             self.average_forecast_temperature = None
 
-    def lookup_max_forecast_temp(self):
-        """
-        Look up the maximum temperature in forecast data which have been downloaded last time an internet connection
-        was available.
-
-        :return: if temperature predictions are available for at least one day, return maximum predicted temperature
-        (Celsius). If there are not enough predictions, return None.
-        """
-        max_temp = -100.
-        max_timestamp = 0.
-        for [timestamp, temperature] in self.temp_dict["temperatures_forecast"]:
-            if timestamp > self.current_time and (
-                        timestamp - self.current_time) / 86400. < self.params.max_temp_lookahead_time:
-                max_temp = max(max_temp, temperature)
-                max_timestamp = max(max_timestamp, timestamp)
-        if max_timestamp - self.current_time >= 86400.:
-            return max_temp
-        else:
-            return None
-
     def temperature_condition(self):
         """
         Compare the current and maximum temperatures with predefined threshold values. For the characterization
@@ -247,7 +232,7 @@ class temperature(object):
 
         :return: character string which characterizes the current temperature situation
         """
-        temperature_forecast = self.lookup_max_forecast_temp()
+        temperature_forecast = self.max_forecast_temperature
 
         if self.current_temperature_external > self.params.current_temperature_very_hot:
             return "very-hot"
@@ -311,6 +296,8 @@ if __name__ == "__main__":
         params.print_parameters()
 
     temperatures = temperature(params, ccu, temperature_file_name)
+    # Update temperature measurements and server forecast info at every call.
+    params.temperature_update_interval = 0.
 
     while True:
         temperatures.update()
