@@ -191,7 +191,7 @@ class temperature(object):
         """
         # Compute the number of days for forecast statistics.
         self.forecast_days = min(floor((self.temp_dict["temperatures_forecast"][-1][0] - self.current_time) / 86400.),
-                             self.params.max_temp_lookahead_time)
+                                 self.params.max_temp_lookahead_time)
         if self.forecast_days > 0:
             self.max_forecast_temperature = -100.
             self.min_forecast_temperature = 100.
@@ -232,20 +232,20 @@ class temperature(object):
 
         :return: character string which characterizes the current temperature situation
         """
-        temperature_forecast = self.max_forecast_temperature
 
         if self.current_temperature_external > self.params.current_temperature_very_hot:
             return "very-hot"
         elif self.params.current_temperature_hot < self.current_temperature_external <= \
                 self.params.current_temperature_very_hot:
-            if temperature_forecast is None and self.temp_dict[
+            if self.max_forecast_temperature is None and self.temp_dict[
                 "max_temperature"] > self.params.max_temperature_very_hot:
                 return "very-hot"
-            elif temperature_forecast is not None and temperature_forecast > self.params.max_temperature_very_hot:
+            elif self.max_forecast_temperature is not None and \
+                            self.max_forecast_temperature > self.params.max_temperature_very_hot:
                 return "very-hot"
             else:
                 return "hot"
-        elif temperature_forecast is None:
+        elif self.max_forecast_temperature is None:
             if max(self.current_temperature_external,
                    self.temp_dict["max_temperature"]) > self.params.max_temperature_hot:
                 return "hot"
@@ -255,11 +255,11 @@ class temperature(object):
             else:
                 return "normal"
         else:
-            if temperature_forecast > self.params.max_temperature_very_hot:
+            if self.max_forecast_temperature > self.params.max_temperature_very_hot:
                 return "very-hot-fcst"
-            elif temperature_forecast > self.params.max_temperature_hot:
+            elif self.max_forecast_temperature > self.params.max_temperature_hot:
                 return "hot-fcst"
-            elif temperature_forecast < self.params.max_temperature_cold:
+            elif self.max_forecast_temperature < self.params.max_temperature_cold:
                 return "cold"
             else:
                 return "normal"
