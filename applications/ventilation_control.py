@@ -93,7 +93,7 @@ class ventilation_control(object):
             switch_on_local_hour = self.optimal_ventilation_local_hour(
                 temperatures) - self.params.ventilation_switch_on_hours / 2.
             if temperatures.current_temperature_external <= self.params.ventilation_max_temperature and \
-                                    temperatures.dew_point < self.current_temperature_internal and \
+                            temperatures.dew_point < self.current_temperature_internal and \
                                     switch_on_local_hour <= get_local_hour(self.params, self.current_time) <= \
                                     switch_on_local_hour + self.params.ventilation_switch_on_hours:
                 try:

@@ -29,6 +29,7 @@ from shutter_control import windows
 from sun_position import sun_position
 from system_variables import sysvar_activities
 from temperature import temperature
+from ventilation_control import ventilation_control
 
 #
 # This is the main control program for all smart home applications. Depending on whether the program is run on the CCU2
@@ -91,7 +92,9 @@ if __name__ == "__main__":
 
     # Create the object which looks up the current brightness level and holds the maximum value during the last hour
     brightnesses = brightness(params, ccu)
-    # If "temperatures" and "brightnesses" are created, the temperature and brightness devices could be accessed.
+
+    # Create the object which switches the ventilator in the basement on and off
+    ventilation = ventilation_control(params, ccu)
 
     # Main loop
     while True:
@@ -114,5 +117,7 @@ if __name__ == "__main__":
         sysvar_act.update()
         # Set all shutters corresponding to the actual temperature and brightness conditions.
         windows.adjust_all_shutters(temperatures, brightnesses)
+        # Look if the ventilator in the basement has to be switched on or off.
+        ventilation.status_update(temperatures)
         # Add a delay before the next main loop iteration
         time.sleep(params.main_loop_sleep_time)
