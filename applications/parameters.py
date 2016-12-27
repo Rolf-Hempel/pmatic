@@ -142,10 +142,22 @@ class parameters(object):
             else:
                 # Set default time stamp of temperature maximum to 11:00 a.m. UTC
                 self.max_temperature_time = 39600.
-            if "transition_temperature" in self.parameters.keys():
-                self.transition_temperature = float(self.parameters["transition_temperature"])
+            if "ventilation_transition_temperature" in self.parameters.keys():
+                self.ventilation_transition_temperature = float(self.parameters["ventilation_transition_temperature"])
             else:
-                self.transition_temperature = 5.
+                self.ventilation_transition_temperature = 10.
+            if "ventilation_max_temperature" in self.parameters.keys():
+                self.ventilation_max_temperature = float(self.parameters["ventilation_max_temperature"])
+            else:
+                self.ventilation_max_temperature = 19.
+            if "ventilation_switch_on_hours" in self.parameters.keys():
+                self.ventilation_switch_on_hours = float(self.parameters["ventilation_switch_on_hours"])
+            else:
+                self.ventilation_switch_on_hours = 2.
+            if "ventilation_min_idle_hours" in self.parameters.keys():
+                self.ventilation_min_idle_hours = float(self.parameters["ventilation_min_idle_hours"])
+            else:
+                self.ventilation_min_idle_hours = 15.
             if "current_temperature_very_hot" in self.parameters.keys():
                 self.current_temperature_very_hot = float(self.parameters["current_temperature_very_hot"])
             else:
@@ -177,7 +189,7 @@ class parameters(object):
             if "day_brightness_threshold" in self.parameters.keys():
                 self.day_brightness_threshold = float(self.parameters["day_brightness_threshold"])
             else:
-                self.day_brightness_threshold = 10.
+                self.day_brightness_threshold = 3.
             if "night_brightness_threshold" in self.parameters.keys():
                 self.night_brightness_threshold = float(self.parameters["night_brightness_threshold"])
             else:
@@ -190,10 +202,6 @@ class parameters(object):
                 self.shutter_setting_tolerance = float(self.parameters["shutter_setting_tolerance"])
             else:
                 self.shutter_setting_tolerance = 0.02
-            if "max_ventilation_temperature" in self.parameters.keys():
-                self.max_ventilation_temperature = float(self.parameters["max_ventilation_temperature"])
-            else:
-                self.max_ventilation_temperature = 19.
 
             if "shutter_very-hot-fcst_very-bright_sunlit" in self.parameters.keys():
                 self.shutter_condition["shutter_very-hot-fcst_very-bright_sunlit"] = float(
@@ -399,7 +407,10 @@ class parameters(object):
             "\nmax_temperature_very_hot: ", self.max_temperature_very_hot, \
             "\nmax_temperature_cold: ", self.max_temperature_cold, \
             "\nmax_temperature_time: ", self.max_temperature_time, \
-            "\ntransition_temperature: ", self.transition_temperature, \
+            "\nventilation_transition_temperature: ", self.ventilation_transition_temperature, \
+            "\nventilation_max_temperature: ", self.ventilation_max_temperature, \
+            "\nventilation_switch_on_hours: ", self.ventilation_switch_on_hours, \
+            "\nventilation_min_idle_hours: ", self.ventilation_min_idle_hours, \
             "\ncurrent_temperature_very_hot: ", self.current_temperature_very_hot, \
             "\ncurrent_temperature_hot: ", self.current_temperature_hot, \
             "\naverage_humidity_external: ", self.average_humidity_external, \
@@ -411,7 +422,7 @@ class parameters(object):
             "\nnight_brightness_threshold: ", self.night_brightness_threshold, \
             "\nshutter_trigger_delay: ", self.shutter_trigger_delay, \
             "\nshutter_setting_tolerance: ", self.shutter_setting_tolerance, \
-            "\nmax_ventilation_temperature: ", self.max_ventilation_temperature, "\n" \
+            "\n" \
             "\nshutter_very-hot-fcst_very-bright_sunlit: ", \
             self.shutter_condition["shutter_very-hot-fcst_very-bright_sunlit"], \
             "\nshutter_very-hot-fcst_very-bright_shade: ", self.shutter_condition[

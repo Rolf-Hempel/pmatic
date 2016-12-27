@@ -78,6 +78,7 @@ class temperature(object):
                 json.dump(self.temp_dict, temperature_file)
         self.current_temperature_external = (self.temp_dict["min_temperature"] + self.temp_dict["max_temperature"]) / 2.
         self.current_humidity_external = params.average_humidity_external
+        time.sleep(self.params.lookup_sleep_time)
         self.dew_point = pmatic.utils.dew_point(self.current_temperature_external, self.current_humidity_external)
 
         # Invalidate statistics.
