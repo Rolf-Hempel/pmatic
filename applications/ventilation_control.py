@@ -28,11 +28,19 @@ from temperature import temperature
 
 
 class ventilation_control(object):
+    """
+    This class manages the switch for the ventilator in the basement. The ventilator is switches on once a day for
+    a number of hours (given by the parameter "ventilation_switch_on_hours"). The time of day is selected based on
+    the inside temperature. If it is below a given threshold, the ventilator runs when the outside temperature is
+    highest, otherwise when it is lowest.
+
+    """
     def __init__(self, params, ccu):
         self.params = params
         if self.params.output_level > 0:
             print "\nThe following devices will be used for ventilation control:"
         ccu_not_ready_yet = True
+        # Get access to the switch and internal temperature devices.
         while ccu_not_ready_yet:
             try:
                 self.switch_device = look_up_device_by_name(params, ccu, u"Steckdosenschalter Gartenkeller")
@@ -49,6 +57,11 @@ class ventilation_control(object):
         self.ventilation_switch_off_time = 0.
 
     def update_temperature_humidity_internal(self):
+        """
+        Get new values for inside temperature and humidity.
+
+        :return: -
+        """
         if self.current_time - self.last_updated > self.params.temperature_update_interval:
             try:
                 self.current_temperature_internal = self.temperature_device_internal.temperature.value
@@ -62,7 +75,16 @@ class ventilation_control(object):
             time.sleep(self.params.lookup_sleep_time)
 
     def optimal_ventilation_local_hour(self, temperatures):
+        """
+        Compute the optimal local hour of day around which the ventilator is to be switched on.
+
+        :param temperatures: Object with external meteorological information
+        :return: Local hour of day when the minimal or maximal outside temperature is to be expected
+        """
+
+        # If the inside temperature is high, the optimal time is around minimal outside temperature.
         if self.current_temperature_internal > self.params.ventilation_transition_temperature:
+            # Use temperature prediction, if available. Otherwise use the recorded minimum of the previous day.
             if temperatures.min_forecast_temperature != None:
                 return temperatures.min_forecast_temperature_local_hour
             else:
@@ -74,7 +96,14 @@ class ventilation_control(object):
                 return temperatures.temp_dict["max_temperature_local_hour"]
 
     def status_update(self, temperatures):
+        """
+        Check if the ventilator is to be switched on or off.
+
+        :param temperatures: Object with external meteorological information
+        :return: -
+        """
         self.current_time = time.time()
+        # If the ventilator is on, switch it off if the switch-on-time has passed.
         if self.ventilation_active:
             if self.current_time - self.ventilation_switch_on_time > self.params.ventilation_switch_on_hours * 3600.:
                 try:
@@ -87,11 +116,16 @@ class ventilation_control(object):
                     if self.params.output_level > 0:
                         print_output(repr(e))
                 time.sleep(self.params.lookup_sleep_time)
+        # If the ventilator is off, wait a minimal number of hours before considering switching it on again.
         elif self.current_time - self.ventilation_switch_off_time > self.params.ventilation_min_idle_hours * 3600.:
+            # Update outside temperature information.
             temperatures.update()
+            # Update inside temperature information.
             self.update_temperature_humidity_internal()
             switch_on_local_hour = self.optimal_ventilation_local_hour(
                 temperatures) - self.params.ventilation_switch_on_hours / 2.
+            # The ventilator is switched on only if the outside temperature is low enough, the outside dew point is
+            # below the inside temperature, and the optimal hour of the day is reached.
             if temperatures.current_temperature_external <= self.params.ventilation_max_temperature and \
                             temperatures.dew_point < self.current_temperature_internal and \
                                     switch_on_local_hour <= get_local_hour(self.params, self.current_time) <= \
