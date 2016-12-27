@@ -34,8 +34,8 @@ import pmatic
 # pmatic.logging(pmatic.DEBUG)
 
 ccu = pmatic.CCU(
-    address="http://192.168.1.26",
-    credentials=("Admin", "EPIC-SECRET-PW"),
+    address="http://192.168.0.51",
+    credentials=("Admin", ""),
     connect_timeout=5,
 )
 

@@ -341,7 +341,7 @@ class windows(object):
 
         # Print a list of all windows
         if self.params.output_level > 0:
-            print_output("\nWindows with shutter control:")
+            print "\nWindows with shutter control:"
             for w in self.window_dict.values():
                 print "Room: ", w.room_name, ", Window: ", w.window_name, ", Device: ", w.shutter_name
 

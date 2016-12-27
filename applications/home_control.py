@@ -96,14 +96,35 @@ if __name__ == "__main__":
     # Create the object which switches the ventilator in the basement on and off
     ventilation = ventilation_control(params, ccu)
 
+    # Check battery-powered devices for low battery:
+    device_with_low_battery = False
+    for device in ccu.devices:
+        if device.is_battery_low:
+            if not device_with_low_battery:
+                print ""
+                print_output(
+                    "++++++++++++++++++++++++++++++++++ Devices with low battery: ++++++++++++++++++++++++++++++++++++++++")
+                device_with_low_battery = True
+            print_output(device.name)
+
+    if device_with_low_battery:
+        print_output(
+            "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    else:
+        print ""
+        print_output("All battery-powered devices are fine.")
+    print ""
+
     # Main loop
     while True:
         # Read parameter file, check if since the last iteration parameters have changed.
         # If parameters have changed, create a new sun object. Otherwise just update sun position.
         if params.update_parameters():
             if params.output_level > 0:
-                print_output("\nParameters have changed!")
+                print ""
+                print_output("Parameters have changed!")
                 params.print_parameters()
+                print ""
             # Reset time stamp for last test for sunrise/sunset. This is necessary because conditions might have
             # changed if, for example, the geographic position is changed.
             sun.sun_is_up_last_changed = 0.
