@@ -67,6 +67,7 @@ class ventilation_control(object):
             try:
                 self.current_temperature_internal = self.temperature_device_internal.temperature.value
                 self.current_humidity_internal = self.temperature_device_internal.humidity.value / 100.
+                self.last_updated = self.current_time
                 if self.params.output_level > 2:
                     print_output("Internal temperature: " + str(self.current_temperature_internal) +
                                  ", humidity: " + str(self.current_humidity_internal))
