@@ -49,6 +49,9 @@ class ventilation_control(object):
                                                                           u'Temperatur- und Feuchtesensor Gartenkeller')
                 self.current_temperature_internal = self.temperature_device_internal.temperature.value
                 self.current_humidity_internal = self.temperature_device_internal.humidity.value / 100.
+                if self.params.output_level > 2:
+                    print_output("Internal temperature: " + str(self.current_temperature_internal) +
+                                 ", humidity: " + str(self.current_humidity_internal))
                 ccu_not_ready_yet = False
             except:
                 time.sleep(params.main_loop_sleep_time)
