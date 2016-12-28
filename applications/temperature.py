@@ -74,12 +74,14 @@ class temperature(object):
             self.temp_dict["max_temperature"] = params.max_temperature
             self.temp_dict["max_temperature_time"] = params.max_temperature_time
             self.temp_dict["max_temperature_local_hour"] = get_local_hour(self.params, params.max_temperature_time)
+            self.temp_dict["current_temperature_external"] = (self.temp_dict["min_temperature"] + self.temp_dict[
+                "max_temperature"]) / 2.
+            self.temp_dict["current_humidity_external"] = params.average_humidity_external
             with open(self.temperature_file_name, 'w') as temperature_file:
                 json.dump(self.temp_dict, temperature_file)
-        self.current_temperature_external = (self.temp_dict["min_temperature"] + self.temp_dict["max_temperature"]) / 2.
-        self.current_humidity_external = params.average_humidity_external
         time.sleep(self.params.lookup_sleep_time)
-        self.dew_point = pmatic.utils.dew_point(self.current_temperature_external, self.current_humidity_external)
+        self.dew_point = pmatic.utils.dew_point(self.temp_dict["current_temperature_external"],
+                                                self.temp_dict["current_humidity_external"])
 
         # Invalidate statistics.
         self.max_forecast_temperature = None
@@ -97,15 +99,15 @@ class temperature(object):
             self.update_forecast()
             self.analyze_forecast()
             try:
-                self.current_temperature_external = self.temperature_device_external.temperature.value
-                self.current_humidity_external = self.temperature_device_external.humidity.value / 100.
-                self.dew_point = pmatic.utils.dew_point(self.current_temperature_external,
-                                                        self.current_humidity_external)
+                self.temp_dict["current_temperature_external"] = self.temperature_device_external.temperature.value
+                self.temp_dict["current_humidity_external"] = self.temperature_device_external.humidity.value / 100.
+                self.dew_point = pmatic.utils.dew_point(self.temp_dict["current_temperature_external"],
+                                                        self.temp_dict["current_humidity_external"])
                 if self.params.output_level > 2:
-                    print_output("External temperature: " + str(self.current_temperature_external) +
-                                 ", humidity: " + str(self.current_humidity_external) +
+                    print_output("External temperature: " + str(self.temp_dict["current_temperature_external"]) +
+                                 ", humidity: " + str(self.temp_dict["current_humidity_external"]) +
                                  ", dew point: " + str(self.dew_point))
-                temp_object = [self.current_time, self.current_temperature_external]
+                temp_object = [self.current_time, self.temp_dict["current_temperature_external"]]
                 self.temp_dict["temperatures"].append(temp_object)
                 self.temp_dict["last_updated"] = self.current_time
 
@@ -241,9 +243,9 @@ class temperature(object):
         :return: character string which characterizes the current temperature situation
         """
 
-        if self.current_temperature_external > self.params.current_temperature_very_hot:
+        if self.temp_dict["current_temperature_external"] > self.params.current_temperature_very_hot:
             return "very-hot"
-        elif self.params.current_temperature_hot < self.current_temperature_external <= \
+        elif self.params.current_temperature_hot < self.temp_dict["current_temperature_external"] <= \
                 self.params.current_temperature_very_hot:
             if self.max_forecast_temperature is None and self.temp_dict[
                 "max_temperature"] > self.params.max_temperature_very_hot:
@@ -254,10 +256,10 @@ class temperature(object):
             else:
                 return "hot"
         elif self.max_forecast_temperature is None:
-            if max(self.current_temperature_external,
+            if max(self.temp_dict["current_temperature_external"],
                    self.temp_dict["max_temperature"]) > self.params.max_temperature_hot:
                 return "hot"
-            elif max(self.current_temperature_external,
+            elif max(self.temp_dict["current_temperature_external"],
                      self.temp_dict["max_temperature"]) < self.params.max_temperature_cold:
                 return "cold"
             else:

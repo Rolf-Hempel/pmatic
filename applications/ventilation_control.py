@@ -129,13 +129,13 @@ class ventilation_control(object):
                 local_hour += 24.
             in_ventilation_interval = switch_on_local_hour <= local_hour <= switch_off_local_hour
 
-            print "temp. external: ", temperatures.current_temperature_external, ", dew point: ", \
+            print "temp. external: ", temperatures.temp_dict["current_temperature_external"], ", dew point: ", \
                 temperatures.dew_point, ", temp. internal: ", self.current_temperature_internal, \
                 "switch_on_local_hour: ", switch_on_local_hour, ", local hour: ", local_hour
 
             # The ventilator is switched on only if the outside temperature is low enough, the outside dew point is
             # below the inside temperature, and the optimal hour of the day is reached.
-            if temperatures.current_temperature_external <= self.params.ventilation_max_temperature and \
+            if temperatures.temp_dict["current_temperature_external"] <= self.params.ventilation_max_temperature and \
                             temperatures.dew_point < self.current_temperature_internal and in_ventilation_interval:
                 try:
                     self.switch_device.switch_on()
