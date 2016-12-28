@@ -218,10 +218,42 @@ class windows(object):
         self.sysvar_act = sysvar_act
         self.sun = sun
         self.window_dict = {}
+        self.window_list = []
 
         if self.params.output_level > 0:
             print "\nThe following shutter devices are used:"
         # Initialize all windows. Set open sky areas and coefficients for translating true to nominal shutter settings
+
+        window_name = u'Badezimmer'
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Badezimmer',
+                   u'Rolladenaktor Badezimmer')
+        w.add_open_space(61., 78., 8., 27.)
+        w.add_open_space(78., 146, 4., 55.)
+        w.add_open_space(146., 166., 13., 57.)
+        w.add_open_space(166., 201., 4., 55.)
+        w.add_shutter_coef([-0.12959185, 0.86158566, 0.25446371])
+        self.window_dict[window_name] = w
+        self.window_list.append(window_name)
+
+        window_name = u'Kinderzimmer'
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Kinderzimmer',
+                   u'Rolladenaktor Kinderzimmer')
+        w.add_open_space(231., 360., 0., 90.)
+        w.add_shutter_coef([-0.26234962, 0.98880658, 0.24321233])
+        self.window_dict[window_name] = w
+        self.window_list.append(window_name)
+
+        window_name = u'Arbeitszimmer'
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Arbeitszimmer',
+                   u'Rolladenaktor Arbeitszimmer')
+        w.add_open_space(231., 246., 2., 20.)
+        w.add_open_space(246., 256, 2., 40.)
+        w.add_open_space(256., 271., 2., 55.)
+        w.add_open_space(271., 360., 2., 60.)
+        w.add_shutter_coef([-0.26234962, 0.98880658, 0.24321233])
+        self.window_dict[window_name] = w
+        self.window_list.append(window_name)
+
         window_name = u'Schlafzimmer'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Schlafzimmer',
                    u'Rolladenaktor Schlafzimmer')
@@ -235,73 +267,19 @@ class windows(object):
         w.add_shutter_coef([-0.12959185, 0.86158566, 0.25446371])
         # Add the window object to the dictionary with all windows
         self.window_dict[window_name] = w
+        self.window_list.append(window_name)
 
-        window_name = u'Kinderzimmer'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Kinderzimmer',
-                   u'Rolladenaktor Kinderzimmer')
-        w.add_open_space(231., 360., 0., 90.)
-        w.add_shutter_coef([-0.26234962, 0.98880658, 0.24321233])
+        window_name = u'Gäste-WC'
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Gäste-WC',
+                   u'Rolladenaktor Gäste-WC')
+        w.add_open_space(51., 79., 8., 90.)
+        w.add_open_space(79., 121., 5., 90.)
+        w.add_open_space(121., 141., 14., 90.)
+        w.add_open_space(141., 176., 18., 90.)
+        w.add_open_space(176., 211., 7., 90.)
+        w.add_shutter_coef([-0.20875883, 0.89494005, 0.28198548])
         self.window_dict[window_name] = w
-
-        window_name = u'Arbeitszimmer'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Arbeitszimmer',
-                   u'Rolladenaktor Arbeitszimmer')
-        w.add_open_space(231., 246., 2., 20.)
-        w.add_open_space(246., 256, 2., 40.)
-        w.add_open_space(256., 271., 2., 55.)
-        w.add_open_space(271., 360., 2., 60.)
-        w.add_shutter_coef([-0.26234962, 0.98880658, 0.24321233])
-        self.window_dict[window_name] = w
-
-        window_name = u'Badezimmer'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Badezimmer',
-                   u'Rolladenaktor Badezimmer')
-        w.add_open_space(61., 78., 8., 27.)
-        w.add_open_space(78., 146, 4., 55.)
-        w.add_open_space(146., 166., 13., 57.)
-        w.add_open_space(166., 201., 4., 55.)
-        w.add_shutter_coef([-0.12959185, 0.86158566, 0.25446371])
-        self.window_dict[window_name] = w
-
-        window_name = u'Wohnzimmer rechts'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
-                   u'Rolladenaktor Wohnzimmer rechts')
-        w.add_open_space(231., 360., 2., 90.)
-        w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
-        self.window_dict[window_name] = w
-
-        window_name = u'Wohnzimmer links'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
-                   u'Rolladenaktor Wohnzimmer links')
-        w.add_open_space(231., 360., 2., 90.)
-        w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
-        self.window_dict[window_name] = w
-
-        window_name = u'Terrassentür'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
-                   u'Rolladenaktor Terrassentür')
-        w.add_open_space(151., 181., 0., 33.)
-        w.add_open_space(181., 191., 0., 40.)
-        w.add_open_space(191., 241., 20., 41.)
-        w.add_open_space(241., 246., 7., 39.)
-        w.add_open_space(246., 293., 3., 40.)
-        # w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
-        # Special case: do not open high windows too much
-        w.add_shutter_coef([-0.72, 1.72, 0.])
-        self.window_dict[window_name] = w
-
-        window_name = u'Terrassenfenster'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
-                   u'Rolladenaktor Terrassenfenster')
-        w.add_open_space(151., 181., 0., 33.)
-        w.add_open_space(181., 191., 0., 40.)
-        w.add_open_space(191., 241., 20., 41.)
-        w.add_open_space(241., 246., 7., 39.)
-        w.add_open_space(246., 293., 3., 40.)
-        # w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
-        # Special case: do not open high windows too much
-        w.add_shutter_coef([-0.72, 1.72, 0.])
-        self.window_dict[window_name] = w
+        self.window_list.append(window_name)
 
         window_name = u'Küche links'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Küche',
@@ -313,6 +291,7 @@ class windows(object):
         w.add_open_space(171., 211., 8., 90.)
         w.add_shutter_coef([-0.12244656, 0.89711513, 0.21811965])
         self.window_dict[window_name] = w
+        self.window_list.append(window_name)
 
         window_name = u'Küche rechts'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Küche',
@@ -327,29 +306,58 @@ class windows(object):
         w.add_open_space(291., 301., 3., 13.)
         w.add_shutter_coef([-0.17358483, 0.91958752, 0.23608076])
         self.window_dict[window_name] = w
+        self.window_list.append(window_name)
 
-        window_name = u'Gäste-WC'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Gäste-WC',
-                   u'Rolladenaktor Gäste-WC')
-        w.add_open_space(51., 79., 8., 90.)
-        w.add_open_space(79., 121., 5., 90.)
-        w.add_open_space(121., 141., 14., 90.)
-        w.add_open_space(141., 176., 18., 90.)
-        w.add_open_space(176., 211., 7., 90.)
-        w.add_shutter_coef([-0.20875883, 0.89494005, 0.28198548])
+        window_name = u'Wohnzimmer rechts'
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
+                   u'Rolladenaktor Wohnzimmer rechts')
+        w.add_open_space(231., 360., 2., 90.)
+        w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
         self.window_dict[window_name] = w
+        self.window_list.append(window_name)
+
+        window_name = u'Wohnzimmer links'
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
+                   u'Rolladenaktor Wohnzimmer links')
+        w.add_open_space(231., 360., 2., 90.)
+        w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
+        self.window_dict[window_name] = w
+        self.window_list.append(window_name)
+
+        window_name = u'Terrassentür'
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
+                   u'Rolladenaktor Terrassentür')
+        w.add_open_space(151., 181., 0., 33.)
+        w.add_open_space(181., 191., 0., 40.)
+        w.add_open_space(191., 241., 20., 41.)
+        w.add_open_space(241., 246., 7., 39.)
+        w.add_open_space(246., 293., 3., 40.)
+        # w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
+        # Special case: do not open high windows too much
+        w.add_shutter_coef([-0.72, 1.72, 0.])
+        self.window_dict[window_name] = w
+        self.window_list.append(window_name)
+
+        window_name = u'Terrassenfenster'
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
+                   u'Rolladenaktor Terrassenfenster')
+        w.add_open_space(151., 181., 0., 33.)
+        w.add_open_space(181., 191., 0., 40.)
+        w.add_open_space(191., 241., 20., 41.)
+        w.add_open_space(241., 246., 7., 39.)
+        w.add_open_space(246., 293., 3., 40.)
+        # w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
+        # Special case: do not open high windows too much
+        w.add_shutter_coef([-0.72, 1.72, 0.])
+        self.window_dict[window_name] = w
+        self.window_list.append(window_name)
 
         # Print a list of all windows
         if self.params.output_level > 0:
             print "\nWindows with shutter control:"
-            for w in self.window_dict.values():
-                print "Room: ", w.room_name, ", Window: ", w.window_name, ", Device: ", w.shutter_name
-
-    def close_all_shutters(self):
-        if self.params.output_level > 2:
-            print_output("Closing all shutters")
-        for window in self.window_dict.values():
-            window.set_shutter(0.)
+            for wn in self.window_list:
+                print "Room: ", self.window_dict[wn].room_name, ", Window: ", self.window_dict[wn].window_name, \
+                    ", Device: ", self.window_dict[wn].shutter_name
 
     def adjust_all_shutters(self, temperatures, brightnesses):
         # Don't move shutters if shutter activities are suspended or if at night.
@@ -371,13 +379,14 @@ class windows(object):
         if sun_is_up:
             self.sysvar_act.reset_ventilation_in_the_morning()
         # For each window set the shutter according to lighting and temperature conditions.
-        for window in self.window_dict.values():
+        for wn in self.window_list:
+            w = self.window_dict[wn]
             # Special case "Schlafzimmer": test system variable "Keine RB Schlafzimmer".
-            if window.window_name != u'Schlafzimmer' or not self.sysvar_act.suspend_sleeping_room["active"]:
-                sunlit_condition = window.test_sunlit()
+            if w.window_name != u'Schlafzimmer' or not self.sysvar_act.suspend_sleeping_room["active"]:
+                sunlit_condition = w.test_sunlit()
                 shutter_condition = "shutter_" + temperature_condition + "_" + brightness_condition + "_" + \
                                     sunlit_condition
-                window.set_shutter(self.params.shutter_condition[shutter_condition], sun_is_up)
+                w.set_shutter(self.params.shutter_condition[shutter_condition], sun_is_up)
 
 
 if __name__ == "__main__":
