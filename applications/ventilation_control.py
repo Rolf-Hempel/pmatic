@@ -98,7 +98,8 @@ class ventilation_control(object):
         :return: -
         """
         self.current_time = time.time()
-        # If the ventilator is on, switch it off if the switch-on-time has passed.
+
+        # If the ventilator is on, switch it off when the switch-on-time has passed.
         if self.ventilation_active:
             if self.current_time - self.ventilation_switch_on_time > self.params.ventilation_switch_on_hours * 3600.:
                 try:
@@ -111,12 +112,14 @@ class ventilation_control(object):
                     if self.params.output_level > 0:
                         print_output(repr(e))
                 time.sleep(self.params.lookup_sleep_time)
+
         # If the ventilator is off, wait a minimal number of hours before considering switching it on again.
         elif self.current_time - self.ventilation_switch_off_time > self.params.ventilation_min_idle_hours * 3600.:
             # Update outside temperature information.
             temperatures.update()
             # Update inside temperature information.
             self.update_temperature_humidity_internal()
+
             # Compute current local hour and optimal ventilation time interval.
             local_hour = get_local_hour(self.params, self.current_time)
             switch_on_local_hour = self.optimal_ventilation_local_hour(
@@ -128,10 +131,6 @@ class ventilation_control(object):
             if local_hour + 24. <= switch_off_local_hour:
                 local_hour += 24.
             in_ventilation_interval = switch_on_local_hour <= local_hour <= switch_off_local_hour
-
-            print "temp. external: ", temperatures.temp_dict["current_temperature_external"], ", dew point: ", \
-                temperatures.dew_point, ", temp. internal: ", self.current_temperature_internal, \
-                "switch_on_local_hour: ", switch_on_local_hour, ", local hour: ", local_hour
 
             # The ventilator is switched on only if the outside temperature is low enough, the outside dew point is
             # below the inside temperature, and the optimal hour of the day is reached.

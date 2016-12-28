@@ -66,7 +66,7 @@ class parameters(object):
             if "lookup_sleep_time" in self.parameters.keys():
                 self.lookup_sleep_time = float(self.parameters["lookup_sleep_time"])
             else:
-                self.lookup_sleep_time = 5.
+                self.lookup_sleep_time = 2.
             if "temperature_update_interval" in self.parameters.keys():
                 self.temperature_update_interval = float(self.parameters["temperature_update_interval"])
             else:
@@ -153,7 +153,7 @@ class parameters(object):
             if "ventilation_switch_on_hours" in self.parameters.keys():
                 self.ventilation_switch_on_hours = float(self.parameters["ventilation_switch_on_hours"])
             else:
-                self.ventilation_switch_on_hours = 2.
+                self.ventilation_switch_on_hours = 1.
             if "ventilation_min_idle_hours" in self.parameters.keys():
                 self.ventilation_min_idle_hours = float(self.parameters["ventilation_min_idle_hours"])
             else:
@@ -197,7 +197,7 @@ class parameters(object):
             if "shutter_trigger_delay" in self.parameters.keys():
                 self.shutter_trigger_delay = float(self.parameters["shutter_trigger_delay"])
             else:
-                self.shutter_trigger_delay = 40.
+                self.shutter_trigger_delay = 15.
             if "shutter_setting_tolerance" in self.parameters.keys():
                 self.shutter_setting_tolerance = float(self.parameters["shutter_setting_tolerance"])
             else:
