@@ -35,6 +35,7 @@ class ventilation_control(object):
     highest, otherwise when it is lowest.
 
     """
+
     def __init__(self, params, ccu):
         self.params = params
         if self.params.output_level > 0:
@@ -128,7 +129,7 @@ class ventilation_control(object):
                 local_hour += 24.
             in_ventilation_interval = switch_on_local_hour <= local_hour <= switch_off_local_hour
 
-            print "temp. external: ", temperatures.current_temperature_external, ", dew point: ",\
+            print "temp. external: ", temperatures.current_temperature_external, ", dew point: ", \
                 temperatures.dew_point, ", temp. internal: ", self.current_temperature_internal, \
                 "switch_on_local_hour: ", switch_on_local_hour, ", local hour: ", local_hour
 
