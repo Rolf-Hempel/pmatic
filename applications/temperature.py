@@ -97,7 +97,6 @@ class temperature(object):
         if self.current_time - self.temp_dict["last_updated"] > self.params.temperature_update_interval:
             # If an internet connection is available, update temperature forecast values
             self.update_forecast()
-            self.analyze_forecast()
             try:
                 self.temp_dict["current_temperature_external"] = self.temperature_device_external.temperature.value
                 self.temp_dict["current_humidity_external"] = self.temperature_device_external.humidity.value / 100.
@@ -154,6 +153,14 @@ class temperature(object):
                             self.temp_dict["min_temperature"] = min_temperature
                             self.temp_dict["min_temperature_time"] = min_temperature_time
                             self.temp_dict["min_temperature_local_hour"] = min_local_hour
+                    # Find max / min temperature values and corresponding times in forecast records.
+                    self.analyze_forecast()
+                    if self.max_forecast_temperature is not None:
+                        print "New forecast maximum temperature: " + str(self.max_forecast_temperature) + \
+                            ", Local hour of maximum: " + str(self.max_forecast_temperature_local_hour)
+                    if self.min_forecast_temperature is not None:
+                        print "New forecast minimum temperature: " + str(self.min_forecast_temperature) + \
+                            ", Local hour of minimum: " + str(self.min_forecast_temperature_local_hour)
                     self.temp_dict["minmax_time_updated"] = self.current_time
                 with open(self.temperature_file_name, 'w') as temperature_file:
                     json.dump(self.temp_dict, temperature_file)
@@ -311,6 +318,7 @@ if __name__ == "__main__":
 
     while True:
         temperatures.update()
+        temperatures.analyze_forecast()
         print_output("max. forecast temp.: " + str(temperatures.max_forecast_temperature) + ", at local hour: " +
                      str(temperatures.max_forecast_temperature_local_hour) + ", min. forecast temp.: " +
                      str(temperatures.min_forecast_temperature) + ", at local hour: " +
