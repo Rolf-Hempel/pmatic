@@ -143,6 +143,7 @@ class window(object):
         :return: True, if shutter was set successfully; False otherwise
         """
         success = True
+        end_of_manual_intervention = False
 
         # If for this window a constant daytime shutter setting is selected, use it. Otherwise take the value passed to
         # this function via the argument "value".
@@ -172,6 +173,7 @@ class window(object):
                         if abs(self.shutter_current_setting - 1.) <= self.params.shutter_setting_tolerance:
                             if self.params.output_level > 1:
                                 print_output("End of manual intervention for shutter " + self.shutter_name)
+                            end_of_manual_intervention = True
                             self.shutter_manual_intervention_active = False
                         else:
                             if self.params.output_level > 1:
@@ -190,10 +192,11 @@ class window(object):
                 nominal_setting = self.true_to_nominal(true_setting)
                 # Test if current shutter setting differs from target value and no manual intervention is active
                 if abs(nominal_setting - self.shutter_current_setting) > self.params.shutter_setting_tolerance and not \
-                        self.shutter_manual_intervention_active:
+                        self.shutter_manual_intervention_active and not not_at_night(self.params) or \
+                        end_of_manual_intervention:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(true_setting))
-                    # Apply translation between intended and nominal shutter settings
+                    # Move the shutter
                     success = self.shutter.blind.set_level(nominal_setting)
                     # After a shutter operation, wait for a pre-defined period in order to avoid radio interference
                     time.sleep(self.params.shutter_trigger_delay)
@@ -361,7 +364,7 @@ class windows(object):
 
     def adjust_all_shutters(self, temperatures, brightnesses):
         # Don't move shutters if shutter activities are suspended or if at night.
-        if self.sysvar_act.shutter_activities_suspended() or not not_at_night(self.params):
+        if self.sysvar_act.shutter_activities_suspended():
             return
         temperature_condition = temperatures.temperature_condition()
         brightness_condition = brightnesses.brightness_condition()
