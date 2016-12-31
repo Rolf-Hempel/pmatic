@@ -398,9 +398,9 @@ class parameters(object):
             "\nbrightness_update_interval: ", self.brightness_update_interval, \
             "\nbrightness_time_span: ", self.brightness_time_span, \
             "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
-            "\nlh_night_begin: ", self.lh_night_begin, "\nlh_night_end: ", self.lh_night_end, \
-            "\nlh_night_end_saturday: ", self.lh_night_end_saturday, \
-            "\nlh_night_end_sunday: ", self.lh_night_end_sunday, "\naverage_temperature: ", self.average_temperature, \
+            "\nch_night_begin: ", self.ch_night_begin, "\nch_night_end: ", self.ch_night_end, \
+            "\nch_night_end_saturday: ", self.ch_night_end_saturday, \
+            "\nch_night_end_sunday: ", self.ch_night_end_sunday, "\naverage_temperature: ", self.average_temperature, \
             "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
             "\nmax_temperature: ", self.max_temperature, \
             "\nmax_temperature_hot: ", self.max_temperature_hot, \
