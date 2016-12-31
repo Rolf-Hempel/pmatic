@@ -19,12 +19,24 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import datetime
-import sys
+import os
 import time
 import math
 
 from parameters import parameters
 from pmatic.exceptions import PMConnectionError
+
+def set_time_zone():
+    """
+    Set the time zone to Berlin time
+
+
+    :return: time zone string
+    """
+    timezone = "CET-1CEST,M3.5.0/2,M10.5.0/3"
+    os.environ['TZ'] = timezone
+    time.tzset()
+    return timezone
 
 
 def date_and_time():

@@ -19,7 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import codecs
-import os.path
+import sys
 
 import pmatic.api
 from brightness import brightness
@@ -45,6 +45,8 @@ from ventilation_control import ventilation_control
 
 if __name__ == "__main__":
 
+    # Set the time zone to Berlin time.
+    set_time_zone()
 
     # Depending on whether the program is executed on the CCU2 itself or on a remote PC, the parameters are stored at
     # different locations.

@@ -19,7 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import codecs
-import os.path
+import sys
 from math import radians
 
 import pmatic.api
@@ -191,8 +191,9 @@ class window(object):
                 # Apply translation between intended and nominal shutter settings
                 nominal_setting = self.true_to_nominal(true_setting)
                 # Test if current shutter setting differs from target value and no manual intervention is active
-                if abs(nominal_setting - self.shutter_current_setting) > self.params.shutter_setting_tolerance and not \
-                        self.shutter_manual_intervention_active and not not_at_night(self.params) or \
+
+                if (abs(nominal_setting - self.shutter_current_setting) > self.params.shutter_setting_tolerance and not \
+                        self.shutter_manual_intervention_active and not_at_night(self.params)) or \
                         end_of_manual_intervention:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(true_setting))
