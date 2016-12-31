@@ -92,22 +92,22 @@ class parameters(object):
                 self.latitude = float(self.parameters["latitude"])
             else:
                 self.latitude = 50.7
-            if "lh_night_begin" in self.parameters.keys():
-                self.lh_night_begin = float(self.parameters["lh_night_begin"])
+            if "ch_night_begin" in self.parameters.keys():
+                self.ch_night_begin = float(self.parameters["ch_night_begin"])
             else:
-                self.lh_night_begin = 21.
-            if "lh_night_end" in self.parameters.keys():
-                self.lh_night_end = float(self.parameters["lh_night_end"])
+                self.ch_night_begin = 22.5
+            if "ch_night_end" in self.parameters.keys():
+                self.ch_night_end = float(self.parameters["ch_night_end"])
             else:
-                self.lh_night_end = 3.943
-            if "lh_night_end_saturday" in self.parameters.keys():
-                self.lh_night_end_saturday = float(self.parameters["lh_night_end_saturday"])
+                self.ch_night_end = 5.417
+            if "ch_night_end_saturday" in self.parameters.keys():
+                self.ch_night_end_saturday = float(self.parameters["ch_night_end_saturday"])
             else:
-                self.lh_night_end_saturday = 4.943
-            if "lh_night_end_sunday" in self.parameters.keys():
-                self.lh_night_end_sunday = float(self.parameters["lh_night_end_sunday"])
+                self.ch_night_end_saturday = 6.417
+            if "ch_night_end_sunday" in self.parameters.keys():
+                self.ch_night_end_sunday = float(self.parameters["ch_night_end_sunday"])
             else:
-                self.lh_night_end_sunday = 5.527
+                self.ch_night_end_sunday = 7.
             if "average_temperature" in self.parameters.keys():
                 self.average_temperature = float(self.parameters["average_temperature"])
             else:

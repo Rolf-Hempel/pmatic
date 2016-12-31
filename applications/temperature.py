@@ -21,6 +21,7 @@
 import codecs
 import json
 import os.path
+import sys
 import urllib2
 from math import floor
 

@@ -60,17 +60,6 @@ def get_local_hour(params, timestamp):
     return (timestamp / 3600. + params.utc_shift) % 24.
 
 
-def get_day_of_week(params, timestamp):
-    """
-    Compute the week day (based on local time), given the Unix time stamp.
-
-    :param params: parameter object
-    :param timestamp: Unix timestamp (seconds passed since Jan. 1st, 1970, 0:00 UTC)
-    :return: an integer between 1 and 7, with 1 for Monday, 2 for Tuesday, ... and 7 for Sunday
-    """
-    return ((int(math.floor((timestamp + params.utc_shift * 3600.) / 86400.)) + 3) % 7) + 1
-
-
 def not_at_night(params):
     """
     Find out if the current time is outside the pre-defined night hours. Treat special cases Saturday and Sunday.
@@ -78,18 +67,18 @@ def not_at_night(params):
     :param params: parameter object
     :return: True for day time, otherwise False
     """
-    timestamp = time.time()
-    # Base the decision on local time
-    local_hour = get_local_hour(params, timestamp)
-    week_day = get_day_of_week(params, timestamp)
-    if 1 <= week_day <= 5:
-        return params.lh_night_end < local_hour < params.lh_night_begin
+    lt = time.localtime()
+    week_day = lt[6]
+    civil_hour = lt[3] + lt[4]/60.
+    print "week_day: ", week_day, ", civil_hour: ", civil_hour
+    if 0 <= week_day <= 4:
+        return params.ch_night_end < civil_hour < params.ch_night_begin
     # Special case Saturday:
-    elif week_day == 6:
-        return params.lh_night_end_saturday < local_hour < params.lh_night_begin
+    elif week_day == 5:
+        return params.ch_night_end_saturday < civil_hour < params.ch_night_begin
     # Special case Sunday:
     else:
-        return params.lh_night_end_sunday < local_hour < params.lh_night_begin
+        return params.ch_night_end_sunday < civil_hour < params.ch_night_begin
 
 
 def look_up_device_by_name(params, ccu, dev_name):
@@ -172,5 +161,4 @@ if __name__ == "__main__":
     time_stamp = time.time()
     print "Date and time: ", date_and_time(), ", timestamp: ", time_stamp
     print "Current local hour: ", get_local_hour(params, time_stamp)
-    print "Current day of week: ", get_day_of_week(params, time_stamp + 86400. * 0)
     print "Not at night: ", not_at_night(params)
