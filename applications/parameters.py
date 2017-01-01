@@ -150,6 +150,10 @@ class parameters(object):
                 self.ventilation_max_temperature = float(self.parameters["ventilation_max_temperature"])
             else:
                 self.ventilation_max_temperature = 19.
+            if "ventilation_min_temperature" in self.parameters.keys():
+                self.ventilation_min_temperature = float(self.parameters["ventilation_min_temperature"])
+            else:
+                self.ventilation_min_temperature = 0.
             if "ventilation_switch_on_hours" in self.parameters.keys():
                 self.ventilation_switch_on_hours = float(self.parameters["ventilation_switch_on_hours"])
             else:
@@ -409,6 +413,7 @@ class parameters(object):
             "\nmax_temperature_time: ", self.max_temperature_time, \
             "\nventilation_transition_temperature: ", self.ventilation_transition_temperature, \
             "\nventilation_max_temperature: ", self.ventilation_max_temperature, \
+            "\nventilation_min_temperature: ", self.ventilation_min_temperature, \
             "\nventilation_switch_on_hours: ", self.ventilation_switch_on_hours, \
             "\nventilation_min_idle_hours: ", self.ventilation_min_idle_hours, \
             "\ncurrent_temperature_very_hot: ", self.current_temperature_very_hot, \
