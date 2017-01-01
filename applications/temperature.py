@@ -243,44 +243,73 @@ class temperature(object):
 
     def temperature_condition(self):
         """
-        Compare the current and maximum temperatures with predefined threshold values. For the characterization
-        "very-hot" and "hot" both the current temperature and the maximum forecast temperature (or, if not available,
-        the maximum temperature of the previous day) are used. The temperature is called "cold" if the maximum
-        temperature of the previous day was below a certain threshold.
+        Characterize the current temperature situation for setting the shutters. Different schemes can be selected with
+        setting the parameter "shutter_control_scheme".
 
         :return: character string which characterizes the current temperature situation
         """
 
-        if self.temp_dict["current_temperature_external"] > self.params.current_temperature_very_hot:
-            return "very-hot"
-        elif self.params.current_temperature_hot < self.temp_dict["current_temperature_external"] <= \
-                self.params.current_temperature_very_hot:
-            if self.max_forecast_temperature is None and self.temp_dict[
-                "max_temperature"] > self.params.max_temperature_very_hot:
-                return "very-hot"
-            elif self.max_forecast_temperature is not None and \
-                            self.max_forecast_temperature > self.params.max_temperature_very_hot:
-                return "very-hot"
+        if self.params.shutter_control_scheme == "average_temperature":
+            # Control scheme based on average external temperatures (forecast or recorded):
+
+            if self.average_forecast_temperature is not None:
+                average_temperature = self.average_forecast_temperature
             else:
-                return "hot"
-        elif self.max_forecast_temperature is None:
-            if max(self.temp_dict["current_temperature_external"],
-                   self.temp_dict["max_temperature"]) > self.params.max_temperature_hot:
-                return "hot"
-            elif max(self.temp_dict["current_temperature_external"],
-                     self.temp_dict["max_temperature"]) < self.params.max_temperature_cold:
-                return "cold"
-            else:
+                average_temperature = self.temp_dict["average_temperature"]
+
+            if average_temperature >= self.params.average_temperature_very_hot:
+                if self.temp_dict["average_temperature"] < self.params.average_temperature_very_hot:
+                    return "very-hot-fcst"
+                else:
+                    return "very-hot"
+            elif average_temperature >= self.params.average_temperature_hot:
+                if self.temp_dict["average_temperature"] < self.params.average_temperature_hot:
+                    return "hot-fcst"
+                else:
+                    return "hot"
+            elif average_temperature > self.params.average_temperature_cold:
                 return "normal"
+            else:
+                return "cold"
+
         else:
-            if self.max_forecast_temperature > self.params.max_temperature_very_hot:
-                return "very-hot-fcst"
-            elif self.max_forecast_temperature > self.params.max_temperature_hot:
-                return "hot-fcst"
-            elif self.max_forecast_temperature < self.params.max_temperature_cold:
-                return "cold"
+            # Control scheme based on current and maximum temperatures:
+            #
+            # Compare the current and maximum temperatures with predefined threshold values. For the characterization
+            # "very-hot" and "hot" both the current temperature and the maximum forecast temperature (or, if not
+            # available,the maximum temperature of the previous day) are used. The temperature is called "cold" if the
+            # maximum temperature of the previous day was below a certain threshold.
+
+            if self.temp_dict["current_temperature_external"] > self.params.current_temperature_very_hot:
+                return "very-hot"
+            elif self.params.current_temperature_hot < self.temp_dict["current_temperature_external"] <= \
+                    self.params.current_temperature_very_hot:
+                if self.max_forecast_temperature is None and self.temp_dict[
+                    "max_temperature"] > self.params.max_temperature_very_hot:
+                    return "very-hot"
+                elif self.max_forecast_temperature is not None and \
+                                self.max_forecast_temperature > self.params.max_temperature_very_hot:
+                    return "very-hot"
+                else:
+                    return "hot"
+            elif self.max_forecast_temperature is None:
+                if max(self.temp_dict["current_temperature_external"],
+                       self.temp_dict["max_temperature"]) > self.params.max_temperature_hot:
+                    return "hot"
+                elif max(self.temp_dict["current_temperature_external"],
+                         self.temp_dict["max_temperature"]) < self.params.max_temperature_cold:
+                    return "cold"
+                else:
+                    return "normal"
             else:
-                return "normal"
+                if self.max_forecast_temperature > self.params.max_temperature_very_hot:
+                    return "very-hot-fcst"
+                elif self.max_forecast_temperature > self.params.max_temperature_hot:
+                    return "hot-fcst"
+                elif self.max_forecast_temperature < self.params.max_temperature_cold:
+                    return "cold"
+                else:
+                    return "normal"
 
 
 if __name__ == "__main__":

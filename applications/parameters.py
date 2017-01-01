@@ -33,6 +33,10 @@ class parameters(object):
         with open(self.parameter_file_name, "r") as parameter_file:
             self.parameters = json.load(parameter_file)
         if self.test_for_changes():
+            if "output_level" in self.parameters.keys():
+                self.output_level = int(self.parameters["output_level"])
+            else:
+                self.output_level = 1
             if "hostname" in self.parameters.keys():
                 self.hostname = self.parameters["hostname"]
             else:
@@ -55,10 +59,6 @@ class parameters(object):
             else:
                 # Don't forget to set the URL explicitly in the parameter file
                 self.ow_url_fcst = ""
-            if "max_temp_lookahead_time" in self.parameters.keys():
-                self.max_temp_lookahead_time = float(self.parameters["max_temp_lookahead_time"])
-            else:
-                self.max_temp_lookahead_time = 3.
             if "main_loop_sleep_time" in self.parameters.keys():
                 self.main_loop_sleep_time = float(self.parameters["main_loop_sleep_time"])
             else:
@@ -67,22 +67,18 @@ class parameters(object):
                 self.lookup_sleep_time = float(self.parameters["lookup_sleep_time"])
             else:
                 self.lookup_sleep_time = 2.
-            if "temperature_update_interval" in self.parameters.keys():
-                self.temperature_update_interval = float(self.parameters["temperature_update_interval"])
+            if "shutter_control_scheme" in self.parameters.keys():
+                self.shutter_control_scheme = float(self.parameters["shutter_control_scheme"])
             else:
-                self.temperature_update_interval = 1800.
-            if "brightness_update_interval" in self.parameters.keys():
-                self.brightness_update_interval = float(self.parameters["brightness_update_interval"])
+                self.shutter_control_scheme = "average_temperature"
+            if "shutter_trigger_delay" in self.parameters.keys():
+                self.shutter_trigger_delay = float(self.parameters["shutter_trigger_delay"])
             else:
-                self.brightness_update_interval = 300.
-            if "brightness_time_span" in self.parameters.keys():
-                self.brightness_time_span = float(self.parameters["brightness_time_span"])
+                self.shutter_trigger_delay = 15.
+            if "shutter_setting_tolerance" in self.parameters.keys():
+                self.shutter_setting_tolerance = float(self.parameters["shutter_setting_tolerance"])
             else:
-                self.brightness_time_span = 3600.
-            if "output_level" in self.parameters.keys():
-                self.output_level = int(self.parameters["output_level"])
-            else:
-                self.output_level = 1
+                self.shutter_setting_tolerance = 0.02
             if "longitude" in self.parameters.keys():
                 self.longitude = float(self.parameters["longitude"])
             else:
@@ -108,72 +104,14 @@ class parameters(object):
                 self.ch_night_end_sunday = float(self.parameters["ch_night_end_sunday"])
             else:
                 self.ch_night_end_sunday = 7.
-            if "average_temperature" in self.parameters.keys():
-                self.average_temperature = float(self.parameters["average_temperature"])
+            if "brightness_update_interval" in self.parameters.keys():
+                self.brightness_update_interval = float(self.parameters["brightness_update_interval"])
             else:
-                self.average_temperature = 15.
-            if "min_temperature" in self.parameters.keys():
-                self.min_temperature = float(self.parameters["min_temperature"])
+                self.brightness_update_interval = 300.
+            if "brightness_time_span" in self.parameters.keys():
+                self.brightness_time_span = float(self.parameters["brightness_time_span"])
             else:
-                self.min_temperature = 10.
-            if "min_temperature_time" in self.parameters.keys():
-                self.min_temperature_time = float(self.parameters["min_temperature_time"])
-            else:
-                # Set default time stamp of temperature minimum to 3:00 a.m. UTC
-                self.min_temperature_time = 10800.
-            if "max_temperature" in self.parameters.keys():
-                self.max_temperature = float(self.parameters["max_temperature"])
-            else:
-                self.max_temperature = 20.
-            if "max_temperature_very_hot" in self.parameters.keys():
-                self.max_temperature_very_hot = float(self.parameters["max_temperature_very_hot"])
-            else:
-                self.max_temperature_very_hot = 30.
-            if "max_temperature_hot" in self.parameters.keys():
-                self.max_temperature_hot = float(self.parameters["max_temperature_hot"])
-            else:
-                self.max_temperature_hot = 25.
-            if "max_temperature_cold" in self.parameters.keys():
-                self.max_temperature_cold = float(self.parameters["max_temperature_cold"])
-            else:
-                self.max_temperature_cold = 18.
-            if "max_temperature_time" in self.parameters.keys():
-                self.max_temperature_time = float(self.parameters["max_temperature_time"])
-            else:
-                # Set default time stamp of temperature maximum to 11:00 a.m. UTC
-                self.max_temperature_time = 39600.
-            if "ventilation_transition_temperature" in self.parameters.keys():
-                self.ventilation_transition_temperature = float(self.parameters["ventilation_transition_temperature"])
-            else:
-                self.ventilation_transition_temperature = 10.
-            if "ventilation_max_temperature" in self.parameters.keys():
-                self.ventilation_max_temperature = float(self.parameters["ventilation_max_temperature"])
-            else:
-                self.ventilation_max_temperature = 19.
-            if "ventilation_min_temperature" in self.parameters.keys():
-                self.ventilation_min_temperature = float(self.parameters["ventilation_min_temperature"])
-            else:
-                self.ventilation_min_temperature = 0.
-            if "ventilation_switch_on_hours" in self.parameters.keys():
-                self.ventilation_switch_on_hours = float(self.parameters["ventilation_switch_on_hours"])
-            else:
-                self.ventilation_switch_on_hours = 1.
-            if "ventilation_min_idle_hours" in self.parameters.keys():
-                self.ventilation_min_idle_hours = float(self.parameters["ventilation_min_idle_hours"])
-            else:
-                self.ventilation_min_idle_hours = 15.
-            if "current_temperature_very_hot" in self.parameters.keys():
-                self.current_temperature_very_hot = float(self.parameters["current_temperature_very_hot"])
-            else:
-                self.current_temperature_very_hot = 28.
-            if "current_temperature_hot" in self.parameters.keys():
-                self.current_temperature_hot = float(self.parameters["current_temperature_hot"])
-            else:
-                self.current_temperature_hot = 22.
-            if "average_humidity_external" in self.parameters.keys():
-                self.average_humidity_external = float(self.parameters["average_humidity_external"])
-            else:
-                self.average_humidity_external = 0.6
+                self.brightness_time_span = 3600.
             if "brightness_very_bright" in self.parameters.keys():
                 self.brightness_very_bright = float(self.parameters["brightness_very_bright"])
             else:
@@ -198,14 +136,92 @@ class parameters(object):
                 self.night_brightness_threshold = float(self.parameters["night_brightness_threshold"])
             else:
                 self.night_brightness_threshold = 20.
-            if "shutter_trigger_delay" in self.parameters.keys():
-                self.shutter_trigger_delay = float(self.parameters["shutter_trigger_delay"])
+            if "temperature_update_interval" in self.parameters.keys():
+                self.temperature_update_interval = float(self.parameters["temperature_update_interval"])
             else:
-                self.shutter_trigger_delay = 15.
-            if "shutter_setting_tolerance" in self.parameters.keys():
-                self.shutter_setting_tolerance = float(self.parameters["shutter_setting_tolerance"])
+                self.temperature_update_interval = 1800.
+            if "max_temp_lookahead_time" in self.parameters.keys():
+                self.max_temp_lookahead_time = float(self.parameters["max_temp_lookahead_time"])
             else:
-                self.shutter_setting_tolerance = 0.02
+                self.max_temp_lookahead_time = 3.
+            if "average_temperature" in self.parameters.keys():
+                self.average_temperature = float(self.parameters["average_temperature"])
+            else:
+                self.average_temperature = 15.
+            if "average_humidity_external" in self.parameters.keys():
+                self.average_humidity_external = float(self.parameters["average_humidity_external"])
+            else:
+                self.average_humidity_external = 0.6
+            if "min_temperature" in self.parameters.keys():
+                self.min_temperature = float(self.parameters["min_temperature"])
+            else:
+                self.min_temperature = 10.
+            if "min_temperature_time" in self.parameters.keys():
+                self.min_temperature_time = float(self.parameters["min_temperature_time"])
+            else:
+                # Set default time stamp of temperature minimum to 3:00 a.m. UTC
+                self.min_temperature_time = 10800.
+            if "max_temperature" in self.parameters.keys():
+                self.max_temperature = float(self.parameters["max_temperature"])
+            else:
+                self.max_temperature = 20.
+            if "max_temperature_time" in self.parameters.keys():
+                self.max_temperature_time = float(self.parameters["max_temperature_time"])
+            else:
+                # Set default time stamp of temperature maximum to 11:00 a.m. UTC
+                self.max_temperature_time = 39600.
+            if "max_temperature_very_hot" in self.parameters.keys():
+                self.max_temperature_very_hot = float(self.parameters["max_temperature_very_hot"])
+            else:
+                self.max_temperature_very_hot = 30.
+            if "max_temperature_hot" in self.parameters.keys():
+                self.max_temperature_hot = float(self.parameters["max_temperature_hot"])
+            else:
+                self.max_temperature_hot = 25.
+            if "max_temperature_cold" in self.parameters.keys():
+                self.max_temperature_cold = float(self.parameters["max_temperature_cold"])
+            else:
+                self.max_temperature_cold = 18.
+            if "current_temperature_very_hot" in self.parameters.keys():
+                self.current_temperature_very_hot = float(self.parameters["current_temperature_very_hot"])
+            else:
+                self.current_temperature_very_hot = 28.
+            if "current_temperature_hot" in self.parameters.keys():
+                self.current_temperature_hot = float(self.parameters["current_temperature_hot"])
+            else:
+                self.current_temperature_hot = 22.
+            if "average_temperature_very_hot" in self.parameters.keys():
+                self.average_temperature_very_hot = float(self.parameters["average_temperature_very_hot"])
+            else:
+                self.average_temperature_very_hot = 25.
+            if "average_temperature_hot" in self.parameters.keys():
+                self.average_temperature_hot = float(self.parameters["average_temperature_hot"])
+            else:
+                self.average_temperature_hot = 21.
+            if "average_temperature_cold" in self.parameters.keys():
+                self.average_temperature_cold = float(self.parameters["average_temperature_cold"])
+            else:
+                self.average_temperature_cold = 17.
+            if "ventilation_transition_temperature" in self.parameters.keys():
+                self.ventilation_transition_temperature = float(self.parameters["ventilation_transition_temperature"])
+            else:
+                self.ventilation_transition_temperature = 10.
+            if "ventilation_max_temperature" in self.parameters.keys():
+                self.ventilation_max_temperature = float(self.parameters["ventilation_max_temperature"])
+            else:
+                self.ventilation_max_temperature = 19.
+            if "ventilation_min_temperature" in self.parameters.keys():
+                self.ventilation_min_temperature = float(self.parameters["ventilation_min_temperature"])
+            else:
+                self.ventilation_min_temperature = 0.
+            if "ventilation_switch_on_hours" in self.parameters.keys():
+                self.ventilation_switch_on_hours = float(self.parameters["ventilation_switch_on_hours"])
+            else:
+                self.ventilation_switch_on_hours = 1.
+            if "ventilation_min_idle_hours" in self.parameters.keys():
+                self.ventilation_min_idle_hours = float(self.parameters["ventilation_min_idle_hours"])
+            else:
+                self.ventilation_min_idle_hours = 15.
 
             if "shutter_very-hot-fcst_very-bright_sunlit" in self.parameters.keys():
                 self.shutter_condition["shutter_very-hot-fcst_very-bright_sunlit"] = float(
@@ -393,40 +409,46 @@ class parameters(object):
         return (len(set_1.difference(set_2)) | len(set_2.difference(set_1)))
 
     def print_parameters(self):
-        print "\nParameters:", "\nhostname: ", self.hostname, "\nCCU address: ", self.ccu_address, "\nuser: ", \
+        print "\nParameters:", "\noutput_level: ", self.output_level, \
+            "\nhostname: ", self.hostname, "\nCCU address: ", self.ccu_address, "\nuser: ", \
             self.user, "\npassword: ", self.password, \
-            "\now_url_fcst: ", self.ow_url_fcst, "\nmax_temp_lookahead_time: ", self.max_temp_lookahead_time, \
+            "\now_url_fcst: ", self.ow_url_fcst, \
             "\nmain_loop_sleep_time: ", self.main_loop_sleep_time, \
             "\nlookup_sleep_time: ", self.lookup_sleep_time, \
-            "\ntemperature_update_interval: ", self.temperature_update_interval, \
-            "\nbrightness_update_interval: ", self.brightness_update_interval, \
-            "\nbrightness_time_span: ", self.brightness_time_span, \
-            "\noutput_level: ", self.output_level, "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
+            "\nshutter_control_scheme: ", self.shutter_control_scheme, \
+            "\nshutter_trigger_delay: ", self.shutter_trigger_delay, \
+            "\nshutter_setting_tolerance: ", self.shutter_setting_tolerance, \
+            "\nlongitude: ", self.longitude, "\nlatitude: ", self.latitude, \
             "\nch_night_begin: ", self.ch_night_begin, "\nch_night_end: ", self.ch_night_end, \
             "\nch_night_end_saturday: ", self.ch_night_end_saturday, \
-            "\nch_night_end_sunday: ", self.ch_night_end_sunday, "\naverage_temperature: ", self.average_temperature, \
-            "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
-            "\nmax_temperature: ", self.max_temperature, \
-            "\nmax_temperature_hot: ", self.max_temperature_hot, \
-            "\nmax_temperature_very_hot: ", self.max_temperature_very_hot, \
-            "\nmax_temperature_cold: ", self.max_temperature_cold, \
-            "\nmax_temperature_time: ", self.max_temperature_time, \
-            "\nventilation_transition_temperature: ", self.ventilation_transition_temperature, \
-            "\nventilation_max_temperature: ", self.ventilation_max_temperature, \
-            "\nventilation_min_temperature: ", self.ventilation_min_temperature, \
-            "\nventilation_switch_on_hours: ", self.ventilation_switch_on_hours, \
-            "\nventilation_min_idle_hours: ", self.ventilation_min_idle_hours, \
-            "\ncurrent_temperature_very_hot: ", self.current_temperature_very_hot, \
-            "\ncurrent_temperature_hot: ", self.current_temperature_hot, \
-            "\naverage_humidity_external: ", self.average_humidity_external, \
+            "\nch_night_end_sunday: ", self.ch_night_end_sunday, \
+            "\nbrightness_update_interval: ", self.brightness_update_interval, \
+            "\nbrightness_time_span: ", self.brightness_time_span, \
             "\nbrightness_very_bright: ", self.brightness_very_bright, \
             "\nbrightness_dim: ", self.brightness_dim, \
             "\nsunrise_decision_width: ", self.sunrise_decision_width, \
             "\nsunrise_decision_interval: ", self.sunrise_decision_interval, \
             "\nday_brightness_threshold: ", self.day_brightness_threshold, \
             "\nnight_brightness_threshold: ", self.night_brightness_threshold, \
-            "\nshutter_trigger_delay: ", self.shutter_trigger_delay, \
-            "\nshutter_setting_tolerance: ", self.shutter_setting_tolerance, \
+            "\ntemperature_update_interval: ", self.temperature_update_interval, \
+            "\nmax_temp_lookahead_time: ", self.max_temp_lookahead_time, \
+            "\naverage_temperature: ", self.average_temperature, \
+            "\naverage_humidity_external: ", self.average_humidity_external, \
+            "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
+            "\nmax_temperature: ", self.max_temperature, "\nmax_temperature_time: ", self.max_temperature_time, \
+            "\nmax_temperature_very_hot: ", self.max_temperature_very_hot, \
+            "\nmax_temperature_hot: ", self.max_temperature_hot, \
+            "\nmax_temperature_cold: ", self.max_temperature_cold, \
+            "\ncurrent_temperature_very_hot: ", self.current_temperature_very_hot, \
+            "\ncurrent_temperature_hot: ", self.current_temperature_hot, \
+            "\naverage_temperature_very_hot: ", self.average_temperature_very_hot, \
+            "\naverage_temperature_hot: ", self.average_temperature_hot, \
+            "\naverage_temperature_cold: ", self.average_temperature_cold, \
+            "\nventilation_transition_temperature: ", self.ventilation_transition_temperature, \
+            "\nventilation_max_temperature: ", self.ventilation_max_temperature, \
+            "\nventilation_min_temperature: ", self.ventilation_min_temperature, \
+            "\nventilation_switch_on_hours: ", self.ventilation_switch_on_hours, \
+            "\nventilation_min_idle_hours: ", self.ventilation_min_idle_hours, \
             "\n" \
             "\nshutter_very-hot-fcst_very-bright_sunlit: ", \
             self.shutter_condition["shutter_very-hot-fcst_very-bright_sunlit"], \
