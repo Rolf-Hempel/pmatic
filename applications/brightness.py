@@ -19,7 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import codecs
-import os.path
+import sys
 
 import pmatic
 from miscellaneous import *
