@@ -189,7 +189,7 @@ class parameters(object):
             if "day_brightness_threshold" in self.parameters.keys():
                 self.day_brightness_threshold = float(self.parameters["day_brightness_threshold"])
             else:
-                self.day_brightness_threshold = 10.
+                self.day_brightness_threshold = 9.
             if "night_brightness_threshold" in self.parameters.keys():
                 self.night_brightness_threshold = float(self.parameters["night_brightness_threshold"])
             else:
