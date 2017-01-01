@@ -70,7 +70,6 @@ def not_at_night(params):
     lt = time.localtime()
     week_day = lt[6]
     civil_hour = lt[3] + lt[4]/60.
-    print "week_day: ", week_day, ", civil_hour: ", civil_hour
     if 0 <= week_day <= 4:
         return params.ch_night_end < civil_hour < params.ch_night_begin
     # Special case Saturday:
