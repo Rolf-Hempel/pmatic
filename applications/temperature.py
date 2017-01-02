@@ -112,8 +112,8 @@ class temperature(object):
                 self.temp_dict["last_updated"] = self.current_time
 
                 # Update minima / maxima data at the first invocation after 18:00 local time,
-                # but only if data have been recorded for at least 24 hours
-                if self.current_time - self.temp_dict["minmax_time_updated"] > 86400. and 18. < local_hour < 24.:
+                # but only if data have been recorded for at least 23 hours
+                if self.current_time - self.temp_dict["minmax_time_updated"] > 82800. and 18. < local_hour < 24.:
                     if self.params.output_level > 1:
                         print_output("Updating average, maximum and minimum external temperatures:")
                     average_temperature = 0.
