@@ -90,6 +90,8 @@ class temperature(object):
         self.min_forecast_temperature = None
         self.min_forecast_temperature_local_hour = None
         self.average_forecast_temperature = None
+        self.ventilation_max_forecast_temperature_local_hour = None
+        self.ventilation_min_forecast_temperature_local_hour = None
 
     def update(self):
         # Do a new temperature measurement and update the temperature statistics
@@ -158,10 +160,10 @@ class temperature(object):
                     self.analyze_forecast()
                     if self.max_forecast_temperature is not None:
                         print "New forecast maximum temperature: " + str(self.max_forecast_temperature) + \
-                            ", Local hour of maximum: " + str(self.max_forecast_temperature_local_hour)
+                              ", Local hour of maximum: " + str(self.max_forecast_temperature_local_hour)
                     if self.min_forecast_temperature is not None:
                         print "New forecast minimum temperature: " + str(self.min_forecast_temperature) + \
-                            ", Local hour of minimum: " + str(self.min_forecast_temperature_local_hour)
+                              ", Local hour of minimum: " + str(self.min_forecast_temperature_local_hour)
                     self.temp_dict["minmax_time_updated"] = self.current_time
                 with open(self.temperature_file_name, 'w') as temperature_file:
                     json.dump(self.temp_dict, temperature_file)
@@ -202,37 +204,20 @@ class temperature(object):
         """
         Look for maximum and minimum forecast temperatures and corresponding local hours, and compute the average
         temperature. The statistics are always based on whole day periods, with the maximum number of forecast days
-        given by the max_temp_lookahead_time parameter. All values are stored as instance variables and accessed by
-        lookup funktions.
+        given by the max_temp_lookahead_time parameter.
+
+        Additionally, times of maximum and minimum temperature are computed for the next day for ventilation control.
+
+        All values are stored as instance variables.
 
         :return: -
         """
         # Compute the number of days for forecast statistics.
-        self.forecast_days = min(floor((self.temp_dict["temperatures_forecast"][-1][0] - self.current_time) / 86400.),
-                                 self.params.max_temp_lookahead_time)
+        self.forecast_days = min(self.compute_available_forecast_days(), self.params.max_temp_lookahead_time)
         if self.forecast_days > 0:
-            self.max_forecast_temperature = -100.
-            self.min_forecast_temperature = 100.
-            self.average_forecast_temperature = 0.
-            n_timestamps = 0
-            for [timestamp, temperature] in self.temp_dict["temperatures_forecast"]:
-                if (timestamp - self.current_time) / 86400. > self.forecast_days:
-                    break
-                n_timestamps += 1
-                # Update average, minimum and maximum values.
-                self.average_forecast_temperature += temperature
-                if temperature > self.max_forecast_temperature:
-                    self.max_forecast_temperature = temperature
-                    self.max_forecast_temperature_timestamp = timestamp
-                if temperature < self.min_forecast_temperature:
-                    self.min_forecast_temperature = temperature
-                    self.min_forecast_temperature_timestamp = timestamp
-            # Translate Unix timestamps into local hours and compute average temperature.
-            self.max_forecast_temperature_local_hour = get_local_hour(self.params,
-                                                                      self.max_forecast_temperature_timestamp)
-            self.min_forecast_temperature_local_hour = get_local_hour(self.params,
-                                                                      self.min_forecast_temperature_timestamp)
-            self.average_forecast_temperature = self.average_forecast_temperature / float(n_timestamps)
+            (self.max_forecast_temperature, self.max_forecast_temperature_local_hour, \
+             self.min_forecast_temperature, self.min_forecast_temperature_local_hour, \
+             self.average_forecast_temperature) = self.compute_min_max_average(self.forecast_days)
         else:
             # Invalidate statistics if not enough forecast times are available.
             self.max_forecast_temperature = None
@@ -240,6 +225,67 @@ class temperature(object):
             self.min_forecast_temperature = None
             self.min_forecast_temperature_local_hour = None
             self.average_forecast_temperature = None
+        # For ventilation control compute forecast times of temp max and min during the next day.
+        if self.compute_available_forecast_days() > 0:
+            (temp1, self.ventilation_max_forecast_temperature_local_hour, temp2,
+             self.ventilation_min_forecast_temperature_local_hour, temp3) = self.compute_min_max_average(1)
+        else:
+            self.ventilation_max_forecast_temperature_local_hour = None
+            self.ventilation_min_forecast_temperature_local_hour = None
+
+    def compute_available_forecast_days(self):
+        """
+        Compute the number of whole days in the future for which temperature forecasts are available.
+
+        :return: number of whole forecast days
+        """
+        if len(self.temp_dict["temperatures_forecast"]) == 0:
+            return 0
+        else:
+            return floor((self.temp_dict["temperatures_forecast"][-1][0] - self.current_time) / 86400.)
+
+    def compute_min_max_average(self, days_ahead):
+        """
+        Look for maximum and minimum forecast temperatures and corresponding local hours, and compute the average
+        temperature. The statistics are always based on whole day periods, with the maximum number of forecast days
+        given by the max_temp_lookahead_time parameter. All values are stored as instance variables and accessed by
+        lookup funktions.
+
+        :return: A tuple consisting of:
+                - maximum forecast temperature
+                - local hour of maximum
+                - minimum forecast temperature
+                - local hour of minimum
+                - average forecast temperature
+                If no temperature forecasts are stored, None is returned.
+        """
+
+        max_forecast_temp = -100.
+        min_forecast_temp = 100.
+        average_forecast_temp = 0.
+        n_timestamps = 0
+        for [timestamp, temperature] in self.temp_dict["temperatures_forecast"]:
+            if (timestamp - self.current_time) / 86400. > days_ahead:
+                break
+            if timestamp >= self.current_time:
+                n_timestamps += 1
+                # Update average, minimum and maximum values.
+                average_forecast_temp += temperature
+                if temperature > max_forecast_temp:
+                    max_forecast_temp = temperature
+                    max_forecast_temp_timestamp = timestamp
+                if temperature < min_forecast_temp:
+                    min_forecast_temp = temperature
+                    min_forecast_temp_timestamp = timestamp
+        if n_timestamps > 0:
+            # Translate Unix timestamps into local hours and compute average temperature.
+            max_forecast_temp_local_hour = get_local_hour(self.params, max_forecast_temp_timestamp)
+            min_forecast_temp_local_hour = get_local_hour(self.params, min_forecast_temp_timestamp)
+            average_forecast_temp = average_forecast_temp / float(n_timestamps)
+            return max_forecast_temp, max_forecast_temp_local_hour, min_forecast_temp, min_forecast_temp_local_hour, \
+                   average_forecast_temp
+        else:
+            return None
 
     def temperature_condition(self):
         """
@@ -354,7 +400,10 @@ if __name__ == "__main__":
                      str(temperatures.min_forecast_temperature) + ", at local hour: " +
                      str(temperatures.min_forecast_temperature_local_hour) + ", average temp.: " +
                      str(temperatures.average_forecast_temperature) + ", No. forecast days: " +
-                     str(temperatures.forecast_days))
+                     str(temperatures.forecast_days) + ", next day max. at local hour: " +
+                     str(temperatures.ventilation_max_forecast_temperature_local_hour) +
+                     ", next day min. at local hour: " +
+                     str(temperatures.ventilation_min_forecast_temperature_local_hour))
         if params.output_level > 2:
             print "temperature condition: ", temperatures.temperature_condition()
         time.sleep(params.main_loop_sleep_time)

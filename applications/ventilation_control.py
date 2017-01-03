@@ -88,15 +88,15 @@ class ventilation_control(object):
         """
 
         # If the inside temperature is high, the optimal time is around minimal outside temperature, otherwise around
-        # maximal outside temperature. Use forecast values, if available, otherwise recorded values.
+        # maximal outside temperature. Use forecast values for the next day, if available, otherwise recorded values.
         if self.current_temperature_internal > self.params.ventilation_transition_temperature:
-            if temperatures.min_forecast_temperature_local_hour is not None:
-                return temperatures.min_forecast_temperature_local_hour
+            if temperatures.ventilation_min_forecast_temperature_local_hour is not None:
+                return temperatures.ventilation_min_forecast_temperature_local_hour
             else:
                 return temperatures.temp_dict["min_temperature_local_hour"]
         else:
-            if temperatures.max_forecast_temperature_local_hour is not None:
-                return temperatures.max_forecast_temperature_local_hour
+            if temperatures.ventilation_max_forecast_temperature_local_hour is not None:
+                return temperatures.ventilation_max_forecast_temperature_local_hour
             else:
                 return temperatures.temp_dict["max_temperature_local_hour"]
 
@@ -147,7 +147,7 @@ class ventilation_control(object):
             # hour of the day.
             if self.params.ventilation_min_temperature <= temperatures.temp_dict["current_temperature_external"] <= \
                     self.params.ventilation_max_temperature and \
-                    temperatures.dew_point < self.current_temperature_internal and in_ventilation_interval:
+                            temperatures.dew_point < self.current_temperature_internal and in_ventilation_interval:
                 try:
                     self.switch_device.switch_on()
                     if self.params.output_level > 2:
