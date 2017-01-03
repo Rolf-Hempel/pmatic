@@ -158,13 +158,19 @@ class temperature(object):
                             self.temp_dict["min_temperature_local_hour"] = min_local_hour
                     # Find max / min temperature values and corresponding times in forecast records.
                     self.analyze_forecast()
-                    if self.max_forecast_temperature is not None:
+                    if self.max_forecast_temperature is not None and self.params.output_level > 1:
                         print "New forecast maximum temperature: " + str(self.max_forecast_temperature) + \
                               ", Local hour of maximum: " + str(self.max_forecast_temperature_local_hour)
-                    if self.min_forecast_temperature is not None:
+                    if self.min_forecast_temperature is not None and self.params.output_level > 1:
                         print "New forecast minimum temperature: " + str(self.min_forecast_temperature) + \
                               ", Local hour of minimum: " + str(self.min_forecast_temperature_local_hour)
                     self.temp_dict["minmax_time_updated"] = self.current_time
+                    if self.ventilation_max_forecast_temperature_local_hour is not None and self.params.output_level > 1:
+                        print "Local hour of maximum temperature next 24 hours: " + \
+                              str(self.ventilation_max_forecast_temperature_local_hour)
+                    if self.ventilation_min_forecast_temperature_local_hour is not None and self.params.output_level > 1:
+                        print "Local hour of minimum temperature next 24 hours: " + \
+                              str(self.ventilation_min_forecast_temperature_local_hour)
                 with open(self.temperature_file_name, 'w') as temperature_file:
                     json.dump(self.temp_dict, temperature_file)
             except Exception as e:
