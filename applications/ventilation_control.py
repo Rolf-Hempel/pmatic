@@ -90,13 +90,13 @@ class ventilation_control(object):
         # If the inside temperature is high, the optimal time is around minimal outside temperature, otherwise around
         # maximal outside temperature. Use forecast values for the next day, if available, otherwise recorded values.
         if self.current_temperature_internal > self.params.ventilation_transition_temperature:
-            if temperatures.ventilation_min_forecast_temperature_local_hour is not None:
-                return temperatures.ventilation_min_forecast_temperature_local_hour
+            if temperatures.temp_dict["ventilation_min_forecast_temperature_local_hour"] is not None:
+                return temperatures.temp_dict["ventilation_min_forecast_temperature_local_hour"]
             else:
                 return temperatures.temp_dict["min_temperature_local_hour"]
         else:
-            if temperatures.ventilation_max_forecast_temperature_local_hour is not None:
-                return temperatures.ventilation_max_forecast_temperature_local_hour
+            if temperatures.temp_dict["ventilation_max_forecast_temperature_local_hour"] is not None:
+                return temperatures.temp_dict["ventilation_max_forecast_temperature_local_hour"]
             else:
                 return temperatures.temp_dict["max_temperature_local_hour"]
 

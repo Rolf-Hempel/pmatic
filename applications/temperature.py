@@ -78,20 +78,18 @@ class temperature(object):
             self.temp_dict["current_temperature_external"] = (self.temp_dict["min_temperature"] + self.temp_dict[
                 "max_temperature"]) / 2.
             self.temp_dict["current_humidity_external"] = params.average_humidity_external
+            self.temp_dict["max_forecast_temperature"] = None
+            self.temp_dict["max_forecast_temperature_local_hour"] = None
+            self.temp_dict["min_forecast_temperature"] = None
+            self.temp_dict["min_forecast_temperature_local_hour"] = None
+            self.temp_dict["average_forecast_temperature"] = None
+            self.temp_dict["ventilation_max_forecast_temperature_local_hour"] = None
+            self.temp_dict["ventilation_min_forecast_temperature_local_hour"] = None
             with open(self.temperature_file_name, 'w') as temperature_file:
                 json.dump(self.temp_dict, temperature_file)
         time.sleep(self.params.lookup_sleep_time)
         self.dew_point = pmatic.utils.dew_point(self.temp_dict["current_temperature_external"],
                                                 self.temp_dict["current_humidity_external"])
-
-        # Invalidate statistics.
-        self.max_forecast_temperature = None
-        self.max_forecast_temperature_local_hour = None
-        self.min_forecast_temperature = None
-        self.min_forecast_temperature_local_hour = None
-        self.average_forecast_temperature = None
-        self.ventilation_max_forecast_temperature_local_hour = None
-        self.ventilation_min_forecast_temperature_local_hour = None
 
     def update(self):
         # Do a new temperature measurement and update the temperature statistics
@@ -158,19 +156,21 @@ class temperature(object):
                             self.temp_dict["min_temperature_local_hour"] = min_local_hour
                     # Find max / min temperature values and corresponding times in forecast records.
                     self.analyze_forecast()
-                    if self.max_forecast_temperature is not None and self.params.output_level > 1:
-                        print "New forecast maximum temperature: " + str(self.max_forecast_temperature) + \
-                              ", Local hour of maximum: " + str(self.max_forecast_temperature_local_hour)
-                    if self.min_forecast_temperature is not None and self.params.output_level > 1:
-                        print "New forecast minimum temperature: " + str(self.min_forecast_temperature) + \
-                              ", Local hour of minimum: " + str(self.min_forecast_temperature_local_hour)
+                    if self.temp_dict["max_forecast_temperature"] is not None and self.params.output_level > 1:
+                        print "New forecast maximum temperature: " + str(self.temp_dict["max_forecast_temperature"]) + \
+                              ", Local hour of maximum: " + str(self.temp_dict["max_forecast_temperature_local_hour"])
+                    if self.temp_dict["min_forecast_temperature"] is not None and self.params.output_level > 1:
+                        print "New forecast minimum temperature: " + str(self.temp_dict["min_forecast_temperature"]) + \
+                              ", Local hour of minimum: " + str(self.temp_dict["min_forecast_temperature_local_hour"])
                     self.temp_dict["minmax_time_updated"] = self.current_time
-                    if self.ventilation_max_forecast_temperature_local_hour is not None and self.params.output_level > 1:
+                    if self.temp_dict[
+                        "ventilation_max_forecast_temperature_local_hour"] is not None and self.params.output_level > 1:
                         print "Local hour of maximum temperature next 24 hours: " + \
-                              str(self.ventilation_max_forecast_temperature_local_hour)
-                    if self.ventilation_min_forecast_temperature_local_hour is not None and self.params.output_level > 1:
+                              str(self.temp_dict["ventilation_max_forecast_temperature_local_hour"])
+                    if self.temp_dict[
+                        "ventilation_min_forecast_temperature_local_hour"] is not None and self.params.output_level > 1:
                         print "Local hour of minimum temperature next 24 hours: " + \
-                              str(self.ventilation_min_forecast_temperature_local_hour)
+                              str(self.temp_dict["ventilation_min_forecast_temperature_local_hour"])
                 with open(self.temperature_file_name, 'w') as temperature_file:
                     json.dump(self.temp_dict, temperature_file)
             except Exception as e:
@@ -221,23 +221,23 @@ class temperature(object):
         # Compute the number of days for forecast statistics.
         self.forecast_days = min(self.compute_available_forecast_days(), self.params.max_temp_lookahead_time)
         if self.forecast_days > 0:
-            (self.max_forecast_temperature, self.max_forecast_temperature_local_hour, \
-             self.min_forecast_temperature, self.min_forecast_temperature_local_hour, \
-             self.average_forecast_temperature) = self.compute_min_max_average(self.forecast_days)
+            (self.temp_dict["max_forecast_temperature"], self.temp_dict["max_forecast_temperature_local_hour"], \
+             self.temp_dict["min_forecast_temperature"], self.temp_dict["min_forecast_temperature_local_hour"], \
+             self.temp_dict["average_forecast_temperature"]) = self.compute_min_max_average(self.forecast_days)
         else:
             # Invalidate statistics if not enough forecast times are available.
-            self.max_forecast_temperature = None
-            self.max_forecast_temperature_local_hour = None
-            self.min_forecast_temperature = None
-            self.min_forecast_temperature_local_hour = None
-            self.average_forecast_temperature = None
+            self.temp_dict["max_forecast_temperature"] = None
+            self.temp_dict["max_forecast_temperature_local_hour"] = None
+            self.temp_dict["min_forecast_temperature"] = None
+            self.temp_dict["min_forecast_temperature_local_hour"] = None
+            self.temp_dict["average_forecast_temperature"] = None
         # For ventilation control compute forecast times of temp max and min during the next day.
         if self.compute_available_forecast_days() > 0:
-            (temp1, self.ventilation_max_forecast_temperature_local_hour, temp2,
-             self.ventilation_min_forecast_temperature_local_hour, temp3) = self.compute_min_max_average(1)
+            (temp1, self.temp_dict["ventilation_max_forecast_temperature_local_hour"], temp2,
+             self.temp_dict["ventilation_min_forecast_temperature_local_hour"], temp3) = self.compute_min_max_average(1)
         else:
-            self.ventilation_max_forecast_temperature_local_hour = None
-            self.ventilation_min_forecast_temperature_local_hour = None
+            self.temp_dict["ventilation_max_forecast_temperature_local_hour"] = None
+            self.temp_dict["ventilation_min_forecast_temperature_local_hour"] = None
 
     def compute_available_forecast_days(self):
         """
@@ -304,8 +304,8 @@ class temperature(object):
         if self.params.shutter_control_scheme == "average_temperature":
             # Control scheme based on average external temperatures (forecast or recorded):
 
-            if self.average_forecast_temperature is not None:
-                average_temperature = self.average_forecast_temperature
+            if self.temp_dict["average_forecast_temperature"] is not None:
+                average_temperature = self.temp_dict["average_forecast_temperature"]
             else:
                 average_temperature = self.temp_dict["average_temperature"]
 
@@ -336,15 +336,15 @@ class temperature(object):
                 return "very-hot"
             elif self.params.current_temperature_hot < self.temp_dict["current_temperature_external"] <= \
                     self.params.current_temperature_very_hot:
-                if self.max_forecast_temperature is None and self.temp_dict[
+                if self.temp_dict["max_forecast_temperature"] is None and self.temp_dict[
                     "max_temperature"] > self.params.max_temperature_very_hot:
                     return "very-hot"
-                elif self.max_forecast_temperature is not None and \
-                                self.max_forecast_temperature > self.params.max_temperature_very_hot:
+                elif self.temp_dict["max_forecast_temperature"] is not None and \
+                                self.temp_dict["max_forecast_temperature"] > self.params.max_temperature_very_hot:
                     return "very-hot"
                 else:
                     return "hot"
-            elif self.max_forecast_temperature is None:
+            elif self.temp_dict["max_forecast_temperature"] is None:
                 if max(self.temp_dict["current_temperature_external"],
                        self.temp_dict["max_temperature"]) > self.params.max_temperature_hot:
                     return "hot"
@@ -354,11 +354,11 @@ class temperature(object):
                 else:
                     return "normal"
             else:
-                if self.max_forecast_temperature > self.params.max_temperature_very_hot:
+                if self.temp_dict["max_forecast_temperature"] > self.params.max_temperature_very_hot:
                     return "very-hot-fcst"
-                elif self.max_forecast_temperature > self.params.max_temperature_hot:
+                elif self.temp_dict["max_forecast_temperature"] > self.params.max_temperature_hot:
                     return "hot-fcst"
-                elif self.max_forecast_temperature < self.params.max_temperature_cold:
+                elif self.temp_dict["max_forecast_temperature"] < self.params.max_temperature_cold:
                     return "cold"
                 else:
                     return "normal"
@@ -401,15 +401,16 @@ if __name__ == "__main__":
     while True:
         temperatures.update()
         temperatures.analyze_forecast()
-        print_output("max. forecast temp.: " + str(temperatures.max_forecast_temperature) + ", at local hour: " +
-                     str(temperatures.max_forecast_temperature_local_hour) + ", min. forecast temp.: " +
-                     str(temperatures.min_forecast_temperature) + ", at local hour: " +
-                     str(temperatures.min_forecast_temperature_local_hour) + ", average temp.: " +
-                     str(temperatures.average_forecast_temperature) + ", No. forecast days: " +
-                     str(temperatures.forecast_days) + ", next day max. at local hour: " +
-                     str(temperatures.ventilation_max_forecast_temperature_local_hour) +
-                     ", next day min. at local hour: " +
-                     str(temperatures.ventilation_min_forecast_temperature_local_hour))
+        print_output(
+            "max. forecast temp.: " + str(temperatures.temp_dict["max_forecast_temperature"]) + ", at local hour: " +
+            str(temperatures.temp_dict["max_forecast_temperature_local_hour"]) + ", min. forecast temp.: " +
+            str(temperatures.temp_dict["min_forecast_temperature"]) + ", at local hour: " +
+            str(temperatures.temp_dict["min_forecast_temperature_local_hour"]) + ", average temp.: " +
+            str(temperatures.temp_dict["average_forecast_temperature"]) + ", No. forecast days: " +
+            str(temperatures.forecast_days) + ", next day max. at local hour: " +
+            str(temperatures.temp_dict["ventilation_max_forecast_temperature_local_hour"]) +
+            ", next day min. at local hour: " +
+            str(temperatures.temp_dict["ventilation_min_forecast_temperature_local_hour"]))
         if params.output_level > 2:
             print "temperature condition: ", temperatures.temperature_condition()
         time.sleep(params.main_loop_sleep_time)
