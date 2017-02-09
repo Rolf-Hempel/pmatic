@@ -38,6 +38,7 @@ class ventilation_control(object):
 
     def __init__(self, params, ccu):
         self.params = params
+        self.ccu = ccu
         if self.params.output_level > 0:
             print "\nThe following devices will be used for ventilation control:"
         ccu_not_ready_yet = True
@@ -76,7 +77,7 @@ class ventilation_control(object):
                                  ", humidity: " + str(self.current_humidity_internal))
             except Exception as e:
                 if self.params.output_level > 0:
-                    print_output(repr(e))
+                    print_error_message(self.ccu, e)
             time.sleep(self.params.lookup_sleep_time)
 
     def optimal_ventilation_local_hour(self, temperatures):
@@ -120,7 +121,7 @@ class ventilation_control(object):
                     self.ventilation_active = False
                 except Exception as e:
                     if self.params.output_level > 0:
-                        print_output(repr(e))
+                        print_error_message(self.ccu, e)
                 time.sleep(self.params.lookup_sleep_time)
 
         # If the ventilator is off, wait a minimal number of hours before considering switching it on again.
@@ -156,7 +157,7 @@ class ventilation_control(object):
                     self.ventilation_active = True
                 except Exception as e:
                     if self.params.output_level > 0:
-                        print_output(repr(e))
+                        print_error_message(self.ccu, e)
                 time.sleep(self.params.lookup_sleep_time)
 
 

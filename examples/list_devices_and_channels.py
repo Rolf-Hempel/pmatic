@@ -32,7 +32,7 @@ ccu = pmatic.CCU(
 
 struct = ccu.api.device_list_all_detail()
 for item in struct:
-    print item[u'name']
+    print item[u'name'], item[u'address']
     for channel in item[u'channels']:
         print channel
     print ""

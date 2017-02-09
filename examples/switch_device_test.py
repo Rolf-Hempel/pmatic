@@ -42,7 +42,7 @@ if params.output_level > 0:
     print ""
     mis.print_output("Device used:")
 
-switch_device = mis.look_up_device(params, ccu, u"Steckdosenschalter Wohnzimmer")
+switch_device = mis.look_up_device_by_name(params, ccu, u"Steckdosenschalter Wohnzimmer")
 
 # main loop
 while True:
@@ -61,6 +61,6 @@ while True:
                 mis.print_output(" Switching " + switch_device.name + " on")
             switch_device.switch_on()
     except Exception as e:
-        print e
+        mis.print_error_message(ccu, e)
 
     time.sleep(params.main_loop_sleep_time)

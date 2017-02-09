@@ -36,6 +36,7 @@ class brightness(object):
 
     def __init__(self, params, ccu):
         self.params = params
+        self.ccu = ccu
         if self.params.output_level > 0:
             print "\nThe following brightness devices will be used:"
         ccu_not_ready_yet = True
@@ -66,7 +67,7 @@ class brightness(object):
                     time.sleep(self.params.lookup_sleep_time)
                 except Exception as e:
                     if self.params.output_level > 0:
-                        print_output(repr(e))
+                        print_error_message(self.ccu, e)
             if len(brightness_measurements) > 0:
                 # Set the current brightness to the max over all measuring devices
                 self.current_brightness_external = max(brightness_measurements)

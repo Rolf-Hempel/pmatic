@@ -21,10 +21,10 @@
 import datetime
 import os
 import time
-import math
 
 from parameters import parameters
 from pmatic.exceptions import PMConnectionError
+
 
 def set_time_zone():
     """
@@ -69,7 +69,7 @@ def not_at_night(params):
     """
     lt = time.localtime()
     week_day = lt[6]
-    civil_hour = lt[3] + lt[4]/60.
+    civil_hour = lt[3] + lt[4] / 60.
     if 0 <= week_day <= 4:
         return params.ch_night_end < civil_hour < params.ch_night_begin
     # Special case Saturday:
@@ -93,7 +93,7 @@ def look_up_device_by_name(params, ccu, dev_name):
     try:
         devices = ccu.devices.query(device_name=dev_name)._devices.values()
     except Exception as e:
-        print e
+        print_error_message(ccu, e)
     if len(devices) == 1:
         if params.output_level > 0:
             print dev_name
@@ -101,7 +101,7 @@ def look_up_device_by_name(params, ccu, dev_name):
     elif len(devices) > 1:
         print " More than one device with name ", dev_name, " found, first one taken."
     else:
-        print " Error: No device with name ", dev_name, " found, try again."
+        print "*** Error: No device with name ", dev_name, " found, try again. ***"
         raise PMConnectionError()
 
 
@@ -118,14 +118,14 @@ def look_up_devices_by_type(params, ccu, dev_type):
     try:
         devices = ccu.devices.query(device_type=[dev_type])._devices.values()
     except Exception as e:
-        print e
+        print_error_message(ccu, e)
     if len(devices) > 0:
         if params.output_level > 0:
             for device in devices:
                 print device.name
         return devices
     else:
-        print " Error: No device with type ", dev_type, " found, try again."
+        print "*** Error: No device with type ", dev_type, " found, try again. ***"
         raise PMConnectionError()
 
 
@@ -153,6 +153,29 @@ def print_output(output_string):
     :return: -
     """
     print datetime.datetime.fromtimestamp(time.time()), output_string
+
+
+def print_error_message(ccu, exception_object):
+    """
+    For a PMException, parse the error message for the device address and look up that address in a dictionary with
+    addresses and device names. If the address is found, print a readable error message including the device name.
+    If no appropriate address is found in the error message, or if the address is not in the dictionary, print the
+    error message as is.
+
+    :param ccu: pmatic CCU data object
+    :param exception_object: PMException object
+    :return: -
+    """
+    err_string = str(exception_object)
+    address_string = err_string[
+                     err_string.index('address') + 12:err_string.index(u':', err_string.index('address') + 13)]
+
+    struct = ccu.api.device_list_all_detail()
+    for item in struct:
+        if item[u'address'] == address_string:
+            print_output('*** Error in accessing device "' + item[u'name'] + '" ***')
+            return
+    print_output(err_string)
 
 
 if __name__ == "__main__":
