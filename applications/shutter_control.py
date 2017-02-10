@@ -152,7 +152,7 @@ class window(object):
             true_setting = value
 
         if true_setting < 0. or true_setting > 1.:
-            print_output("Error: Invalid shutter value " + str(true_setting) + " specified.")
+            print_output("*** Error: Invalid shutter value " + str(true_setting) + " specified. ***")
             success = False
         else:
             try:
@@ -204,7 +204,7 @@ class window(object):
                     self.shutter_last_setting = nominal_setting
             except Exception as e:
                 if self.params.output_level > 0:
-                    print_output(repr(e))
+                    print_error_message(self.ccu, e)
                 success = False
         return success
 
@@ -372,7 +372,7 @@ class windows(object):
         # Treat special case: List of brightness values truncated, and at the same time brightness device unavailable
         if brightness_condition == "no_measurement_available":
             if self.params.output_level > 2:
-                print_output('Warning: No brightness measurement available, using "normal" instead')
+                print_output('*** Warning: No brightness measurement available, using "normal" instead ***')
             brightness_condition = "normal"
         if self.params.output_level > 2:
             print_output(
