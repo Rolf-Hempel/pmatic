@@ -115,7 +115,7 @@ class ventilation_control(object):
             if self.current_time - self.ventilation_switch_on_time > self.params.ventilation_switch_on_hours * 3600.:
                 try:
                     self.switch_device.switch_off()
-                    if self.params.output_level > 2:
+                    if self.params.output_level > 1:
                         print_output("Ventilator switched off")
                     self.ventilation_switch_off_time = self.current_time
                     self.ventilation_active = False
@@ -151,7 +151,7 @@ class ventilation_control(object):
                             temperatures.dew_point < self.current_temperature_internal and in_ventilation_interval:
                 try:
                     self.switch_device.switch_on()
-                    if self.params.output_level > 2:
+                    if self.params.output_level > 1:
                         print_output("Ventilator switched on")
                     self.ventilation_switch_on_time = self.current_time
                     self.ventilation_active = True

@@ -83,7 +83,6 @@ class brightness(object):
         self.brightnesses = self.brightnesses[first_entry:]
         self.measurement_available = False
         if len(self.brightnesses) > 0:
-            # print "brightnesses: ", [str(self.brightnesses[j][1]) for j in range(len(self.brightnesses))]
             self.brightness_external = max([self.brightnesses[j][1] for j in range(len(self.brightnesses))])
             self.measurement_available = True
             if self.params.output_level > 2:

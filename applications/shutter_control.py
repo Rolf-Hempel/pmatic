@@ -151,7 +151,7 @@ class window(object):
         if true_setting == None:
             true_setting = value
 
-        if true_setting < 0. or true_setting > 1.:
+        if true_setting < 0. or true_setting > 1. and self.params.output_level > 0:
             print_output("*** Error: Invalid shutter value " + str(true_setting) + " specified. ***")
             success = False
         else:

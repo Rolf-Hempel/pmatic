@@ -197,15 +197,17 @@ class temperature(object):
                 timestamp = json_out_fcst['list'][i]['dt']
                 # date = json_out_fcst['list'][i]['dt_txt']
                 temp = json_out_fcst['list'][i]['main']['temp']
-                # print timestamp, date, temp
                 temperature_forecast.append([timestamp, temp])
             # Replace the old list with forecast values with the new one
             self.temp_dict["temperatures_forecast"] = temperature_forecast
+            if self.params.output_level > 2:
+                print_output("New temperature forecast downloaded from OpenWeatherMap")
         except:
             # If not successful (e.g. no internet connection), leave the forecast values unchanged.
+            if self.params.output_level > 2:
+                print_output("Unsuccessful attempt to download new temperature forecast from OpenWeatherMap")
             return
-        if self.params.output_level > 2:
-            print_output("New temperature forecast downloaded from OpenWeatherMap")
+
 
     def analyze_forecast(self):
         """

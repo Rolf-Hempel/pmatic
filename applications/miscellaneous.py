@@ -93,15 +93,18 @@ def look_up_device_by_name(params, ccu, dev_name):
     try:
         devices = ccu.devices.query(device_name=dev_name)._devices.values()
     except Exception as e:
-        print_error_message(ccu, e)
+        if params.output_level > 0:
+            print_error_message(ccu, e)
     if len(devices) == 1:
         if params.output_level > 0:
             print dev_name
         return devices[0]
     elif len(devices) > 1:
-        print " More than one device with name ", dev_name, " found, first one taken."
+        if params.output_level > 0:
+            print " More than one device with name ", dev_name, " found, first one taken."
     else:
-        print "*** Error: No device with name ", dev_name, " found, try again. ***"
+        if params.output_level > 0:
+            print "*** Error: No device with name ", dev_name, " found, try again. ***"
         raise PMConnectionError()
 
 
@@ -118,14 +121,16 @@ def look_up_devices_by_type(params, ccu, dev_type):
     try:
         devices = ccu.devices.query(device_type=[dev_type])._devices.values()
     except Exception as e:
-        print_error_message(ccu, e)
+        if params.output_level > 0:
+            print_error_message(ccu, e)
     if len(devices) > 0:
         if params.output_level > 0:
             for device in devices:
                 print device.name
         return devices
     else:
-        print "*** Error: No device with type ", dev_type, " found, try again. ***"
+        if params.output_level > 0:
+            print "*** Error: No device with type ", dev_type, " found, try again. ***"
         raise PMConnectionError()
 
 

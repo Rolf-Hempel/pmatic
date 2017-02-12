@@ -98,24 +98,25 @@ if __name__ == "__main__":
     # Create the object which switches the ventilator in the basement on and off
     ventilation = ventilation_control(params, ccu)
 
-    # Check battery-powered devices for low battery:
-    device_with_low_battery = False
-    for device in ccu.devices:
-        if device.is_battery_low:
-            if not device_with_low_battery:
-                print ""
-                print_output(
-                    "++++++++++++++++++++++++++++++++++ Devices with low battery: ++++++++++++++++++++++++++++++++++++++++")
-                device_with_low_battery = True
-            print_output(device.name)
+    if params.output_level > 0:
+        # Check battery-powered devices for low battery:
+        device_with_low_battery = False
+        for device in ccu.devices:
+            if device.is_battery_low:
+                if not device_with_low_battery:
+                    print ""
+                    print_output(
+                        "++++++++++++++++++++++++++++++++++ Devices with low battery: ++++++++++++++++++++++++++++++++++++++++")
+                    device_with_low_battery = True
+                print_output(device.name)
 
-    if device_with_low_battery:
-        print_output(
-            "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    else:
+        if device_with_low_battery:
+            print_output(
+                "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        else:
+            print ""
+            print_output("All battery-powered devices are fine.")
         print ""
-        print_output("All battery-powered devices are fine.")
-    print ""
 
     # Main loop
     while True:
