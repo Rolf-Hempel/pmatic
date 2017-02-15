@@ -152,7 +152,9 @@ class ventilation_control(object):
                 try:
                     self.switch_device.switch_on()
                     if self.params.output_level > 1:
-                        print_output("Ventilator switched on")
+                        print_output("Ventilator switched on, temp. OUT: " + str(
+                            temperatures.temp_dict["current_temperature_external"]) + ", IN: " + str(
+                            self.current_temperature_internal) + ", dew point: " + str(temperatures.dew_point))
                     self.ventilation_switch_on_time = self.current_time
                     self.ventilation_active = True
                 except Exception as e:
