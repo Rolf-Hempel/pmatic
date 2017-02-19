@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import codecs
+import math
 import sys
 
 import pmatic
@@ -83,11 +84,24 @@ class brightness(object):
         self.brightnesses = self.brightnesses[first_entry:]
         self.measurement_available = False
         if len(self.brightnesses) > 0:
-            self.brightness_external = max([self.brightnesses[j][1] for j in range(len(self.brightnesses))])
+            if len(self.brightnesses) == 1:
+                self.brightness_external = self.current_brightness_external
+            else:
+                # self.brightness_external = max([self.brightnesses[j][1] for j in range(len(self.brightnesses))])
+                x = []
+                y = []
+                for i in range(len(self.brightnesses)):
+                    x.append(self.brightnesses[i][0]-current_time)
+                    y.append(math.log(self.brightnesses[i][1]))
+                    # y.append(self.brightnesses[i][1])
+                a, b = linear_regression(x, y)
+                time_forecast = 0.5*self.params.brightness_time_span
+                self.brightness_external = max(math.exp(a*time_forecast+b), 0.)
+                # self.brightness_external = max(a * time_forecast + b, 0.)
             self.measurement_available = True
             if self.params.output_level > 2:
                 print_output("Current external brightness: " + str(self.current_brightness_external) +
-                             ", maximum brightness over time span: " + str(self.brightness_external))
+                             ", brightness forecast for next time span: " + str(self.brightness_external))
 
 
     def brightness_condition(self):

@@ -150,6 +150,27 @@ def median(numeric_list):
         return float(sum(lst[(len(lst) / 2) - 1:(len(lst) / 2) + 1])) / 2.0
 
 
+def linear_regression(x, y):
+    """
+    Compute the linear regression parameters for given x and y vectors.
+
+    :param x: Vector with abscissa values (length > 1)
+    :param y: Vector with ordinate values (same length as x)
+    :return: values for slope and axis intersection of the linear regression function y=a*x+b.
+            For invalid input values, None is returned.
+    """
+    n = len(x)
+    if n < 2 or len(y) != n:
+        return None
+    sumh = float(sum(y))
+    sumt = float(sum(x))
+    sumth = float(sum(x[i] * y[i] for i in range(n)))
+    sumt2 = float(sum(x[i] ** 2 for i in range(n)))
+    a = (sumth - sumt * sumh / n) / (sumt2 - (sumt ** 2) / n)
+    b = (sumh - a * sumt) / n
+    return a, b
+
+
 def print_output(output_string):
     """
     Print a text string to stdout, preceded by the current UTC date and time
