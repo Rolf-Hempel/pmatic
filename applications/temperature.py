@@ -84,7 +84,9 @@ class temperature(object):
             self.temp_dict["min_forecast_temperature"] = None
             self.temp_dict["min_forecast_temperature_local_hour"] = None
             self.temp_dict["average_forecast_temperature"] = None
+            self.temp_dict["ventilation_max_forecast_temperature"] = None
             self.temp_dict["ventilation_max_forecast_temperature_local_hour"] = None
+            self.temp_dict["ventilation_min_forecast_temperature"] = None
             self.temp_dict["ventilation_min_forecast_temperature_local_hour"] = None
             with open(self.temperature_file_name, 'w') as temperature_file:
                 json.dump(self.temp_dict, temperature_file)
@@ -115,14 +117,16 @@ class temperature(object):
                 # Update minima / maxima data at the first invocation after 18:00 local time,
                 # but only if data have been recorded for at least 23 hours
                 if self.current_time - self.temp_dict["minmax_time_updated"] > 82800. and 18. < local_hour < 24.:
+                # if True:
                     if self.params.output_level > 1:
                         print_output("Updating average, maximum and minimum external temperatures:")
                     average_temperature = 0.
                     min_temperature = 100.
                     max_temperature = -100.
+                    cut_index = -1
                     for temp_object_stored in self.temp_dict["temperatures"]:
                         if self.current_time - temp_object_stored[0] > 86400.:
-                            self.temp_dict["temperatures"].remove(temp_object_stored)
+                            cut_index = self.temp_dict["temperatures"].index(temp_object_stored)
                             continue
                         average_temperature += temp_object_stored[1]
                         local_hour = get_local_hour(self.params, temp_object_stored[0])
@@ -136,6 +140,7 @@ class temperature(object):
                             min_temperature = temp_object_stored[1]
                             min_temperature_time = temp_object_stored[0]
                             min_local_hour = local_hour
+                    self.temp_dict["temperatures"] = self.temp_dict["temperatures"][cut_index + 1:]
                     if max_temperature == -100. and min_temperature == 100. and self.params.output_level > 1:
                         print "No new maximum or minimum temperature found"
                     else:
@@ -166,11 +171,13 @@ class temperature(object):
                     self.temp_dict["minmax_time_updated"] = self.current_time
                     if self.temp_dict[
                         "ventilation_max_forecast_temperature_local_hour"] is not None and self.params.output_level > 1:
-                        print "Local hour of maximum temperature next 24 hours: " + \
+                        print "New forecast maximum temperature next 24 hours: " + str(
+                            self.temp_dict["ventilation_max_forecast_temperature"]) + ", Local hour of maximum: " + \
                               str(self.temp_dict["ventilation_max_forecast_temperature_local_hour"])
                     if self.temp_dict[
                         "ventilation_min_forecast_temperature_local_hour"] is not None and self.params.output_level > 1:
-                        print "Local hour of minimum temperature next 24 hours: " + \
+                        print "New forecast minimum temperature next 24 hours: " + str(
+                            self.temp_dict["ventilation_min_forecast_temperature"]) + ", Local hour of minimum: " + \
                               str(self.temp_dict["ventilation_min_forecast_temperature_local_hour"])
                 with open(self.temperature_file_name, 'w') as temperature_file:
                     json.dump(self.temp_dict, temperature_file)
@@ -208,7 +215,6 @@ class temperature(object):
                 print_output("Unsuccessful attempt to download new temperature forecast from OpenWeatherMap")
             return
 
-
     def analyze_forecast(self):
         """
         Look for maximum and minimum forecast temperatures and corresponding local hours, and compute the average
@@ -236,10 +242,14 @@ class temperature(object):
             self.temp_dict["average_forecast_temperature"] = None
         # For ventilation control compute forecast times of temp max and min during the next day.
         if self.compute_available_forecast_days() > 0:
-            (temp1, self.temp_dict["ventilation_max_forecast_temperature_local_hour"], temp2,
+            (self.temp_dict["ventilation_max_forecast_temperature"],
+             self.temp_dict["ventilation_max_forecast_temperature_local_hour"],
+             self.temp_dict["ventilation_min_forecast_temperature"],
              self.temp_dict["ventilation_min_forecast_temperature_local_hour"], temp3) = self.compute_min_max_average(1)
         else:
+            self.temp_dict["ventilation_max_forecast_temperature"] = None
             self.temp_dict["ventilation_max_forecast_temperature_local_hour"] = None
+            self.temp_dict["ventilation_min_forecast_temperature"] = None
             self.temp_dict["ventilation_min_forecast_temperature_local_hour"] = None
 
     def compute_available_forecast_days(self):
