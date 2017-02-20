@@ -95,8 +95,10 @@ class brightness(object):
                     y.append(math.log(self.brightnesses[i][1]))
                     # y.append(self.brightnesses[i][1])
                 a, b = linear_regression(x, y)
-                time_forecast = 0.5*self.params.brightness_time_span
-                self.brightness_external = max(math.exp(a*time_forecast+b), 0.)
+                # Evaluate regression function for current_time (i.e. x=0)
+                self.brightness_external = max(math.exp(b), 0.)
+                # time_forecast = 0.5 * self.params.brightness_time_span
+                # self.brightness_external = max(math.exp(a * time_forecast + b), 0.)
                 # self.brightness_external = max(a * time_forecast + b, 0.)
             self.measurement_available = True
             if self.params.output_level > 2:
