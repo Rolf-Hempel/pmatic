@@ -50,6 +50,9 @@ class brightness(object):
         self.measurement_available = False
         self.brightnesses = []
         self.time_last_updated = 0.
+        self.last_brightness_condition = None
+        self.last_brightness_change_direction = None
+        self.current_time = 0
 
     def update(self):
         """
@@ -57,9 +60,9 @@ class brightness(object):
 
         :return: -
         """
-        current_time = time.time()
+        self.current_time = time.time()
         # Do new brightness measurements only if a certain time has passed since the last one
-        if current_time - self.time_last_updated > self.params.brightness_update_interval:
+        if self.current_time - self.time_last_updated > self.params.brightness_update_interval:
             # take new brightness measurements
             brightness_measurements = []
             for brightness_device in self.brightness_devices_external:
@@ -73,12 +76,12 @@ class brightness(object):
                 # Set the current brightness to the max over all measuring devices
                 self.current_brightness_external = max(brightness_measurements)
                 # Add the current measurement together with its time stamp to the list of past readings
-                self.brightnesses.append([current_time, self.current_brightness_external])
-                self.time_last_updated = current_time
+                self.brightnesses.append([self.current_time, self.current_brightness_external])
+                self.time_last_updated = self.current_time
         # Shorten the list of stored brightness measurements if they span more than the given maximum time span
         first_entry = len(self.brightnesses)
         for i in range(len(self.brightnesses)):
-            if current_time - self.brightnesses[i][0] <= self.params.brightness_time_span:
+            if self.current_time - self.brightnesses[i][0] <= self.params.brightness_time_span:
                 first_entry = i
                 break
         self.brightnesses = self.brightnesses[first_entry:]
@@ -91,19 +94,20 @@ class brightness(object):
                 x = []
                 y = []
                 for i in range(len(self.brightnesses)):
-                    x.append(self.brightnesses[i][0]-current_time)
+                    x.append(self.brightnesses[i][0]-self.current_time)
                     y.append(math.log(self.brightnesses[i][1]))
                     # y.append(self.brightnesses[i][1])
                 a, b = linear_regression(x, y)
                 # Evaluate regression function for current_time (i.e. x=0)
                 self.brightness_external = max(math.exp(b), 0.)
+                # Alternative algorithm: Extrapolate by half the brightness_time_span
                 # time_forecast = 0.5 * self.params.brightness_time_span
                 # self.brightness_external = max(math.exp(a * time_forecast + b), 0.)
                 # self.brightness_external = max(a * time_forecast + b, 0.)
             self.measurement_available = True
             if self.params.output_level > 2:
                 print_output("Current external brightness: " + str(self.current_brightness_external) +
-                             ", brightness forecast for next time span: " + str(self.brightness_external))
+                             ", regression value for current time: " + str(self.brightness_external))
 
 
     def brightness_condition(self):
@@ -115,11 +119,36 @@ class brightness(object):
         if not self.measurement_available:
             return "no_measurement_available"
         elif self.brightness_external > self.params.brightness_very_bright:
-            return "very-bright"
+            condition = 2
         elif self.brightness_external < self.params.brightness_dim:
-            return "dim"
+            condition = 0
         else:
+            condition = 1
+        if self.last_brightness_condition is None:
+            self.last_brightness_condition = condition
+            self.last_brightness_change_time = self.current_time
+        elif condition != self.last_brightness_condition:
+            change_direction = cmp(condition-self.last_brightness_condition, 0)
+            if self.last_brightness_change_direction is None:
+                self.last_brightness_change_direction = change_direction
+                self.last_brightness_change_time = self.current_time
+            elif change_direction == self.last_brightness_change_direction:
+                self.last_brightness_condition = condition
+                self.last_brightness_change_time = self.current_time
+            elif change_direction != self.last_brightness_change_direction and \
+                (self.current_time-self.last_brightness_change_time)>self.params.brightness_minimum_reversal_time:
+                self.last_brightness_condition = condition
+                self.last_brightness_change_time = self.current_time
+                self.last_brightness_change_direction = change_direction
+            else:
+                condition = self.last_brightness_condition
+        if condition == 0:
+            return "dim"
+        elif condition == 1:
             return "normal"
+        else:
+            return "very-bright"
+
 
 
 if __name__ == "__main__":
