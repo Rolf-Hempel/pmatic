@@ -71,9 +71,12 @@ class sysvar_activities(object):
                                           self.ventilate_kitchen, self.ventilate_night]
         self.constant_daytime_shutter_settings = [self.shutter_constant_25, self.shutter_constant_50,
                                                  self.shutter_constant_100]
-        self.sysvars = {u'Keine Rolladenbewegungen': self.suspend_shutter_activities, u'Fernsehabend': self.tv_evening,
-                        u'Lueften Obergeschoss': self.ventilate_upper, u'Lueften Erdgeschoss': self.ventilate_lower,
-                        u'Lueften Kueche': self.ventilate_kitchen, u'Lueften Nacht': self.ventilate_night,
+        self.sysvars = {u'Keine Rolladenbewegungen': self.suspend_shutter_activities,
+                        u'Fernsehabend': self.tv_evening,
+                        u'Lueften Obergeschoss': self.ventilate_upper,
+                        u'Lueften Erdgeschoss': self.ventilate_lower,
+                        u'Lueften Kueche': self.ventilate_kitchen,
+                        u'Lueften Nacht': self.ventilate_night,
                         u'Keine RB Schlafzimmer': self.suspend_sleeping_room,
                         u'Lueften bis zum Morgen': self.ventilate_until_morning,
                         u'Rollaeden 25 Prozent': self.shutter_constant_25,
@@ -85,10 +88,12 @@ class sysvar_activities(object):
         Update the system variable settings
         :return: -
         """
+        self.changed = False
         for sysvar_name, activity in self.sysvars.iteritems():
             # The pmatic api returns the values "true" and "false" as character strings instead of a boolean!
             new_value = self.api.sys_var_get_value_by_name(name=sysvar_name) == "true"
             if activity["active"] != new_value:
+                self.changed = True
                 if self.params.output_level > 1:
                     print_output("System variable " + sysvar_name + " has changed to " + str(new_value))
                 activity["active"] = self.api.sys_var_get_value_by_name(name=sysvar_name) == "true"

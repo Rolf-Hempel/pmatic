@@ -193,8 +193,8 @@ class window(object):
                 # Test if current shutter setting differs from target value and no manual intervention is active
 
                 if (abs(nominal_setting - self.shutter_current_setting) > self.params.shutter_setting_tolerance and not \
-                        self.shutter_manual_intervention_active and not_at_night(self.params)) or \
-                        end_of_manual_intervention:
+                        self.shutter_manual_intervention_active and (
+                        not_at_night(self.params) or self.sysvar_act.changed)) or end_of_manual_intervention:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(true_setting))
                     # Move the shutter
