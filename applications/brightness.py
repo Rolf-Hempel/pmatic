@@ -137,9 +137,21 @@ class brightness(object):
                 self.last_brightness_change_time = self.current_time
             elif change_direction != self.last_brightness_change_direction and \
                 (self.current_time-self.last_brightness_change_time)>self.params.brightness_minimum_reversal_time:
-                self.last_brightness_condition = condition
-                self.last_brightness_change_time = self.current_time
-                self.last_brightness_change_direction = change_direction
+                if condition==2:
+                    margin = self.brightness_external / self.params.brightness_very_bright
+                elif condition==0:
+                    margin = self.params.brightness_dim / self.brightness_external
+                else:
+                    if change_direction == 1:
+                        margin = self.brightness_external / self.params.brightness_dim
+                    else:
+                        margin = self.params.brightness_very_bright / self.brightness_external
+                if margin > self.params.brightness_reversal_margin:
+                    self.last_brightness_condition = condition
+                    self.last_brightness_change_time = self.current_time
+                    self.last_brightness_change_direction = change_direction
+                else:
+                    condition = self.last_brightness_condition
             else:
                 condition = self.last_brightness_condition
         if condition == 0:

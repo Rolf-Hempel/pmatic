@@ -116,6 +116,10 @@ class parameters(object):
                 self.brightness_minimum_reversal_time = float(self.parameters["brightness_minimum_reversal_time"])
             else:
                 self.brightness_minimum_reversal_time = 3600.
+            if "brightness_reversal_margin" in self.parameters.keys():
+                self.brightness_reversal_margin = float(self.parameters["brightness_reversal_margin"])
+            else:
+                self.brightness_reversal_margin = 1.8
             if "brightness_very_bright" in self.parameters.keys():
                 self.brightness_very_bright = float(self.parameters["brightness_very_bright"])
             else:
@@ -429,6 +433,7 @@ class parameters(object):
             "\nbrightness_update_interval: ", self.brightness_update_interval, \
             "\nbrightness_time_span: ", self.brightness_time_span, \
             "\nbrightness_minimum_reversal_time: ", self.brightness_minimum_reversal_time, \
+            "\nbrightness_reversal_margin: ", self.brightness_reversal_margin, \
             "\nbrightness_very_bright: ", self.brightness_very_bright, \
             "\nbrightness_dim: ", self.brightness_dim, \
             "\nsunrise_decision_width: ", self.sunrise_decision_width, \
