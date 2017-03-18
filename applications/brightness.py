@@ -99,7 +99,7 @@ class brightness(object):
                     # y.append(self.brightnesses[i][1])
                 a, b = linear_regression(x, y)
                 # Evaluate regression function for current_time (i.e. x=0)
-                self.brightness_external = max(math.exp(b), 0.)
+                self.brightness_external = math.exp(b)
                 # Alternative algorithm: Extrapolate by half the brightness_time_span
                 # time_forecast = 0.5 * self.params.brightness_time_span
                 # self.brightness_external = max(math.exp(a * time_forecast + b), 0.)
