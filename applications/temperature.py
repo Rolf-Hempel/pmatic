@@ -88,6 +88,7 @@ class temperature(object):
             self.temp_dict["ventilation_max_forecast_temperature_local_hour"] = None
             self.temp_dict["ventilation_min_forecast_temperature"] = None
             self.temp_dict["ventilation_min_forecast_temperature_local_hour"] = None
+            self.temp_dict["ventilation_average_forecast_temperature"] = None
             with open(self.temperature_file_name, 'w') as temperature_file:
                 json.dump(self.temp_dict, temperature_file)
         time.sleep(self.params.lookup_sleep_time)
@@ -146,6 +147,8 @@ class temperature(object):
                     else:
                         self.temp_dict["average_temperature"] = average_temperature / len(
                             self.temp_dict["temperatures"])
+                        if self.params.output_level > 1:
+                            print "New average temperature (last 24 hours): " + str(self.temp_dict["average_temperature"])
                         if max_temperature > -100.:
                             if self.params.output_level > 1:
                                 print "New maximum temperature: " + str(max_temperature) + ", Time of maximum: " + str(
@@ -168,6 +171,8 @@ class temperature(object):
                     if self.temp_dict["min_forecast_temperature"] is not None and self.params.output_level > 1:
                         print "New forecast minimum temperature: " + str(self.temp_dict["min_forecast_temperature"]) + \
                               ", Local hour of minimum: " + str(self.temp_dict["min_forecast_temperature_local_hour"])
+                    if self.temp_dict["average_forecast_temperature"] is not None and self.params.output_level > 1:
+                        print "New forecast average temperature: " + str(self.temp_dict["average_forecast_temperature"])
                     self.temp_dict["minmax_time_updated"] = self.current_time
                     if self.temp_dict[
                         "ventilation_max_forecast_temperature_local_hour"] is not None and self.params.output_level > 1:
@@ -179,6 +184,10 @@ class temperature(object):
                         print "New forecast minimum temperature next 24 hours: " + str(
                             self.temp_dict["ventilation_min_forecast_temperature"]) + ", Local hour of minimum: " + \
                               str(self.temp_dict["ventilation_min_forecast_temperature_local_hour"])
+                    if self.temp_dict[
+                        "ventilation_average_forecast_temperature"] is not None and self.params.output_level > 1:
+                        print "New forecast average temperature next 24 hours: " + str(
+                            self.temp_dict["ventilation_average_forecast_temperature"])
                 with open(self.temperature_file_name, 'w') as temperature_file:
                     json.dump(self.temp_dict, temperature_file)
             except Exception as e:
@@ -245,12 +254,14 @@ class temperature(object):
             (self.temp_dict["ventilation_max_forecast_temperature"],
              self.temp_dict["ventilation_max_forecast_temperature_local_hour"],
              self.temp_dict["ventilation_min_forecast_temperature"],
-             self.temp_dict["ventilation_min_forecast_temperature_local_hour"], temp3) = self.compute_min_max_average(1)
+             self.temp_dict["ventilation_min_forecast_temperature_local_hour"],
+             self.temp_dict["ventilation_average_forecast_temperature"]) = self.compute_min_max_average(1)
         else:
             self.temp_dict["ventilation_max_forecast_temperature"] = None
             self.temp_dict["ventilation_max_forecast_temperature_local_hour"] = None
             self.temp_dict["ventilation_min_forecast_temperature"] = None
             self.temp_dict["ventilation_min_forecast_temperature_local_hour"] = None
+            self.temp_dict["ventilation_average_forecast_temperature"] = None
 
     def compute_available_forecast_days(self):
         """
