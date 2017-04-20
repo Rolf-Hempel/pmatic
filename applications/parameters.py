@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import json
+from miscellaneous import *
 
 
 class parameters(object):
@@ -30,8 +31,14 @@ class parameters(object):
 
     def update_parameters(self):
         self.parameters_old = self.parameters
-        with open(self.parameter_file_name, "r") as parameter_file:
-            self.parameters = json.load(parameter_file)
+        try:
+            with open(self.parameter_file_name, "r") as parameter_file:
+                self.parameters = json.load(parameter_file)
+        except Exception as e:
+            if self.output_level > 0:
+                print_output("*** Error: Invalid parameter file, error message: " + str(e) + "***")
+            return False
+
         if self.test_for_changes():
             if "output_level" in self.parameters.keys():
                 self.output_level = int(self.parameters["output_level"])
