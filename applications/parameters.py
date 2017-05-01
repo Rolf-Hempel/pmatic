@@ -159,6 +159,10 @@ class parameters(object):
                 self.max_temp_lookahead_time = float(self.parameters["max_temp_lookahead_time"])
             else:
                 self.max_temp_lookahead_time = 3.
+            if "average_forecast_temp_correction" in self.parameters.keys():
+                self.average_forecast_temp_correction = float(self.parameters["average_forecast_temp_correction"])
+            else:
+                self.average_forecast_temp_correction = 1.8
             if "average_temperature" in self.parameters.keys():
                 self.average_temperature = float(self.parameters["average_temperature"])
             else:
@@ -448,6 +452,7 @@ class parameters(object):
             "\nday_brightness_threshold: ", self.day_brightness_threshold, \
             "\nnight_brightness_threshold: ", self.night_brightness_threshold, \
             "\ntemperature_update_interval: ", self.temperature_update_interval, \
+            "\naverage_forecast_temp_correction: ", self.average_forecast_temp_correction, \
             "\nmax_temp_lookahead_time: ", self.max_temp_lookahead_time, \
             "\naverage_temperature: ", self.average_temperature, \
             "\naverage_humidity_external: ", self.average_humidity_external, \

@@ -118,7 +118,7 @@ class temperature(object):
                 # Update minima / maxima data at the first invocation after 18:00 local time,
                 # but only if data have been recorded for at least 23 hours
                 if self.current_time - self.temp_dict["minmax_time_updated"] > 82800. and 18. < local_hour < 24.:
-                # if True:
+                    # if True:
                     if self.params.output_level > 1:
                         print_output("Updating average, maximum and minimum external temperatures:")
                     average_temperature = 0.
@@ -148,7 +148,8 @@ class temperature(object):
                         self.temp_dict["average_temperature"] = average_temperature / len(
                             self.temp_dict["temperatures"])
                         if self.params.output_level > 1:
-                            print "New average temperature (last 24 hours): " + str(self.temp_dict["average_temperature"])
+                            print "New average temperature (last 24 hours): " + str(
+                                self.temp_dict["average_temperature"])
                         if max_temperature > -100.:
                             if self.params.output_level > 1:
                                 print "New maximum temperature: " + str(max_temperature) + ", Time of maximum: " + str(
@@ -251,11 +252,12 @@ class temperature(object):
             self.temp_dict["average_forecast_temperature"] = None
         # For ventilation control compute forecast times of temp max and min during the next day.
         if self.compute_available_forecast_days() > 0:
+            one_day = 1
             (self.temp_dict["ventilation_max_forecast_temperature"],
              self.temp_dict["ventilation_max_forecast_temperature_local_hour"],
              self.temp_dict["ventilation_min_forecast_temperature"],
              self.temp_dict["ventilation_min_forecast_temperature_local_hour"],
-             self.temp_dict["ventilation_average_forecast_temperature"]) = self.compute_min_max_average(1)
+             self.temp_dict["ventilation_average_forecast_temperature"]) = self.compute_min_max_average(one_day)
         else:
             self.temp_dict["ventilation_max_forecast_temperature"] = None
             self.temp_dict["ventilation_max_forecast_temperature_local_hour"] = None
@@ -311,7 +313,11 @@ class temperature(object):
             # Translate Unix timestamps into local hours and compute average temperature.
             max_forecast_temp_local_hour = get_local_hour(self.params, max_forecast_temp_timestamp)
             min_forecast_temp_local_hour = get_local_hour(self.params, min_forecast_temp_timestamp)
-            average_forecast_temp = average_forecast_temp / float(n_timestamps)
+            # Correct forecast temperatures for systematic deviation from measured values.
+            max_forecast_temp += self.params.average_forecast_temp_correction
+            min_forecast_temp += self.params.average_forecast_temp_correction
+            average_forecast_temp = average_forecast_temp / float(
+                n_timestamps) + self.params.average_forecast_temp_correction
             return max_forecast_temp, max_forecast_temp_local_hour, min_forecast_temp, min_forecast_temp_local_hour, \
                    average_forecast_temp
         else:
