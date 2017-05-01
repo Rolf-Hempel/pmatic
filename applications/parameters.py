@@ -452,8 +452,8 @@ class parameters(object):
             "\nday_brightness_threshold: ", self.day_brightness_threshold, \
             "\nnight_brightness_threshold: ", self.night_brightness_threshold, \
             "\ntemperature_update_interval: ", self.temperature_update_interval, \
-            "\naverage_forecast_temp_correction: ", self.average_forecast_temp_correction, \
             "\nmax_temp_lookahead_time: ", self.max_temp_lookahead_time, \
+            "\naverage_forecast_temp_correction: ", self.average_forecast_temp_correction, \
             "\naverage_temperature: ", self.average_temperature, \
             "\naverage_humidity_external: ", self.average_humidity_external, \
             "\nmin_temperature: ", self.min_temperature, "\nmin_temperature_time: ", self.min_temperature_time, \
