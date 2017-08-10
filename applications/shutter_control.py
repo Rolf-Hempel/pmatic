@@ -65,6 +65,7 @@ class window(object):
         self.shutter_manual_intervention_active = False
         self.open_spaces = []
         self.shutter_coef = [0., 1., 0.]
+        self.last_sunlit_condition = "none"
 
         ccu_not_ready_yet = True
         while ccu_not_ready_yet:
@@ -102,17 +103,37 @@ class window(object):
 
     def test_sunlit(self):
         """
-        Test if currently the sun can potentially illuminate the window (without regarding clouds).
+        Test if the sun can potentially illuminate the window (without regarding clouds). If a change relative to the
+        last call is detected, check if the new condition will not change again for a given number of seconds
+        (specified with the parameter "sunlit_lookahead_time"). Only then the change takes effect.
 
         :return: "sunlit", if sun is in an open sky patch. "shade", otherwise
         """
         sun_azimuth, sun_elevation = self.sun.look_up_position()
-        sunlit_condition = "shade"
+        new_condition = self.sun_in_open_space(sun_azimuth, sun_elevation)
+        if new_condition == self.last_sunlit_condition or self.last_sunlit_condition == "none":
+            # No change is detected, or this is the first call.
+            self.last_sunlit_condition = new_condition
+            return new_condition
+        for (sun_azimuth, sun_elevation) in self.sun.sun_lookahead_positions[1:]:
+            if self.sun_in_open_space(sun_azimuth, sun_elevation) != new_condition:
+                return self.last_sunlit_condition
+        self.last_sunlit_condition = new_condition
+        return new_condition
+
+    def sun_in_open_space(self, sun_azimuth, sun_elevation):
+        """
+        Test if currently the sun at coordinates (sun_azimuth, sun_elevation) can potentially illuminate the window
+        (without regarding clouds).
+
+        :return: "sunlit", if sun is in an open sky patch. "shade", otherwise
+        """
+        sunlit = "shade"
         for ([azimuth_lower, azimuth_upper, elevation_lower, elevation_upper]) in self.open_spaces:
             if azimuth_lower <= sun_azimuth <= azimuth_upper and elevation_lower <= sun_elevation <= elevation_upper:
-                sunlit_condition = "sunlit"
+                sunlit = "sunlit"
                 break
-        return sunlit_condition
+        return sunlit
 
     def true_to_nominal(self, setting_true):
         """

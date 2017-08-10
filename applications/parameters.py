@@ -111,6 +111,10 @@ class parameters(object):
                 self.ch_night_end_sunday = float(self.parameters["ch_night_end_sunday"])
             else:
                 self.ch_night_end_sunday = 7.
+            if "sunlit_lookahead_time" in self.parameters.keys():
+                self.sunlit_lookahead_time = float(self.parameters["sunlit_lookahead_time"])
+            else:
+                self.sunlit_lookahead_time = 2700.
             if "brightness_update_interval" in self.parameters.keys():
                 self.brightness_update_interval = float(self.parameters["brightness_update_interval"])
             else:
