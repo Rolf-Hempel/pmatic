@@ -166,7 +166,7 @@ class parameters(object):
             if "average_forecast_temp_correction" in self.parameters.keys():
                 self.average_forecast_temp_correction = float(self.parameters["average_forecast_temp_correction"])
             else:
-                self.average_forecast_temp_correction = 1.8
+                self.average_forecast_temp_correction = 1.65
             if "average_temperature" in self.parameters.keys():
                 self.average_temperature = float(self.parameters["average_temperature"])
             else:
@@ -220,11 +220,11 @@ class parameters(object):
             if "average_temperature_hot" in self.parameters.keys():
                 self.average_temperature_hot = float(self.parameters["average_temperature_hot"])
             else:
-                self.average_temperature_hot = 21.
+                self.average_temperature_hot = 19.
             if "average_temperature_cold" in self.parameters.keys():
                 self.average_temperature_cold = float(self.parameters["average_temperature_cold"])
             else:
-                self.average_temperature_cold = 17.
+                self.average_temperature_cold = 15.
             if "ventilation_transition_temperature" in self.parameters.keys():
                 self.ventilation_transition_temperature = float(self.parameters["ventilation_transition_temperature"])
             else:
@@ -445,6 +445,7 @@ class parameters(object):
             "\nch_night_begin: ", self.ch_night_begin, "\nch_night_end: ", self.ch_night_end, \
             "\nch_night_end_saturday: ", self.ch_night_end_saturday, \
             "\nch_night_end_sunday: ", self.ch_night_end_sunday, \
+            "\nsunlit_lookahead_time: ", self.sunlit_lookahead_time, \
             "\nbrightness_update_interval: ", self.brightness_update_interval, \
             "\nbrightness_time_span: ", self.brightness_time_span, \
             "\nbrightness_minimum_reversal_time: ", self.brightness_minimum_reversal_time, \
