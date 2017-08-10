@@ -237,9 +237,10 @@ class temperature(object):
 
         :return: -
         """
-        # Compute the number of days for forecast statistics.
+        # Compute the number of days for forecast statistics. If temperatures are available for more than the next
+        # day, the average temperature is treated as a forecast.
         self.forecast_days = min(self.compute_available_forecast_days(), self.params.max_temp_lookahead_time)
-        if self.forecast_days > 0:
+        if self.forecast_days > 1:
             (self.temp_dict["max_forecast_temperature"], self.temp_dict["max_forecast_temperature_local_hour"], \
              self.temp_dict["min_forecast_temperature"], self.temp_dict["min_forecast_temperature_local_hour"], \
              self.temp_dict["average_forecast_temperature"]) = self.compute_min_max_average(self.forecast_days)
@@ -334,18 +335,27 @@ class temperature(object):
         if self.params.shutter_control_scheme == "average_temperature":
             # Control scheme based on average external temperatures (forecast or recorded):
 
+            if self.temp_dict["ventilation_average_forecast_temperature"] is not None:
+                # If on the previous evening a one-day forecast average temperature was available, take this as today's
+                # average. Otherwise take yesterday's measured average as an approximation.
+                average_temperature_today = self.temp_dict["ventilation_average_forecast_temperature"]
+            else:
+                average_temperature_today = self.temp_dict["average_temperature"]
+
             if self.temp_dict["average_forecast_temperature"] is not None:
+                # An average temperature is available for more than one day ahead.
                 average_temperature = self.temp_dict["average_forecast_temperature"]
             else:
-                average_temperature = self.temp_dict["average_temperature"]
+                average_temperature = average_temperature_today
 
+            # Characterize the temperature based on the future and today's average values.
             if average_temperature >= self.params.average_temperature_very_hot:
-                if self.temp_dict["average_temperature"] < self.params.average_temperature_very_hot:
+                if average_temperature_today < self.params.average_temperature_very_hot:
                     return "very-hot-fcst"
                 else:
                     return "very-hot"
             elif average_temperature >= self.params.average_temperature_hot:
-                if self.temp_dict["average_temperature"] < self.params.average_temperature_hot:
+                if average_temperature_today < self.params.average_temperature_hot:
                     return "hot-fcst"
                 else:
                     return "hot"
