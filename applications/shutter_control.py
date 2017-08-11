@@ -77,25 +77,27 @@ class window(object):
             except:
                 time.sleep(params.main_loop_sleep_time)
 
-    def add_lower_profile_point(self, azimuth, elevation):
+    def add_lower_profile_point(self, base_azimuth, azimuth, elevation):
         """
         Add the azimuthal coordinates of a point on the horizon as seen from this window.
 
+        :param base_azimuth: azimuth angle of the zero point for this window (in degrees)
         :param azimuth: azimuth angle of the point (in degrees)
         :param elevation: elevation angle of the point (in degrees)
         :return: -
         """
-        self.lower_profile.append([radians(azimuth), radians(elevation)])
+        self.lower_profile.append([radians(base_azimuth + azimuth), radians(elevation)])
 
-    def add_upper_profile_point(self, azimuth, elevation):
+    def add_upper_profile_point(self, base_azimuth, azimuth, elevation):
         """
         Add the azimuthal coordinates of a point on the upper free space boundary as seen from this window.
 
+        :param base_azimuth: azimuth angle of the zero point for this window (in degrees)
         :param azimuth: azimuth angle of the point (in degrees)
         :param elevation: elevation angle of the point (in degrees)
         :return: -
         """
-        self.upper_profile.append([radians(azimuth), radians(elevation)])
+        self.upper_profile.append([radians(base_azimuth + azimuth), radians(elevation)])
 
     def add_open_space(self, azimuth_lower, azimuth_upper, elevation_lower, elevation_upper):
         """
@@ -166,7 +168,7 @@ class window(object):
         """
 
         if (self.linear_interpolation(self.lower_profile, sun_azimuth) <= sun_elevation
-            <= self.linear_interpolation(self.upper_profile, sun_azimuth)):
+                <= self.linear_interpolation(self.upper_profile, sun_azimuth)):
             return "sunlit"
         else:
             return "shade"
@@ -273,9 +275,8 @@ class window(object):
                 # Apply translation between intended and nominal shutter settings
                 nominal_setting = self.true_to_nominal(true_setting)
                 # Test if current shutter setting differs from target value and no manual intervention is active
-
                 if (abs(nominal_setting - self.shutter_current_setting) > self.params.shutter_setting_tolerance and not
-                        self.shutter_manual_intervention_active and (
+                            self.shutter_manual_intervention_active and (
                             not_at_night(self.params) or self.sysvar_act.changed)) or end_of_manual_intervention:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(true_setting))
