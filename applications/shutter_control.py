@@ -64,6 +64,8 @@ class window(object):
         self.shutter_last_setting = -1.
         self.shutter_manual_intervention_active = False
         self.open_spaces = []
+        self.lower_profile = []
+        self.upper_profile = []
         self.shutter_coef = [0., 1., 0.]
         self.last_sunlit_condition = "none"
 
@@ -74,6 +76,26 @@ class window(object):
                 ccu_not_ready_yet = False
             except:
                 time.sleep(params.main_loop_sleep_time)
+
+    def add_lower_profile_point(self, azimuth, elevation):
+        """
+        Add the azimuthal coordinates of a point on the horizon as seen from this window.
+
+        :param azimuth: azimuth angle of the point (in degrees)
+        :param elevation: elevation angle of the point (in degrees)
+        :return: -
+        """
+        self.lower_profile.append([radians(azimuth), radians(elevation)])
+
+    def add_upper_profile_point(self, azimuth, elevation):
+        """
+        Add the azimuthal coordinates of a point on the upper free space boundary as seen from this window.
+
+        :param azimuth: azimuth angle of the point (in degrees)
+        :param elevation: elevation angle of the point (in degrees)
+        :return: -
+        """
+        self.upper_profile.append([radians(azimuth), radians(elevation)])
 
     def add_open_space(self, azimuth_lower, azimuth_upper, elevation_lower, elevation_upper):
         """
@@ -86,7 +108,7 @@ class window(object):
         :param elevation_upper: upper bound of rectangle in elevation
         :return: -
         """
-        self.open_spaces.append([radians(azimuth_lower), radians(azimuth_upper), \
+        self.open_spaces.append([radians(azimuth_lower), radians(azimuth_upper),
                                  radians(elevation_lower), radians(elevation_upper)])
 
     def add_shutter_coef(self, coef):
@@ -110,18 +132,18 @@ class window(object):
         :return: "sunlit", if sun is in an open sky patch. "shade", otherwise
         """
         sun_azimuth, sun_elevation = self.sun.look_up_position()
-        new_condition = self.sun_in_open_space(sun_azimuth, sun_elevation)
+        new_condition = self.sun_in_open_space_legacy(sun_azimuth, sun_elevation)
         if new_condition == self.last_sunlit_condition or self.last_sunlit_condition == "none":
             # No change is detected, or this is the first call.
             self.last_sunlit_condition = new_condition
             return new_condition
         for (sun_azimuth, sun_elevation) in self.sun.sun_lookahead_positions[1:]:
-            if self.sun_in_open_space(sun_azimuth, sun_elevation) != new_condition:
+            if self.sun_in_open_space_legacy(sun_azimuth, sun_elevation) != new_condition:
                 return self.last_sunlit_condition
         self.last_sunlit_condition = new_condition
         return new_condition
 
-    def sun_in_open_space(self, sun_azimuth, sun_elevation):
+    def sun_in_open_space_legacy(self, sun_azimuth, sun_elevation):
         """
         Test if currently the sun at coordinates (sun_azimuth, sun_elevation) can potentially illuminate the window
         (without regarding clouds).
@@ -134,6 +156,45 @@ class window(object):
                 sunlit = "sunlit"
                 break
         return sunlit
+
+    def sun_in_open_space(self, sun_azimuth, sun_elevation):
+        """
+        Test if currently the sun at coordinates (sun_azimuth, sun_elevation) can potentially illuminate the window
+        (without regarding clouds).
+
+        :return: "sunlit", if sun is in an open sky patch. "shade", otherwise
+        """
+
+        if (self.linear_interpolation(self.lower_profile, sun_azimuth) <= sun_elevation
+            <= self.linear_interpolation(self.upper_profile, sun_azimuth)):
+            return "sunlit"
+        else:
+            return "shade"
+
+    def linear_interpolation(self, profile, sun_azimuth):
+        """
+        Auxiliary routine: interpolate profile elevation linearly at azimuth position of the sun.
+
+        :param profile: list with [azimuth,elevation] pairs which define the profile (horizon or upper space boundary)
+        :param sun_azimuth: azimuth value for which the elevation is to be computed
+        :return: interpolated elevation value, or -1 if the azimuth is out of range
+        """
+
+        # Check if azimuth is out of range:
+        if sun_azimuth <= profile[0][0] or sun_azimuth > profile[-1][0]:
+            print_output('*** Error: invalid profile for window ' + self.window_name + ' ***')
+            return -1.
+        for [azimuth, elevation] in profile:
+            if azimuth < sun_azimuth:
+                # Store point left of desired location.
+                azimuth_left = azimuth
+                elevation_left = elevation
+            else:
+                # Current point is the first to the right of desired location.
+                azimuth_right = azimuth
+                elevation_right = elevation
+                return (sun_azimuth - azimuth_left) / (azimuth_right - azimuth_left) * elevation_right + \
+                       (azimuth_right - sun_azimuth) / (azimuth_right - azimuth_left) * elevation_left
 
     def true_to_nominal(self, setting_true):
         """
@@ -213,9 +274,9 @@ class window(object):
                 nominal_setting = self.true_to_nominal(true_setting)
                 # Test if current shutter setting differs from target value and no manual intervention is active
 
-                if (abs(nominal_setting - self.shutter_current_setting) > self.params.shutter_setting_tolerance and not \
+                if (abs(nominal_setting - self.shutter_current_setting) > self.params.shutter_setting_tolerance and not
                         self.shutter_manual_intervention_active and (
-                        not_at_night(self.params) or self.sysvar_act.changed)) or end_of_manual_intervention:
+                            not_at_night(self.params) or self.sysvar_act.changed)) or end_of_manual_intervention:
                     if self.params.output_level > 1:
                         print_output("Setting shutter " + self.shutter_name + " to new level: " + str(true_setting))
                     # Move the shutter
