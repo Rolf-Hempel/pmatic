@@ -63,7 +63,6 @@ class window(object):
         self.shutter_name = shutter_name
         self.shutter_last_setting = -1.
         self.shutter_manual_intervention_active = False
-        self.open_spaces = []
         self.lower_profile = []
         self.upper_profile = []
         self.shutter_coef = [0., 1., 0.]
@@ -99,20 +98,6 @@ class window(object):
         """
         self.upper_profile.append([radians(base_azimuth + azimuth), radians(elevation)])
 
-    def add_open_space(self, azimuth_lower, azimuth_upper, elevation_lower, elevation_upper):
-        """
-        Add a rectangular patch of sky which is visible from this window. The complete patch of sky visible from this
-        window can be composed of an arbitrary number of such rectangles.
-
-        :param azimuth_lower: lower bound of rectangle in azimuth
-        :param azimuth_upper: upper bound of rectangle in azimuth
-        :param elevation_lower: lower bound of rectangle in elevation
-        :param elevation_upper: upper bound of rectangle in elevation
-        :return: -
-        """
-        self.open_spaces.append([radians(azimuth_lower), radians(azimuth_upper),
-                                 radians(elevation_lower), radians(elevation_upper)])
-
     def add_shutter_coef(self, coef):
         """
         Store the coefficients of a quadratic function which translates intended (true) shutter settings into nominal
@@ -134,30 +119,16 @@ class window(object):
         :return: "sunlit", if sun is in an open sky patch. "shade", otherwise
         """
         sun_azimuth, sun_elevation = self.sun.look_up_position()
-        new_condition = self.sun_in_open_space_legacy(sun_azimuth, sun_elevation)
+        new_condition = self.sun_in_open_space(sun_azimuth, sun_elevation)
         if new_condition == self.last_sunlit_condition or self.last_sunlit_condition == "none":
             # No change is detected, or this is the first call.
             self.last_sunlit_condition = new_condition
             return new_condition
         for (sun_azimuth, sun_elevation) in self.sun.sun_lookahead_positions[1:]:
-            if self.sun_in_open_space_legacy(sun_azimuth, sun_elevation) != new_condition:
+            if self.sun_in_open_space(sun_azimuth, sun_elevation) != new_condition:
                 return self.last_sunlit_condition
         self.last_sunlit_condition = new_condition
         return new_condition
-
-    def sun_in_open_space_legacy(self, sun_azimuth, sun_elevation):
-        """
-        Test if currently the sun at coordinates (sun_azimuth, sun_elevation) can potentially illuminate the window
-        (without regarding clouds).
-
-        :return: "sunlit", if sun is in an open sky patch. "shade", otherwise
-        """
-        sunlit = "shade"
-        for ([azimuth_lower, azimuth_upper, elevation_lower, elevation_upper]) in self.open_spaces:
-            if azimuth_lower <= sun_azimuth <= azimuth_upper and elevation_lower <= sun_elevation <= elevation_upper:
-                sunlit = "sunlit"
-                break
-        return sunlit
 
     def sun_in_open_space(self, sun_azimuth, sun_elevation):
         """
@@ -314,10 +285,24 @@ class windows(object):
         window_name = u'Badezimmer'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Badezimmer',
                    u'Rolladenaktor Badezimmer')
-        w.add_open_space(61., 78., 8., 27.)
-        w.add_open_space(78., 146, 4., 55.)
-        w.add_open_space(146., 166., 13., 57.)
-        w.add_open_space(166., 201., 4., 55.)
+        w.add_lower_profile_point(41., -41.,  8.5)
+        w.add_lower_profile_point(41.,  20.,  8.5)
+        w.add_lower_profile_point(41.,  38.,  8.0)
+        w.add_lower_profile_point(41.,  40.,  4.5)
+        w.add_lower_profile_point(41.,  80.,  4.5)
+        w.add_lower_profile_point(41.,  88., 10.0)
+        w.add_lower_profile_point(41.,  95.,  4.5)
+        w.add_lower_profile_point(41., 115., 16.5)
+        w.add_lower_profile_point(41., 125., 12.0)
+        w.add_lower_profile_point(41., 135.,  5.5)
+        w.add_lower_profile_point(41., 360.,  5.5)
+        w.add_upper_profile_point(41., -41.,  8.4)
+        w.add_upper_profile_point(41.,  20.,  8.5)
+        w.add_upper_profile_point(41.,  48., 40.0)
+        w.add_upper_profile_point(41., 150., 49.0)
+        w.add_upper_profile_point(41., 160., 47.0)
+        w.add_upper_profile_point(41., 160.1, 5.4)
+        w.add_upper_profile_point(41., 360.,  5.4)
         w.add_shutter_coef([-0.12959185, 0.86158566, 0.25446371])
         self.window_dict[window_name] = w
         self.window_list.append(window_name)
@@ -325,7 +310,16 @@ class windows(object):
         window_name = u'Kinderzimmer'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Kinderzimmer',
                    u'Rolladenaktor Kinderzimmer')
-        w.add_open_space(231., 360., 0., 90.)
+        w.add_lower_profile_point(221., -221.,  6.0)
+        w.add_lower_profile_point(221.,   10.,  6.0)
+        w.add_lower_profile_point(221.,   60.,  2.0)
+        w.add_lower_profile_point(221.,  170.,  2.0)
+        w.add_upper_profile_point(221., -221.,  5.9)
+        w.add_upper_profile_point(221.,   10.,  6.0)
+        w.add_upper_profile_point(221.,   20., 45.0)
+        w.add_upper_profile_point(221.,   60., 63.0)
+        w.add_upper_profile_point(221.,  120., 54.0)
+        w.add_upper_profile_point(221.,  170.,  2.0)
         w.add_shutter_coef([-0.26234962, 0.98880658, 0.24321233])
         self.window_dict[window_name] = w
         self.window_list.append(window_name)
@@ -333,10 +327,18 @@ class windows(object):
         window_name = u'Arbeitszimmer'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Arbeitszimmer',
                    u'Rolladenaktor Arbeitszimmer')
-        w.add_open_space(231., 246., 2., 20.)
-        w.add_open_space(246., 256, 2., 40.)
-        w.add_open_space(256., 271., 2., 55.)
-        w.add_open_space(271., 360., 2., 60.)
+        w.add_lower_profile_point(221., -221.,  2.0)
+        w.add_lower_profile_point(221.,   10.,  2.0)
+        w.add_lower_profile_point(221.,   60.,  0.0)
+        w.add_lower_profile_point(221.,  170.,  2.0)
+        w.add_upper_profile_point(221., -221.,  1.9)
+        w.add_upper_profile_point(221.,  19.9,  1.9)
+        w.add_upper_profile_point(221.,   20., 11.0)
+        w.add_upper_profile_point(221.,   33., 37.0)
+        w.add_upper_profile_point(221.,   80., 58.0)
+        w.add_upper_profile_point(221.,  140., 55.0)
+        w.add_upper_profile_point(221.,  170.,  2.0)
+
         w.add_shutter_coef([-0.26234962, 0.98880658, 0.24321233])
         self.window_dict[window_name] = w
         self.window_list.append(window_name)
@@ -344,13 +346,27 @@ class windows(object):
         window_name = u'Schlafzimmer'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Schlafzimmer',
                    u'Rolladenaktor Schlafzimmer')
-        w.add_open_space(51., 76., 7., 90.)
-        w.add_open_space(76., 116., 4., 90.)
-        w.add_open_space(116., 136., 7., 50.)
-        w.add_open_space(136., 156., 13., 50.)
-        w.add_open_space(156., 175., 7., 50.)
-        w.add_open_space(175., 191., 7., 35.)
-        w.add_open_space(191., 216., 7., 20.)
+        w.add_lower_profile_point(41., -41.,  8.0)
+        w.add_lower_profile_point(41.,  10.,  8.0)
+        w.add_lower_profile_point(41.,  35.,  8.0)
+        w.add_lower_profile_point(41.,  36.,  4.5)
+        w.add_lower_profile_point(41.,  60.,  4.5)
+        w.add_lower_profile_point(41.,  75.,  6.0)
+        w.add_lower_profile_point(41.,  83., 10.0)
+        w.add_lower_profile_point(41.,  89.,  5.0)
+        w.add_lower_profile_point(41.,  95., 16.5)
+        w.add_lower_profile_point(41., 120., 13.5)
+        w.add_lower_profile_point(41., 128.,  6.5)
+        w.add_lower_profile_point(41., 165.,  6.5)
+        w.add_lower_profile_point(41., 360.,  6.5)
+        w.add_upper_profile_point(41., -41.,  7.9)
+        w.add_upper_profile_point(41.,  9.9,  7.9)
+        w.add_upper_profile_point(41.,  10., 20.0)
+        w.add_upper_profile_point(41.,  37., 55.0)
+        w.add_upper_profile_point(41.,  83., 61.0)
+        w.add_upper_profile_point(41., 153., 25.0)
+        w.add_upper_profile_point(41., 165.,  6.5)
+        w.add_upper_profile_point(41., 360.,  6.4)
         w.add_shutter_coef([-0.12959185, 0.86158566, 0.25446371])
         # Add the window object to the dictionary with all windows
         self.window_dict[window_name] = w
@@ -359,11 +375,27 @@ class windows(object):
         window_name = u'Gäste-WC'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Gäste-WC',
                    u'Rolladenaktor Gäste-WC')
-        w.add_open_space(51., 79., 8., 90.)
-        w.add_open_space(79., 121., 5., 90.)
-        w.add_open_space(121., 141., 14., 90.)
-        w.add_open_space(141., 176., 18., 90.)
-        w.add_open_space(176., 211., 7., 90.)
+        w.add_lower_profile_point(41., -41., 10.0)
+        w.add_lower_profile_point(41.,  25., 10.0)
+        w.add_lower_profile_point(41.,  35.,  9.5)
+        w.add_lower_profile_point(41.,  38.,  4.0)
+        w.add_lower_profile_point(41.,  62.,  5.0)
+        w.add_lower_profile_point(41.,  80.,  6.5)
+        w.add_lower_profile_point(41.,  89., 14.0)
+        w.add_lower_profile_point(41., 102., 13.0)
+        w.add_lower_profile_point(41., 108., 21.0)
+        w.add_lower_profile_point(41., 135., 12.5)
+        w.add_lower_profile_point(41., 136.,  6.5)
+        w.add_lower_profile_point(41., 165.,  6.5)
+        w.add_lower_profile_point(41., 360.,  6.5)
+        w.add_upper_profile_point(41., -41.,  9.9)
+        w.add_upper_profile_point(41., 24.9,  9.9)
+        w.add_upper_profile_point(41.,  25., 43.0)
+        w.add_upper_profile_point(41.,  75., 60.0)
+        w.add_upper_profile_point(41., 135., 50.0)
+        w.add_upper_profile_point(41., 165., 45.0)
+        w.add_upper_profile_point(41., 165.1, 6.4)
+        w.add_upper_profile_point(41., 360.,  6.4)
         w.add_shutter_coef([-0.20875883, 0.89494005, 0.28198548])
         self.window_dict[window_name] = w
         self.window_list.append(window_name)
@@ -371,11 +403,27 @@ class windows(object):
         window_name = u'Küche links'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Küche',
                    u'Rolladenaktor Küche links')
-        w.add_open_space(51., 79., 8., 90.)
-        w.add_open_space(79., 106., 5., 90.)
-        w.add_open_space(106., 136., 14., 90.)
-        w.add_open_space(136., 171., 20., 90.)
-        w.add_open_space(171., 211., 8., 90.)
+        w.add_lower_profile_point(41., -41.,  8.5)
+        w.add_lower_profile_point(41.,  10.,  8.5)
+        w.add_lower_profile_point(41.,  35.,  9.0)
+        w.add_lower_profile_point(41.,  36.,  4.0)
+        w.add_lower_profile_point(41.,  55.,  5.0)
+        w.add_lower_profile_point(41.,  70., 15.0)
+        w.add_lower_profile_point(41.,  80., 14.0)
+        w.add_lower_profile_point(41.,  90.,  8.5)
+        w.add_lower_profile_point(41.,  97., 23.0)
+        w.add_lower_profile_point(41., 120., 17.5)
+        w.add_lower_profile_point(41., 128.,  8.0)
+        w.add_lower_profile_point(41., 170.,  8.0)
+        w.add_lower_profile_point(41., 360.,  8.0)
+        w.add_upper_profile_point(41., -41.,  8.4)
+        w.add_upper_profile_point(41.,  9.9,  8.4)
+        w.add_upper_profile_point(41.,  10., 33.0)
+        w.add_upper_profile_point(41.,  60., 60.0)
+        w.add_upper_profile_point(41.,  90., 75.0)
+        w.add_upper_profile_point(41., 170., 25.0)
+        w.add_upper_profile_point(41., 170.1, 7.9)
+        w.add_upper_profile_point(41., 360.,  7.9)
         w.add_shutter_coef([-0.12244656, 0.89711513, 0.21811965])
         self.window_dict[window_name] = w
         self.window_list.append(window_name)
@@ -383,30 +431,63 @@ class windows(object):
         window_name = u'Küche rechts'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Küche',
                    u'Rolladenaktor Küche rechts')
-        w.add_open_space(141., 156., 16., 35.)
-        w.add_open_space(156., 206., 5., 90.)
-        w.add_open_space(206., 255., 20., 90.)
-        w.add_open_space(255., 261., 3., 90.)
-        w.add_open_space(261., 266., 3., 30.)
-        w.add_open_space(266., 276., 3., 25.)
-        w.add_open_space(276., 291., 3., 19.)
-        w.add_open_space(291., 301., 3., 13.)
+        w.add_lower_profile_point(131., -131., 17.0)
+        w.add_lower_profile_point(131.,   20., 17.0)
+        w.add_lower_profile_point(131.,   27., 13.5)
+        w.add_lower_profile_point(131.,   30., 10.0)
+        w.add_lower_profile_point(131.,   67., 11.5)
+        w.add_lower_profile_point(131.,   80., 19.5)
+        w.add_lower_profile_point(131.,  120., 17.0)
+        w.add_lower_profile_point(131.,  127., 10.0)
+        w.add_lower_profile_point(131.,  128.,  3.0)
+        w.add_lower_profile_point(131.,  160.,  3.0)
+        w.add_lower_profile_point(131.,  360.,  3.0)
+        w.add_upper_profile_point(131., -131., 16.9)
+        w.add_upper_profile_point(131.,  19.9, 16.9)
+        w.add_upper_profile_point(131.,   20., 33.0)
+        w.add_upper_profile_point(131.,   35., 53.0)
+        w.add_upper_profile_point(131.,   75., 62.0)
+        w.add_upper_profile_point(131.,  140., 52.0)
+        w.add_upper_profile_point(131.,  141., 27.0)
+        w.add_upper_profile_point(131.,  160., 14.0)
+        w.add_upper_profile_point(131., 160.1,  2.9)
+        w.add_upper_profile_point(131.,  360.,  2.9)
         w.add_shutter_coef([-0.17358483, 0.91958752, 0.23608076])
-        self.window_dict[window_name] = w
-        self.window_list.append(window_name)
-
-        window_name = u'Wohnzimmer rechts'
-        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
-                   u'Rolladenaktor Wohnzimmer rechts')
-        w.add_open_space(231., 360., 2., 90.)
-        w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
         self.window_dict[window_name] = w
         self.window_list.append(window_name)
 
         window_name = u'Wohnzimmer links'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
                    u'Rolladenaktor Wohnzimmer links')
-        w.add_open_space(231., 360., 2., 90.)
+        w.add_lower_profile_point(221., -221.,  2.0)
+        w.add_lower_profile_point(221.,   13.,  2.0)
+        w.add_lower_profile_point(221.,   58.,  2.0)
+        w.add_lower_profile_point(221.,   65.,  8.5)
+        w.add_lower_profile_point(221.,   74.,  2.0)
+        w.add_lower_profile_point(221.,  360.,  2.0)
+        w.add_upper_profile_point(221., -221.,  1.9)
+        w.add_upper_profile_point(221.,  12.9,  1.9)
+        w.add_upper_profile_point(221.,   13., 48.0)
+        w.add_upper_profile_point(221.,   20., 80.0)
+        w.add_upper_profile_point(221.,  170., 80.0)
+        w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
+        self.window_dict[window_name] = w
+        self.window_list.append(window_name)
+
+        window_name = u'Wohnzimmer rechts'
+        w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
+                   u'Rolladenaktor Wohnzimmer rechts')
+        w.add_lower_profile_point(221., -221., 2.0)
+        w.add_lower_profile_point(221.,   13., 2.0)
+        w.add_lower_profile_point(221.,   50., 2.0)
+        w.add_lower_profile_point(221.,   58., 9.0)
+        w.add_lower_profile_point(221.,   67., 2.0)
+        w.add_lower_profile_point(221.,  360., 2.0)
+        w.add_upper_profile_point(221., -221., 1.9)
+        w.add_upper_profile_point(221.,  12.9, 1.9)
+        w.add_upper_profile_point(221.,  13., 48.0)
+        w.add_upper_profile_point(221.,  20., 80.0)
+        w.add_upper_profile_point(221., 170., 80.0)
         w.add_shutter_coef([-0.19781835, 0.92476391, 0.255443])
         self.window_dict[window_name] = w
         self.window_list.append(window_name)
@@ -414,11 +495,24 @@ class windows(object):
         window_name = u'Terrassentür'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
                    u'Rolladenaktor Terrassentür')
-        w.add_open_space(151., 181., 0., 33.)
-        w.add_open_space(181., 191., 0., 40.)
-        w.add_open_space(191., 241., 20., 41.)
-        w.add_open_space(241., 246., 7., 39.)
-        w.add_open_space(246., 293., 3., 40.)
+        w.add_lower_profile_point(131., -131., 15.0)
+        w.add_lower_profile_point(131.,   30., 15.0)
+        w.add_lower_profile_point(131.,   60., 13.0)
+        w.add_lower_profile_point(131.,   70., 19.0)
+        w.add_lower_profile_point(131.,  117., 14.0)
+        w.add_lower_profile_point(131.,  118.,  6.5)
+        w.add_lower_profile_point(131.,  165.,  4.0)
+        w.add_lower_profile_point(131.,  360.,  4.0)
+        w.add_upper_profile_point(131., -131., 14.9)
+        w.add_upper_profile_point(131.,  29.9, 14.9)
+        w.add_upper_profile_point(131.,   30., 30.0)
+        w.add_upper_profile_point(131.,   48., 30.0)
+        w.add_upper_profile_point(131.,   90., 43.0)
+        w.add_upper_profile_point(131.,  145., 25.0)
+        w.add_upper_profile_point(131.,  150., 18.5)
+        w.add_upper_profile_point(131.,  165., 30.0)
+        w.add_upper_profile_point(131., 165.1,  3.9)
+        w.add_upper_profile_point(131.,  360.,  3.9)
         # w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
         # Special case: do not open high windows too much
         w.add_shutter_coef([-0.72, 1.72, 0.])
@@ -428,11 +522,25 @@ class windows(object):
         window_name = u'Terrassenfenster'
         w = window(self.params, self.ccu, self.sysvar_act, self.sun, window_name, u'Wohnzimmer',
                    u'Rolladenaktor Terrassenfenster')
-        w.add_open_space(151., 181., 0., 33.)
-        w.add_open_space(181., 191., 0., 40.)
-        w.add_open_space(191., 241., 20., 41.)
-        w.add_open_space(241., 246., 7., 39.)
-        w.add_open_space(246., 293., 3., 40.)
+        w.add_lower_profile_point(131., -131., 14.5)
+        w.add_lower_profile_point(131.,   20., 14.5)
+        w.add_lower_profile_point(131.,   60., 15.0)
+        w.add_lower_profile_point(131.,   68., 20.0)
+        w.add_lower_profile_point(131.,  104., 20.0)
+        w.add_lower_profile_point(131.,  110., 14.5)
+        w.add_lower_profile_point(131.,  111.,  7.5)
+        w.add_lower_profile_point(131.,  118.,  7.0)
+        w.add_lower_profile_point(131.,  119.,  3.5)
+        w.add_lower_profile_point(131.,  360.,  3.5)
+        w.add_upper_profile_point(131., -131., 14.4)
+        w.add_upper_profile_point(131.,  19.9, 14.4)
+        w.add_upper_profile_point(131.,   20., 23.0)
+        w.add_upper_profile_point(131.,   35., 26.0)
+        w.add_upper_profile_point(131.,   90., 38.0)
+        w.add_upper_profile_point(131.,  140., 26.5)
+        w.add_upper_profile_point(131.,  160., 35.0)
+        w.add_upper_profile_point(131., 160.1,  3.4)
+        w.add_upper_profile_point(131.,  360.,  3.4)
         # w.add_shutter_coef([-0.19527282, 0.94210207, 0.24104221])
         # Special case: do not open high windows too much
         w.add_shutter_coef([-0.72, 1.72, 0.])
