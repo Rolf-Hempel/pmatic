@@ -422,6 +422,7 @@ class windows(object):
         w.add_upper_profile_point(41.,  10., 33.0)
         w.add_upper_profile_point(41.,  60., 60.0)
         w.add_upper_profile_point(41.,  90., 75.0)
+        w.add_upper_profile_point(41., 125., 64.0)
         w.add_upper_profile_point(41., 170., 25.0)
         w.add_upper_profile_point(41., 170.1, 7.9)
         w.add_upper_profile_point(41., 360.,  7.9)
