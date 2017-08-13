@@ -131,6 +131,7 @@ class brightness(object):
             change_direction = cmp(condition-self.last_brightness_condition, 0)
             if self.last_brightness_change_direction is None:
                 self.last_brightness_change_direction = change_direction
+                self.last_brightness_condition = condition
                 self.last_brightness_change_time = self.current_time
             elif change_direction == self.last_brightness_change_direction:
                 self.last_brightness_condition = condition
