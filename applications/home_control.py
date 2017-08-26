@@ -20,6 +20,7 @@
 
 import codecs
 import sys
+import traceback
 
 import pmatic.api
 from brightness import brightness
@@ -118,30 +119,41 @@ if __name__ == "__main__":
             print_output("All battery-powered devices are fine.")
         print ""
 
-    # Main loop
-    while True:
-        # Read parameter file, check if since the last iteration parameters have changed.
-        # If parameters have changed, create a new sun object. Otherwise just update sun position.
-        if params.update_parameters():
-            if params.output_level > 0:
-                print ""
-                print_output("Parameters have changed!")
-                params.print_parameters()
-                print ""
-            # Reset time stamp for last test for sunrise/sunset. This is necessary because conditions might have
-            # changed if, for example, the geographic position is changed.
-            sun.sun_is_up_last_changed = 0.
-        # Update sun position
-        sun.update_position()
-        # Update the temperature info
-        temperatures.update()
-        # Update the brightness info
-        brightnesses.update()
-        # Update the system variable setting
-        sysvar_act.update()
-        # Set all shutters corresponding to the actual temperature and brightness conditions.
-        windows.adjust_all_shutters(temperatures, brightnesses)
-        # Look if the ventilator in the basement has to be switched on or off.
-        ventilation.status_update(temperatures)
-        # Add a delay before the next main loop iteration
-        time.sleep(params.main_loop_sleep_time)
+    try:
+        # Main loop
+        while True:
+            # Read parameter file, check if since the last iteration parameters have changed.
+            # If parameters have changed, create a new sun object. Otherwise just update sun position.
+            if params.update_parameters():
+                if params.output_level > 0:
+                    print ""
+                    print_output("Parameters have changed!")
+                    params.print_parameters()
+                    print ""
+                # Reset time stamp for last test for sunrise/sunset. This is necessary because conditions might have
+                # changed if, for example, the geographic position is changed.
+                sun.sun_is_up_last_changed = 0.
+            # Update sun position
+            sun.update_position()
+            # Update the temperature info
+            temperatures.update()
+            # Update the brightness info
+            brightnesses.update()
+            # Update the system variable setting
+            sysvar_act.update()
+            # Set all shutters corresponding to the actual temperature and brightness conditions.
+            windows.adjust_all_shutters(temperatures, brightnesses)
+            # Look if the ventilator in the basement has to be switched on or off.
+            ventilation.status_update(temperatures)
+            # Add a delay before the next main loop iteration
+            time.sleep(params.main_loop_sleep_time)
+
+    except Exception as e:
+        if params.output_level > 0:
+            print_output("\n*** General error: " + str(e))
+            print ""
+            formatted_lines = traceback.format_exc().splitlines()
+            for line in formatted_lines[:-1]:
+                print line
+            print ""
+            time.sleep(1.)
