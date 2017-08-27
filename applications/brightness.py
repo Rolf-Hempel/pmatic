@@ -95,7 +95,10 @@ class brightness(object):
                 y = []
                 for i in range(len(self.brightnesses)):
                     x.append(self.brightnesses[i][0]-self.current_time)
-                    y.append(math.log(self.brightnesses[i][1]))
+                    if self.brightnesses[i][1] > 0.01:
+                        y.append(math.log(self.brightnesses[i][1]))
+                    else:
+                        y.append(-1000.)
                     # y.append(self.brightnesses[i][1])
                 a, b = linear_regression(x, y)
                 # Evaluate regression function for current_time (i.e. x=0)
