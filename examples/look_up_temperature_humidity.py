@@ -21,11 +21,12 @@
 import pmatic
 
 ccu = pmatic.CCU(address="http://192.168.0.51", credentials=("rolf", "Px9820rH"))
+pmatic.logging(pmatic.DEBUG)
 
 for device in ccu.devices.query(device_type=[u"HM-WDS10-TH-O", u"HM-WDS40-TH-I-2"]):
-    print device
-    print device.channels
-    print device.channels[1]
+    # print device
+    # print device.channels
+    # print device.channels[1]
     print device.summary_state
     # print "Temperature: ", device.channels[1].values["TEMPERATURE"]
     # print "Humidity: ", device.channels[1].values["HUMIDITY"]
