@@ -1,4 +1,4 @@
-VERSION            = 0.5
+VERSION            = 0.6
 REPO_PATH         ?= $(shell pwd)
 CHROOT_PATH       ?= $(shell pwd)/chroot
 CHROOT_DEB_MIRROR ?= http://ftp.de.debian.org/debian
@@ -65,9 +65,11 @@ setup:
 	# 	       py-pytest py34-pytest
 
 release: dist
+	git tag v$(VERSION)
 	twine register dist/pmatic-$(VERSION).tar.gz
-	twine upload dist/pmatic-$(VERSION)*
+	twine upload dist/pmatic-$(VERSION).tar.gz
 	$(MAKE) version
+	@echo "You now have to upload the dist/pmatic-$(VERSION)_ccu.tar.gz to GitHub manually."
 
 dist: dist-os dist-ccu
 
@@ -85,6 +87,8 @@ chroot:
 	LANG=C sudo chroot $(CHROOT_PATH) /bin/bash -c "/debootstrap/debootstrap --second-stage"
 	LANG=C sudo chroot $(CHROOT_PATH) /bin/bash -c \
 	    "pip install --install-option=\"--prefix=/usr\" simpleTR64"
+	LANG=C sudo chroot $(CHROOT_PATH) /bin/bash -c \
+	    "pip install --install-option=\"--prefix=/usr\" pytz"
 
 dist-ccu:
 	sudo $(MAKE) dist-ccu-step1
@@ -102,7 +106,11 @@ dist-ccu-step1:
 	rsync -aRL --no-g $$(cat $(REPO_PATH)/ccu_pkg/python-modules-optional.list) \
 	    $(CCU_PREDIST_PATH)/python 2>/dev/null || true
 	rsync -av --no-g $(CHROOT_PATH)/lib/arm-linux-gnueabi/libexpat.so.1.* \
-	    $(CCU_PREDIST_PATH)/libs/ ; \
+	    $(CCU_PREDIST_PATH)/libs/
+	# Cleanup site-packages to dist-packages
+	rsync -av $(CCU_PREDIST_PATH)/python/lib/python2.7/site-packages/* \
+	    $(CCU_PREDIST_PATH)/python/lib/python2.7/dist-packages/
+	rm -rf $(CCU_PREDIST_PATH)/python/lib/python2.7/site-packages
 
 dist-ccu-step2:
 	[ ! -d $(DIST_PATH) ] && mkdir $(DIST_PATH) || true
