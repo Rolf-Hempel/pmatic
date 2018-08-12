@@ -89,7 +89,7 @@ class parameters(object):
             if "longitude" in self.parameters.keys():
                 self.longitude = float(self.parameters["longitude"])
             else:
-                self.longitude = 7.9
+                self.longitude = 7.4
             self.utc_shift = self.longitude / 15.
             if "latitude" in self.parameters.keys():
                 self.latitude = float(self.parameters["latitude"])
@@ -102,11 +102,11 @@ class parameters(object):
             if "ch_night_end" in self.parameters.keys():
                 self.ch_night_end = float(self.parameters["ch_night_end"])
             else:
-                self.ch_night_end = 5.417
+                self.ch_night_end = 5.75
             if "ch_night_end_saturday" in self.parameters.keys():
                 self.ch_night_end_saturday = float(self.parameters["ch_night_end_saturday"])
             else:
-                self.ch_night_end_saturday = 6.417
+                self.ch_night_end_saturday = 6.6
             if "ch_night_end_sunday" in self.parameters.keys():
                 self.ch_night_end_sunday = float(self.parameters["ch_night_end_sunday"])
             else:
@@ -138,7 +138,7 @@ class parameters(object):
             if "brightness_dim" in self.parameters.keys():
                 self.brightness_dim = float(self.parameters["brightness_dim"])
             else:
-                self.brightness_dim = 7000.
+                self.brightness_dim = 8000.
             if "sunrise_decision_width" in self.parameters.keys():
                 self.sunrise_decision_width = float(self.parameters["sunrise_decision_width"])
             else:
@@ -220,11 +220,11 @@ class parameters(object):
             if "average_temperature_hot" in self.parameters.keys():
                 self.average_temperature_hot = float(self.parameters["average_temperature_hot"])
             else:
-                self.average_temperature_hot = 19.
+                self.average_temperature_hot = 21.
             if "average_temperature_cold" in self.parameters.keys():
                 self.average_temperature_cold = float(self.parameters["average_temperature_cold"])
             else:
-                self.average_temperature_cold = 15.
+                self.average_temperature_cold = 17.
             if "ventilation_transition_temperature" in self.parameters.keys():
                 self.ventilation_transition_temperature = float(self.parameters["ventilation_transition_temperature"])
             else:
