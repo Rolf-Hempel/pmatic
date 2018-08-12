@@ -62,6 +62,7 @@ class sysvar_activities(object):
                                     "windows": [u'Schlafzimmer', u'Kinderzimmer', u'Badezimmer', u'Arbeitszimmer',
                                                 u'Wohnzimmer rechts', u'Wohnzimmer links', u'Küche rechts',
                                                 u'Küche links', u'Gäste-WC', u'Terrassentür', u'Terrassenfenster']}
+        self.light_shade_separate = {"name": u'Licht/Schatten separat', "active": False}
         self.tv_evening = {"name": u'Fernsehabend', "active": False, "setting": 0.,
                            "windows": [u'Wohnzimmer rechts', u'Wohnzimmer links', u'Terrassentür', u'Terrassenfenster']}
         self.ventilate_until_morning = {"name": u'Lueften bis zum Morgen', "active": False}
@@ -81,7 +82,8 @@ class sysvar_activities(object):
                         u'Lueften bis zum Morgen': self.ventilate_until_morning,
                         u'Rollaeden 25 Prozent': self.shutter_constant_25,
                         u'Rollaeden 50 Prozent': self.shutter_constant_50,
-                        u'Rollaeden 100 Prozent': self.shutter_constant_100}
+                        u'Rollaeden 100 Prozent': self.shutter_constant_100,
+                        u'Licht/Schatten separat': self.light_shade_separate}
 
     def update(self):
         """

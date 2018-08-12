@@ -189,22 +189,40 @@ class window(object):
                        min(1., self.shutter_coef[0] * setting_true ** 2 + self.shutter_coef[1] * setting_true +
                            self.shutter_coef[2]))
 
-    def set_shutter(self, value, sun_is_up):
+    def set_shutter(self, temperature_condition, brightness_condition, sun_is_up):
         """
         Set the shutter to a given level: 0 for completely closed, 1 for completely opened shutter. Any value in between
         is possible.
 
         :param value: intended shutter setting
+        :param temperature_condition: temperature classification, either "cold" or "normal" or "hot"
+        :param brightness_condition: brightness classification, either "dim" or "normal" or "very bright"
+        :param sun_is_up: boolean: "True" for daytime, "False" otherwise
         :return: True, if shutter was set successfully; False otherwise
         """
         success = True
         end_of_manual_intervention = False
 
+        sunlit_cond = self.test_sunlit()
+        shutter_cond = "shutter_" + temperature_condition + "_" + brightness_condition + "_" + \
+                            sunlit_cond
+        value = self.params.shutter_condition[shutter_cond]
+
         # If for this window a constant daytime shutter setting is selected, use it. Otherwise take the value passed to
         # this function via the argument "value".
         true_setting = self.sysvar_act.constant_daytime_setting(self.window_name)
+
+        # If true_setting is None, no constant daytime shutter setting is active.
         if true_setting == None:
             true_setting = value
+
+        # If a constant daytime shutter setting is active for this window, look if the setting should
+        # be different for windows in sunlight and in the shade. In the latter case, make the shutter
+        # setting dependent of the temperature, but assume a very bright light environment.
+        elif self.sysvar_act.light_shade_separate["active"]:
+            if sunlit_cond != "sunlit":
+                shutter_cond = "shutter_" + temperature_condition + "_very-bright_shade"
+                true_setting = self.params.shutter_condition[shutter_cond]
 
         if true_setting < 0. or true_setting > 1. and self.params.output_level > 0:
             print_output("*** Error: Invalid shutter value " + str(true_setting) + " specified. ***")
@@ -584,10 +602,7 @@ class windows(object):
             w = self.window_dict[wn]
             # Special case "Schlafzimmer": test system variable "Keine RB Schlafzimmer".
             if w.window_name != u'Schlafzimmer' or not self.sysvar_act.suspend_sleeping_room["active"]:
-                sunlit_condition = w.test_sunlit()
-                shutter_condition = "shutter_" + temperature_condition + "_" + brightness_condition + "_" + \
-                                    sunlit_condition
-                w.set_shutter(self.params.shutter_condition[shutter_condition], sun_is_up)
+                w.set_shutter(temperature_condition, brightness_condition, sun_is_up)
 
 
 if __name__ == "__main__":
