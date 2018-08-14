@@ -21,6 +21,7 @@
 import codecs
 import sys
 from math import radians
+import time
 
 import pmatic.api
 from brightness import brightness
@@ -599,6 +600,12 @@ class windows(object):
             self.sysvar_act.reset_ventilation_in_the_morning()
         # For each window set the shutter according to lighting and temperature conditions.
         for wn in self.window_list:
+            # Update the system variable settings
+            # time1 = time.time()
+            self.sysvar_act.update()
+            # time2 = time.time()
+            # print 'sysvar_act.update function took %0.3f ms' % ((time2 - time1) * 1000.0)
+
             w = self.window_dict[wn]
             # Special case "Schlafzimmer": test system variable "Keine RB Schlafzimmer".
             if w.window_name != u'Schlafzimmer' or not self.sysvar_act.suspend_sleeping_room["active"]:

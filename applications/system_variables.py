@@ -97,7 +97,7 @@ class sysvar_activities(object):
             if activity["active"] != new_value:
                 self.changed = True
                 if self.params.output_level > 1:
-                    print_output("System variable " + sysvar_name + " has changed to " + str(new_value))
+                    print_output('System variable "' + sysvar_name + '" has changed to ' + str(new_value))
                 activity["active"] = self.api.sys_var_get_value_by_name(name=sysvar_name) == "true"
 
     def sysvar_induced_setting(self, window_name):

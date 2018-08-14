@@ -69,7 +69,7 @@ class parameters(object):
             if "main_loop_sleep_time" in self.parameters.keys():
                 self.main_loop_sleep_time = float(self.parameters["main_loop_sleep_time"])
             else:
-                self.main_loop_sleep_time = 71.
+                self.main_loop_sleep_time = 40.
             if "lookup_sleep_time" in self.parameters.keys():
                 self.lookup_sleep_time = float(self.parameters["lookup_sleep_time"])
             else:
@@ -85,7 +85,7 @@ class parameters(object):
             if "shutter_setting_tolerance" in self.parameters.keys():
                 self.shutter_setting_tolerance = float(self.parameters["shutter_setting_tolerance"])
             else:
-                self.shutter_setting_tolerance = 0.02
+                self.shutter_setting_tolerance = 0.05
             if "longitude" in self.parameters.keys():
                 self.longitude = float(self.parameters["longitude"])
             else:
