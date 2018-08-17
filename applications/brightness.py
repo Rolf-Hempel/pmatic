@@ -47,11 +47,15 @@ class brightness(object):
                 ccu_not_ready_yet = False
             except:
                 time.sleep(params.main_loop_sleep_time)
+        self.low_battery_found = {}
+        for brightness_device in self.brightness_devices_external:
+            self.low_battery_found[brightness_device.name] = False
         self.measurement_available = False
         self.brightnesses = []
         self.time_last_updated = 0.
         self.last_brightness_condition = None
         self.last_brightness_change_direction = None
+
         self.current_time = 0
 
     def update(self):
@@ -67,7 +71,14 @@ class brightness(object):
             brightness_measurements = []
             for brightness_device in self.brightness_devices_external:
                 try:
-                    brightness_measurements.append(brightness_device.brightness.value)
+                    if brightness_device.is_battery_low:
+                        if not self.low_battery_found[brightness_device.name] and self.params.output_level > 0:
+                            print_output('*** Warning: Brightness device ' + brightness_device.name +
+                                         ' has low battery. ***')
+                            self.low_battery_found[brightness_device.name] = True
+                    else:
+                        brightness_measurements.append(brightness_device.brightness.value)
+                        self.low_battery_found[brightness_device.name] = False
                     time.sleep(self.params.lookup_sleep_time)
                 except Exception as e:
                     if self.params.output_level > 0:
