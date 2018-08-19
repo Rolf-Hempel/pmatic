@@ -596,7 +596,7 @@ class windows(object):
         # If "sun_is_up" is False, shutters are to be closed for the night.
         sun_is_up = self.sun.sun_is_up(brightnesses)
         # Reset nocturnal ventilation activities the first time the sun is above the threshold.
-        if sun_is_up:
+        if sun_is_up and not_at_night(self.params):
             self.sysvar_act.reset_ventilation_in_the_morning()
         # For each window set the shutter according to lighting and temperature conditions.
         for wn in self.window_list:
