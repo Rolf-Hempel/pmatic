@@ -102,6 +102,8 @@ def look_up_device_by_name(params, ccu, dev_name):
     elif len(devices) > 1:
         if params.output_level > 0:
             print " More than one device with name ", dev_name, " found, first one taken."
+        # The following statement was added in 2024 without testing. It seems a value needs to be returned in this case.
+        return devices[0]
     else:
         if params.output_level > 0:
             print "*** Error: No device with name ", dev_name, " found, try again. ***"

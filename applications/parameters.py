@@ -143,6 +143,10 @@ class parameters(object):
                 self.sunrise_decision_width = float(self.parameters["sunrise_decision_width"])
             else:
                 self.sunrise_decision_width = 7.
+            if "sunrise_fixed_altitude" in self.parameters.keys():
+                self.sunrise_fixed_altitude = float(self.parameters["sunrise_fixed_altitude"])
+            else:
+                self.sunrise_fixed_altitude = None
             if "sunrise_decision_interval" in self.parameters.keys():
                 self.sunrise_decision_interval = float(self.parameters["sunrise_decision_interval"])
             else:

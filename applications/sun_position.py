@@ -54,8 +54,11 @@ class sun_position(object):
         return self.azimuth, self.elevation
 
     def sun_is_up(self, brightnesses):
+        # If a fixed elevation for opening / closing the shutters is specified, use it for the decision.
+        if self.params.sunrise_fixed_altitude is not None and self.elevation > radians(self.params.sunrise_fixed_altitude):
+            self.last_sun_is_up = True
         # If the sun is high enough, return True anyway
-        if self.elevation > radians(self.params.sunrise_decision_width):
+        elif self.elevation > radians(self.params.sunrise_decision_width):
             self.last_sun_is_up = True
         # If the sun is low enough below the horizon, return False anyway
         elif self.elevation < -radians(self.params.sunrise_decision_width):
