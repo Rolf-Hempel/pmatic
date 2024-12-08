@@ -457,6 +457,7 @@ class parameters(object):
             "\nbrightness_very_bright: ", self.brightness_very_bright, \
             "\nbrightness_dim: ", self.brightness_dim, \
             "\nsunrise_decision_width: ", self.sunrise_decision_width, \
+            "\nsunrise_fixed_altitude: ", self.sunrise_fixed_altitude, \
             "\nsunrise_decision_interval: ", self.sunrise_decision_interval, \
             "\nday_brightness_threshold: ", self.day_brightness_threshold, \
             "\nnight_brightness_threshold: ", self.night_brightness_threshold, \
