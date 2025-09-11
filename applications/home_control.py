@@ -52,9 +52,9 @@ if __name__ == "__main__":
     # Depending on whether the program is executed on the CCU2 itself or on a remote PC, the parameters are stored at
     # different locations.
     ccu_parameter_file_name = "/etc/config/addons/pmatic/scripts/applications/parameter_file"
-    remote_parameter_file_name = "/home/rolf/Pycharm-Projects/pmatic/applications/parameter_file"
+    remote_parameter_file_name = "/home/rolf/PycharmProjects/pmatic/applications/parameter_file"
     ccu_temperature_file_name = "/etc/config/addons/pmatic/scripts/applications/temperature_file"
-    remote_temperature_file_name = "/home/rolf/Pycharm-Projects/pmatic/applications/temperature_file"
+    remote_temperature_file_name = "/home/rolf/PycharmProjects/pmatic/applications/temperature_file"
 
     # Test if the remote parameter file is found. In this case the program runs on a remote computer.
     if os.path.isfile(remote_parameter_file_name):
