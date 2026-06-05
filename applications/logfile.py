@@ -1,6 +1,5 @@
 import os
 import time
-import shutil
 
 class Protocol:
     def __init__(self, log_file, archive_file, max_records, print_to_stdout= False):
@@ -31,11 +30,15 @@ class Protocol:
             self.reset_log()
 
     def archive_log(self):
-        """Repalces the archive file with the current protocol file."""
+        """Replaces the archive file with the current protocol file."""
         if os.path.exists(self.archive_file):
             # Save the archive file before overwriting, if it exists already.
-            shutil.move(self.archive_file, self.archive_file + ".bak")
-        shutil.move(self.log_file, self.archive_file)
+            if os.path.exists(self.archive_file + ".bak"):
+                os.remove(self.archive_file + ".bak")
+            os.rename(self.archive_file, self.archive_file + ".bak")
+            #shutil.move(self.archive_file, self.archive_file + ".bak")
+        os.rename(self.log_file, self.archive_file)
+        #shutil.move(self.log_file, self.archive_file)
 
     def reset_log(self):
         """Start a mew protocol file."""
