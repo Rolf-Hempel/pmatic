@@ -18,6 +18,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+global logfile
+
 import codecs
 import sys
 import traceback
@@ -25,6 +27,7 @@ import traceback
 import pmatic.api
 from brightness import brightness
 from miscellaneous import *
+from logfile import Protocol
 from parameters import parameters
 from shutter_control import windows
 from sun_position import sun_position
@@ -55,24 +58,34 @@ if __name__ == "__main__":
     remote_parameter_file_name = "/home/rolf/PycharmProjects/pmatic/applications/parameter_file"
     ccu_temperature_file_name = "/etc/config/addons/pmatic/scripts/applications/temperature_file"
     remote_temperature_file_name = "/home/rolf/PycharmProjects/pmatic/applications/temperature_file"
+    ccu_protocol_file_name = "/media/sd-mmcblk0/protocols/home_control.txt"
+    remote_protocol_file_name = "/home/rolf/PycharmProjects/pmatic/applications/protocol_file.txt"
+    ccu_archive_file_name = "/media/sd-mmcblk0/protocols/home_control_archive.txt"
+    remote_archive_file_name = "/home/rolf/PycharmProjects/pmatic/applications/protocol_archive_file.txt"
+
+    protocol_max_records = 1000
 
     # Test if the remote parameter file is found. In this case the program runs on a remote computer.
     if os.path.isfile(remote_parameter_file_name):
+        logfile = Protocol(remote_protocol_file_name, remote_archive_file_name, protocol_max_records, print_to_stdout=True)
+        set_logfile_instance(logfile)
         params = parameters(remote_parameter_file_name)
         temperature_file_name = remote_temperature_file_name
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
         api = pmatic.api.init(address=params.ccu_address, credentials=(params.user, params.password))
     else:
+        logfile = Protocol(ccu_protocol_file_name, ccu_archive_file_name, protocol_max_records)
+        set_logfile_instance(logfile)
         params = parameters(ccu_parameter_file_name)
         temperature_file_name = ccu_temperature_file_name
         # For execution on CCU redirect stdout to a protocol file
-        sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/home_control.txt', encoding='utf-8', mode='a')
+        #sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/home_control.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU()
@@ -105,7 +118,7 @@ if __name__ == "__main__":
         for device in ccu.devices:
             if device.is_battery_low:
                 if not device_with_low_battery:
-                    print ""
+                    print_output("", time_stamp=False)
                     print_output(
                         "++++++++++++++++++++++++++++++++++ Devices with low battery: ++++++++++++++++++++++++++++++++++++++++")
                     device_with_low_battery = True
@@ -115,9 +128,9 @@ if __name__ == "__main__":
             print_output(
                 "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         else:
-            print ""
+            print_output("", time_stamp=False)
             print_output("All battery-powered devices are fine.")
-        print ""
+        print_output("", time_stamp=False)
 
     try:
         # Main loop
@@ -126,10 +139,10 @@ if __name__ == "__main__":
             # If parameters have changed, create a new sun object. Otherwise just update sun position.
             if params.update_parameters():
                 if params.output_level > 0:
-                    print ""
+                    print_output("", time_stamp=False)
                     print_output("Parameters have changed!")
                     params.print_parameters()
-                    print ""
+                    print_output("", time_stamp=False)
                 # Reset time stamp for last test for sunrise/sunset. This is necessary because conditions might have
                 # changed if, for example, the geographic position is changed.
                 sun.sun_is_up_last_changed = 0.
@@ -151,9 +164,9 @@ if __name__ == "__main__":
     except Exception as e:
         if params.output_level > 0:
             print_output("\n*** General error: " + str(e))
-            print ""
+            print_output("", time_stamp=False)
             formatted_lines = traceback.format_exc().splitlines()
             for line in formatted_lines[:-1]:
-                print line
-            print ""
+                print_output(line, time_stamp=False)
+            print_output("", time_stamp=False)
             time.sleep(1.)

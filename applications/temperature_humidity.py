@@ -92,7 +92,7 @@ class temperature_humidity(object):
                 self.average_humidity_external += to[2]
             self.average_humidity_external /= float(len(self.temperatures))
             if self.params.output_level > 1:
-                print ""
+                print_output("", time_stamp=False)
                 print_output(" Updating maximum and minimum external temperatures:\nNew maximum temperature: " + str(
                     self.max_temperature) + ", Time of maximum: " + str(datetime.datetime.fromtimestamp(
                     self.max_temperature_time)) + " \nNew minimum temperature: " + str(

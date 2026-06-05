@@ -97,16 +97,16 @@ def look_up_device_by_name(params, ccu, dev_name):
             print_error_message(ccu, e)
     if len(devices) == 1:
         if params.output_level > 0:
-            print dev_name
+            print_output(str(dev_name.encode('utf-8')), time_stamp=False)
         return devices[0]
     elif len(devices) > 1:
         if params.output_level > 0:
-            print " More than one device with name ", dev_name, " found, first one taken."
+            print_output(" More than one device with name " + str(dev_name.encode('utf-8')) + " found, first one taken.", time_stamp=False)
         # The following statement was added in 2024 without testing. It seems a value needs to be returned in this case.
         return devices[0]
     else:
         if params.output_level > 0:
-            print "*** Error: No device with name ", dev_name, " found, try again. ***"
+            print_output("*** Error: No device with name " + str(dev_name.encode('utf-8')) + " found, try again. ***", time_stamp=False)
         raise PMConnectionError()
 
 
@@ -128,11 +128,11 @@ def look_up_devices_by_type(params, ccu, dev_type):
     if len(devices) > 0:
         if params.output_level > 0:
             for device in devices:
-                print device.name
+                print_output(str(device.name.encode("utf-8")), time_stamp=False)
         return devices
     else:
         if params.output_level > 0:
-            print "*** Error: No device with type ", dev_type, " found, try again. ***"
+            print_output("*** Error: No device with type " + str(dev_type.encode("utf-8")) + " found, try again. ***", time_stamp=False)
         raise PMConnectionError()
 
 
@@ -172,16 +172,29 @@ def linear_regression(x, y):
     b = (sumh - a * sumt) / n
     return a, b
 
+def set_logfile_instance(lf):
+    global logfile
+    logfile = lf
 
-def print_output(output_string):
+def print_output(output_string, time_stamp= True):
     """
     Print a text string to stdout, preceded by the current UTC date and time
 
     :param output_string: character string to be printed behind the UTC time info
     :return: -
     """
-    print datetime.datetime.fromtimestamp(time.time()), output_string
-
+    global logfile
+    record_message = output_string if not time_stamp else \
+        str(datetime.datetime.fromtimestamp(time.time())) + " " + output_string
+    record_message = record_message.replace('\xc3\xb6', "oe")\
+        .replace('\xc3\xa4', "ae")\
+        .replace('\xc3\xbc',"ue")\
+        .replace('\xc3\x9f',"ss")
+    try:
+        logfile.protocol_out(record_message)
+    except Exception as e:
+        print("Error in print_output: " + str(e))
+        print(record_message)
 
 def print_error_message(ccu, exception_object):
     """
@@ -201,7 +214,7 @@ def print_error_message(ccu, exception_object):
     struct = ccu.api.device_list_all_detail()
     for item in struct:
         if item[u'address'] == address_string:
-            print_output('*** Error in accessing device "' + item[u'name'] + '" ***')
+            print_output('*** Error in accessing device "' + str(item[u'name'].encode("utf-8")) + '" ***')
             return
     print_output(err_string)
 

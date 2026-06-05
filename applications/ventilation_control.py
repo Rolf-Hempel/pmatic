@@ -40,7 +40,7 @@ class ventilation_control(object):
         self.params = params
         self.ccu = ccu
         if self.params.output_level > 0:
-            print "\nThe following devices will be used for ventilation control:"
+            print_output("\nThe following devices will be used for ventilation control:", time_stamp=False)
         ccu_not_ready_yet = True
         # Get access to the switch and internal temperature devices.
         while ccu_not_ready_yet:
@@ -176,7 +176,7 @@ if __name__ == "__main__":
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/ventilation.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU()
@@ -184,7 +184,7 @@ if __name__ == "__main__":
         params = parameters(remote_parameter_file_name)
         temperature_file_name = remote_temperature_file_name
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
@@ -202,7 +202,7 @@ if __name__ == "__main__":
     while True:
         if params.update_parameters():
             if params.output_level > 1:
-                print "\nParameters have changed!"
+                print_output("\nParameters have changed!", time_stamp=False)
                 params.print_parameters()
 
         ventilation.status_update(temperatures)

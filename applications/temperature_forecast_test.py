@@ -23,7 +23,7 @@ if __name__ == "__main__":
         params = parameters(remote_parameter_file_name)
         temperature_file_name = remote_temperature_file_name
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
@@ -34,7 +34,7 @@ if __name__ == "__main__":
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/home_control.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU()

@@ -21,7 +21,6 @@
 import json
 from miscellaneous import *
 
-
 class parameters(object):
     def __init__(self, parameter_file_name):
         self.parameter_file_name = parameter_file_name
@@ -436,7 +435,7 @@ class parameters(object):
         return (len(set_1.difference(set_2)) | len(set_2.difference(set_1)))
 
     def print_parameters(self):
-        print "\nParameters:", "\noutput_level: ", self.output_level, \
+        parameter_message_list = "\nParameters:", "\noutput_level: ", self.output_level, \
             "\nhostname: ", self.hostname, "\nCCU address: ", self.ccu_address, "\nuser: ", \
             self.user, "\npassword: ", self.password, \
             "\now_url_fcst: ", self.ow_url_fcst, \
@@ -520,7 +519,13 @@ class parameters(object):
             "\nshutter_cold_normal_shade: ", self.shutter_condition["shutter_cold_normal_shade"], \
             "\nshutter_cold_dim_sunlit: ", self.shutter_condition["shutter_cold_dim_sunlit"], \
             "\nshutter_cold_dim_shade: ", self.shutter_condition["shutter_cold_dim_shade"]
+        parameter_message = ""
 
+        for msg in parameter_message_list:
+            parameter_message += str(msg) + " "
+
+        from miscellaneous import print_output
+        print_output(parameter_message, time_stamp=False)
 
 if __name__ == "__main__":
     a = {"hostname": "Vega", "CCU address": "192.168.0.51", "user": "rolf", "output_level": "3"}

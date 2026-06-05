@@ -79,15 +79,15 @@ class switch_ventilator(object):
         try:
             if self.switch_device.is_on and not switch_on_time:
                 if self.params.output_level > 1:
-                    print_output(" Switching " + self.switch_device.name + " off")
+                    print_output(" Switching " + str(self.switch_device.name.encode("utf-8")) + " off")
                 self.switch_device.switch_off()
             elif switch_on_time and not self.switch_device.is_on and dew_point_external < current_temperature_internal\
                     and current_temperature_external < self.params.max_ventilation_temperature:
                 if self.params.output_level > 1:
-                    print_output(" Switching " + self.switch_device.name + " on, Interval index: " + str(interval_index)
+                    print_output(" Switching " + str(self.switch_device.name.encode("utf-8")) + " on, Interval index: " + str(interval_index)
                                  + ", T int: " + str(current_temperature_internal) + ", T ext: "
                                  + str(current_temperature_external) + ", Dew point: " + str(dew_point_external))
                 self.switch_device.switch_on()
         except Exception as e:
-            print e
+            print_output(e, time_stamp=False)
 

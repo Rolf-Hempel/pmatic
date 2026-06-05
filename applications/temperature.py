@@ -44,7 +44,7 @@ class temperature(object):
         self.temperature_file_name = temperature_file_name
 
         if self.params.output_level > 0:
-            print "\nThe following external temperature device will be used:"
+            print_output("\nThe following external temperature device will be used:", time_stamp=False)
         ccu_not_ready_yet = True
         while ccu_not_ready_yet:
             try:
@@ -57,13 +57,13 @@ class temperature(object):
         # Check if a file with previously written temperature information is available
         if os.path.isfile(self.temperature_file_name):
             if self.params.output_level > 1:
-                print "File with temperature measurements found, read values"
+                print_output("File with temperature measurements found, read values", time_stamp=False)
             with open(self.temperature_file_name, "r") as temperature_file:
                 self.temp_dict = json.load(temperature_file)
         else:
             # No previously stored data available, initialize a new temperature dictionary
             if self.params.output_level > 1:
-                print "No file with temperature measurements found, initialize temperature_object and create file"
+                print_output("No file with temperature measurements found, initialize temperature_object and create file", time_stamp=False)
             self.temp_dict = {}
             self.temp_dict["temperatures"] = []
             self.temp_dict["temperatures_forecast"] = []
@@ -143,52 +143,52 @@ class temperature(object):
                             min_local_hour = local_hour
                     self.temp_dict["temperatures"] = self.temp_dict["temperatures"][cut_index + 1:]
                     if max_temperature == -100. and min_temperature == 100. and self.params.output_level > 1:
-                        print "No new maximum or minimum temperature found"
+                        print_output("No new maximum or minimum temperature found", time_stamp=False)
                     else:
                         self.temp_dict["average_temperature"] = average_temperature / len(
                             self.temp_dict["temperatures"])
                         if self.params.output_level > 1:
-                            print "New average temperature (last 24 hours): " + str(
-                                self.temp_dict["average_temperature"])
+                            print_output("New average temperature (last 24 hours): " + str(
+                                self.temp_dict["average_temperature"]), time_stamp=False)
                         if max_temperature > -100.:
                             if self.params.output_level > 1:
-                                print "New maximum temperature: " + str(max_temperature) + ", Time of maximum: " + str(
-                                    datetime.datetime.fromtimestamp(max_temperature_time))
+                                print_output("New maximum temperature: " + str(max_temperature) + ", Time of maximum: " + str(
+                                    datetime.datetime.fromtimestamp(max_temperature_time)), time_stamp=False)
                             self.temp_dict["max_temperature"] = max_temperature
                             self.temp_dict["max_temperature_time"] = max_temperature_time
                             self.temp_dict["max_temperature_local_hour"] = max_local_hour
                         if min_temperature < 100.:
                             if self.params.output_level > 1:
-                                print "New minimum temperature: " + str(min_temperature) + ", Time of minimum: " + str(
-                                    datetime.datetime.fromtimestamp(min_temperature_time))
+                                print_output("New minimum temperature: " + str(min_temperature) + ", Time of minimum: " + str(
+                                    datetime.datetime.fromtimestamp(min_temperature_time)), time_stamp=False)
                             self.temp_dict["min_temperature"] = min_temperature
                             self.temp_dict["min_temperature_time"] = min_temperature_time
                             self.temp_dict["min_temperature_local_hour"] = min_local_hour
                     # Find max / min temperature values and corresponding times in forecast records.
                     self.analyze_forecast()
                     if self.temp_dict["max_forecast_temperature"] is not None and self.params.output_level > 1:
-                        print "New forecast maximum temperature: " + str(self.temp_dict["max_forecast_temperature"]) + \
-                              ", Local hour of maximum: " + str(self.temp_dict["max_forecast_temperature_local_hour"])
+                        print_output("New forecast maximum temperature: " + str(self.temp_dict["max_forecast_temperature"]) + \
+                              ", Local hour of maximum: " + str(self.temp_dict["max_forecast_temperature_local_hour"]), time_stamp=False)
                     if self.temp_dict["min_forecast_temperature"] is not None and self.params.output_level > 1:
-                        print "New forecast minimum temperature: " + str(self.temp_dict["min_forecast_temperature"]) + \
-                              ", Local hour of minimum: " + str(self.temp_dict["min_forecast_temperature_local_hour"])
+                        print_output("New forecast minimum temperature: " + str(self.temp_dict["min_forecast_temperature"]) + \
+                              ", Local hour of minimum: " + str(self.temp_dict["min_forecast_temperature_local_hour"]), time_stamp=False)
                     if self.temp_dict["average_forecast_temperature"] is not None and self.params.output_level > 1:
-                        print "New forecast average temperature: " + str(self.temp_dict["average_forecast_temperature"])
+                        print_output("New forecast average temperature: " + str(self.temp_dict["average_forecast_temperature"]), time_stamp=False)
                     self.temp_dict["minmax_time_updated"] = self.current_time
                     if self.temp_dict[
                         "ventilation_max_forecast_temperature_local_hour"] is not None and self.params.output_level > 1:
-                        print "New forecast maximum temperature next 24 hours: " + str(
+                        print_output("New forecast maximum temperature next 24 hours: " + str(
                             self.temp_dict["ventilation_max_forecast_temperature"]) + ", Local hour of maximum: " + \
-                              str(self.temp_dict["ventilation_max_forecast_temperature_local_hour"])
+                              str(self.temp_dict["ventilation_max_forecast_temperature_local_hour"]), time_stamp=False)
                     if self.temp_dict[
                         "ventilation_min_forecast_temperature_local_hour"] is not None and self.params.output_level > 1:
-                        print "New forecast minimum temperature next 24 hours: " + str(
+                        print_output("New forecast minimum temperature next 24 hours: " + str(
                             self.temp_dict["ventilation_min_forecast_temperature"]) + ", Local hour of minimum: " + \
-                              str(self.temp_dict["ventilation_min_forecast_temperature_local_hour"])
+                              str(self.temp_dict["ventilation_min_forecast_temperature_local_hour"]), time_stamp=False)
                     if self.temp_dict[
                         "ventilation_average_forecast_temperature"] is not None and self.params.output_level > 1:
-                        print "New forecast average temperature next 24 hours: " + str(
-                            self.temp_dict["ventilation_average_forecast_temperature"])
+                        print_output("New forecast average temperature next 24 hours: " + str(
+                            self.temp_dict["ventilation_average_forecast_temperature"]), time_stamp=False)
                 with open(self.temperature_file_name, 'w') as temperature_file:
                     json.dump(self.temp_dict, temperature_file)
             except Exception as e:
@@ -418,7 +418,7 @@ if __name__ == "__main__":
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/temperature.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU()
@@ -426,7 +426,7 @@ if __name__ == "__main__":
         params = parameters(remote_parameter_file_name)
         temperature_file_name = remote_temperature_file_name
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
@@ -452,5 +452,5 @@ if __name__ == "__main__":
             ", next day min. at local hour: " +
             str(temperatures.temp_dict["ventilation_min_forecast_temperature_local_hour"]))
         if params.output_level > 2:
-            print "temperature condition: ", temperatures.temperature_condition()
+            print_output("temperature condition: " + str(temperatures.temperature_condition()), time_stamp=False)
         time.sleep(params.main_loop_sleep_time)

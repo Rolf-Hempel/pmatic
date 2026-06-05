@@ -74,7 +74,8 @@ class window(object):
             try:
                 self.shutter = look_up_device_by_name(params, ccu, shutter_name)
                 ccu_not_ready_yet = False
-            except:
+            except Exception as e:
+                print("Error in window.__init__(): " + str(e))
                 time.sleep(params.main_loop_sleep_time)
 
     def add_lower_profile_point(self, base_azimuth, azimuth, elevation):
@@ -156,7 +157,7 @@ class window(object):
 
         # Check if azimuth is out of range:
         if sun_azimuth <= profile[0][0] or sun_azimuth > profile[-1][0]:
-            print_output('*** Error: invalid profile for window ' + self.window_name + ' ***')
+            print_output('*** Error: invalid profile for window ' + str(self.window_name.encode("utf-8")) + ' ***')
             return -1.
         for [azimuth, elevation] in profile:
             if azimuth < sun_azimuth:
@@ -246,13 +247,13 @@ class window(object):
                             self.params.shutter_setting_tolerance and self.shutter_last_setting != -1.:
                         if abs(self.shutter_current_setting - 1.) <= self.params.shutter_setting_tolerance:
                             if self.params.output_level > 1:
-                                print_output("End of manual intervention for shutter " + self.shutter_name)
+                                print_output("End of manual intervention for shutter " + str(self.shutter_name.encode("utf-8")))
                             end_of_manual_intervention = True
                             self.shutter_manual_intervention_active = False
                         else:
                             if self.params.output_level > 1:
                                 print_output(
-                                    "Manual intervention for shutter " + self.shutter_name + " found, new level: "
+                                    "Manual intervention for shutter " + str(self.shutter_name.encode("utf-8")) + " found, new level: "
                                     + str(self.shutter_current_setting))
                             self.shutter_manual_intervention_active = True
                     self.shutter_last_setting = self.shutter_current_setting
@@ -269,7 +270,7 @@ class window(object):
                             self.shutter_manual_intervention_active and (
                             not_at_night(self.params) or self.sysvar_act.changed)) or end_of_manual_intervention:
                     if self.params.output_level > 1:
-                        print_output("Setting shutter " + self.shutter_name + " to new level: " + str(true_setting))
+                        print_output("Setting shutter " + str(self.shutter_name.encode("utf-8")) + " to new level: " + str(true_setting))
                     # Move the shutter
                     success = self.shutter.blind.set_level(nominal_setting)
                     # After a shutter operation, wait for a pre-defined period in order to avoid radio interference
@@ -298,7 +299,7 @@ class windows(object):
         self.window_list = []
 
         if self.params.output_level > 0:
-            print "\nThe following shutter devices are used:"
+            print_output("\nThe following shutter devices are used:", time_stamp = False)
         # Initialize all windows. Set open sky areas and coefficients for translating true to nominal shutter settings
 
         window_name = u'Badezimmer'
@@ -574,10 +575,10 @@ class windows(object):
 
         # Print a list of all windows
         if self.params.output_level > 0:
-            print "\nWindows with shutter control:"
+            print_output("\nWindows with shutter control:", time_stamp = False)
             for wn in self.window_list:
-                print "Room: ", self.window_dict[wn].room_name, ", Window: ", self.window_dict[wn].window_name, \
-                    ", Device: ", self.window_dict[wn].shutter_name
+                print_output("Room: " + str(self.window_dict[wn].room_name.encode("utf-8")) + ", Window: " + str(self.window_dict[wn].window_name.encode("utf-8")) + \
+                    ", Device: " + str(self.window_dict[wn].shutter_name.encode("utf-8")), time_stamp=False)
 
     def adjust_all_shutters(self, temperatures, brightnesses):
         # Don't move shutters if shutter activities are suspended or if at night.
@@ -626,7 +627,7 @@ if __name__ == "__main__":
         params = parameters(remote_parameter_file_name)
         temperature_file_name = remote_temperature_file_name
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
@@ -639,7 +640,7 @@ if __name__ == "__main__":
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/shutter_control.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU()

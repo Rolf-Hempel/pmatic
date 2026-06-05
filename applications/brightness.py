@@ -39,7 +39,7 @@ class brightness(object):
         self.params = params
         self.ccu = ccu
         if self.params.output_level > 0:
-            print "\nThe following brightness devices will be used:"
+            print_output("\nThe following brightness devices will be used:", time_stamp=False)
         ccu_not_ready_yet = True
         while ccu_not_ready_yet:
             try:
@@ -73,7 +73,7 @@ class brightness(object):
                 try:
                     if brightness_device.is_battery_low:
                         if not self.low_battery_found[brightness_device.name] and self.params.output_level > 0:
-                            print_output('*** Warning: Brightness device ' + brightness_device.name +
+                            print_output('*** Warning: Brightness device ' + str(brightness_device.name.encode("utf-8")) +
                                          ' has low battery. ***')
                             self.low_battery_found[brightness_device.name] = True
                     else:
@@ -189,14 +189,14 @@ if __name__ == "__main__":
         # For execution on CCU redirect stdout to a protocol file
         sys.stdout = codecs.open('/media/sd-mmcblk0/protocols/brightness.txt', encoding='utf-8', mode='a')
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Local Execution on CCU +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU()
     else:
         params = parameters(remote_parameter_file_name)
         if params.output_level > 0:
-            print ""
+            print_output("", time_stamp=False)
             print_output(
                 "++++++++++++++++++++++++++++++++++ Start Remote Execution on PC +++++++++++++++++++++++++++++++++++++")
         ccu = pmatic.CCU(address=params.ccu_address, credentials=(params.user, params.password), connect_timeout=5)
@@ -209,5 +209,6 @@ if __name__ == "__main__":
     while True:
         brightness_measurements.update()
         if params.output_level > 2:
-            print "brightness condition: ", brightness_measurements.brightness_condition()
+            print_output("brightness condition: " + brightness_measurements.brightness_condition(), time_stamp=False)
+
         time.sleep(params.main_loop_sleep_time)
